@@ -9,8 +9,11 @@
     "lint": "eslint --fix"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.9.0",
+    "@heroui/avatar": "^2.2.20",
     "@heroui/button": "2.2.24",
     "@heroui/code": "2.2.18",
+    "@heroui/dropdown": "2.3.23-beta.2",
     "@heroui/input": "2.4.25",
     "@heroui/kbd": "2.2.19",
     "@heroui/link": "2.2.21",
@@ -19,6 +22,7 @@
     "@heroui/snippet": "2.2.25",
     "@heroui/switch": "2.2.22",
     "@heroui/system": "2.4.20",
+    "@heroui/tabs": "^2.2.21",
     "@heroui/theme": "2.4.20",
     "@react-aria/ssr": "3.9.10",
     "@react-aria/visually-hidden": "3.8.26",
@@ -27,8 +31,10 @@
     "intl-messageformat": "10.7.16",
     "next": "15.3.1",
     "next-themes": "0.4.6",
+    "pnpm": "^10.14.0",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "recharts": "^3.1.2"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "15.3.4",
