@@ -7,7 +7,7 @@ import { PlusIcon } from '@/components/icons';
 import BookingsTable from '@/components/BookingsTable';
 import BookingsFilters, { type BookingsFilters as BookingsFiltersType } from '@/components/BookingsFilters';
 import { useBookings, useUpdateBooking, useDeleteBooking } from '@/hooks/useBookings';
-import type { Booking } from '@/app/api/bookings/route';
+import type { PopulatedBooking } from '@/types';
 
 export default function BookingsPage() {
   const [filters, setFilters] = useState<BookingsFiltersType>({});
@@ -42,7 +42,7 @@ export default function BookingsPage() {
     if (booking) {
       try {
         await updateBooking.mutateAsync({
-          ...booking,
+          _id: booking._id,
           status: newStatus as any,
         });
         // Manually revalidate SWR data
@@ -53,20 +53,21 @@ export default function BookingsPage() {
     }
   };
 
-  const handleViewDetails = (booking: Booking) => {
+  const handleViewDetails = (booking: PopulatedBooking) => {
     // TODO: Implement booking details modal
-    console.log('View details for booking:', booking.id);
+    console.log('View details for booking:', booking._id);
   };
 
-  const handleEdit = (booking: Booking) => {
+  const handleEdit = (booking: PopulatedBooking) => {
     // TODO: Implement booking edit modal
-    console.log('Edit booking:', booking.id);
+    console.log('Edit booking:', booking._id);
   };
 
-  const handleDelete = async (booking: Booking) => {
-    if (confirm(`Are you sure you want to delete the booking for ${booking.guest.name}? This action cannot be undone.`)) {
+  const handleDelete = async (booking: PopulatedBooking) => {
+    const guest = booking.guest || booking.customer;
+    if (confirm(`Are you sure you want to delete the booking for ${guest?.name || 'this guest'}? This action cannot be undone.`)) {
       try {
-        await deleteBooking.mutateAsync(booking.id);
+        await deleteBooking.mutateAsync(booking._id);
         // Manually revalidate SWR data
         mutate();
       } catch (error) {
@@ -112,7 +113,7 @@ export default function BookingsPage() {
           filters={filters}
           onFiltersChange={handleFiltersChange}
           onReset={handleResetFilters}
-          totalCount={bookingsData?.pagination.totalItems}
+          totalCount={bookingsData?.pagination.totalBookings}
         />
       </div>
 

@@ -1,32 +1,73 @@
-# Next.js & HeroUI Template
+# The Wild Oasis - Hotel Management System
 
-This is a template for creating applications using Next.js 14 (app directory) and HeroUI (v2).
+A modern hotel management dashboard built with Next.js 15, HeroUI, and MongoDB. Features comprehensive cabin management, booking system, customer profiles, and business analytics.
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/heroui/next-app-template)
+## 🚀 Features
 
-## Technologies Used
+- **Dashboard**: Real-time statistics, revenue charts, occupancy rates
+- **Cabin Management**: CRUD operations, filtering, capacity management
+- **Booking System**: Reservation management, status tracking, payment processing
+- **Customer Profiles**: Guest information, booking history, preferences
+- **Settings**: Business rules, pricing, policies configuration
+- **Dark Mode**: Full theme support with smooth transitions
+- **Mobile Responsive**: Optimized for all device sizes
 
-- [Next.js 14](https://nextjs.org/docs/getting-started)
-- [HeroUI v2](https://heroui.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [next-themes](https://github.com/pacocoursey/next-themes)
+## 🛠 Technologies Used
 
-## How to Use
+- [Next.js 15](https://nextjs.org/) - React framework with App Router
+- [HeroUI v2](https://heroui.com/) - Modern React UI library
+- [MongoDB](https://mongodb.com/) - NoSQL database with Mongoose ODM
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Recharts](https://recharts.org/) - Data visualization library
+- [SWR](https://swr.vercel.app/) - Data fetching and caching
+- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
 
-### Use the template with create-next-app
+## 📦 Quick Start
 
-To create a new project based on this template using `create-next-app`, run the following command:
+### 1. Install Dependencies
 
 ```bash
-npx create-next-app -e https://github.com/heroui-inc/next-app-template
+pnpm install
 ```
 
-### Install dependencies
+### 2. Setup Database
 
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
+**Option A: MongoDB Atlas (Recommended)**
+1. Create free account at https://mongodb.com/atlas
+2. Create cluster and get connection string
+3. Update `.env.local`:
+```env
+MONGODB_URI=mongodb+srv://username:password@cluster.xxxxx.mongodb.net/thewildoasis
+```
+
+**Option B: Local MongoDB**
+1. Install MongoDB Community Server
+2. Start MongoDB service
+3. Use existing `.env.local` configuration
+
+### 3. Initialize Database
+
+```bash
+# Test connection
+pnpm tsx scripts/test-connection.ts
+
+# Seed with sample data
+pnpm seed
+```
+
+### 4. Start Development
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see your hotel management dashboard!
+
+## 📚 Detailed Setup
+
+For detailed MongoDB setup instructions, see [MONGODB_SETUP.md](./MONGODB_SETUP.md)
+
+## 🎯 Project Structure
 
 ```bash
 npm install

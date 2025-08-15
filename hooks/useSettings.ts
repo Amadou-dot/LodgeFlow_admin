@@ -2,7 +2,6 @@
 
 import useSWR from 'swr';
 import { useMutation } from '@tanstack/react-query';
-import type { AppSettings } from '@/app/api/settings/route';
 
 // Fetcher function for SWR
 const fetcher = (url: string) => fetch(url).then((res) => {
@@ -10,11 +9,17 @@ const fetcher = (url: string) => fetch(url).then((res) => {
     throw new Error('Failed to fetch settings');
   }
   return res.json();
+}).then((result) => {
+  // Handle new API response format
+  if (result.success) {
+    return result.data;
+  }
+  throw new Error(result.error || 'Failed to fetch settings');
 });
 
 // Fetch app settings using SWR
 export const useSettings = () => {
-  const { data, error, isLoading, mutate } = useSWR<AppSettings>(
+  const { data, error, isLoading, mutate } = useSWR<any>(
     '/api/settings',
     fetcher,
     {
@@ -34,7 +39,7 @@ export const useSettings = () => {
 // Update settings
 export const useUpdateSettings = () => {
   return useMutation({
-    mutationFn: async (settings: Partial<AppSettings>): Promise<AppSettings> => {
+    mutationFn: async (settings: Partial<any>) => {
       const response = await fetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -45,7 +50,12 @@ export const useUpdateSettings = () => {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to update settings');
       }
-      return response.json();
+      
+      const result = await response.json();
+      if (result.success) {
+        return result.data;
+      }
+      throw new Error(result.error || 'Failed to update settings');
     },
   });
 };
@@ -53,7 +63,7 @@ export const useUpdateSettings = () => {
 // Reset settings to defaults
 export const useResetSettings = () => {
   return useMutation({
-    mutationFn: async (): Promise<AppSettings> => {
+    mutationFn: async (): Promise<any> => {
       const response = await fetch('/api/settings', {
         method: 'POST',
       });

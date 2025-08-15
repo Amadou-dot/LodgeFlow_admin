@@ -2,35 +2,35 @@
 
 import useSWR from 'swr';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Booking } from '@/app/api/bookings/route';
+import type { Booking, PopulatedBooking, BookingsFilters, PaginationMeta } from '@/types';
 
 interface BookingsResponse {
-  bookings: Booking[];
+  bookings: PopulatedBooking[];
   pagination: {
     currentPage: number;
     totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
+    totalBookings: number;
+    limit: number;
     hasNextPage: boolean;
-    hasPreviousPage: boolean;
+    hasPrevPage: boolean;
   };
 }
 
-interface BookingsFilters {
-  page?: number;
-  limit?: number;
-  status?: string;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
 // Fetcher function for SWR
-const fetcher = (url: string) => fetch(url).then((res) => {
+const fetcher = (url: string): Promise<BookingsResponse> => fetch(url).then((res) => {
   if (!res.ok) {
     throw new Error('Failed to fetch bookings');
   }
   return res.json();
+}).then((result) => {
+  // Handle new API response format
+  if (result.success) {
+    return {
+      bookings: result.data as PopulatedBooking[],
+      pagination: result.pagination,
+    };
+  }
+  throw new Error(result.error || 'Failed to fetch bookings');
 });
 
 // Fetch bookings with filters and pagination using SWR
@@ -92,17 +92,18 @@ export const useUpdateBooking = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (booking: Booking): Promise<Booking> => {
+    mutationFn: async (updateData: Partial<Booking> & { _id: string }): Promise<PopulatedBooking> => {
       const response = await fetch('/api/bookings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(booking),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
         throw new Error('Failed to update booking');
       }
-      return response.json();
+      const result = await response.json();
+      return result.success ? result.data : result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
@@ -115,7 +116,7 @@ export const useDeleteBooking = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (bookingId: number): Promise<void> => {
+    mutationFn: async (bookingId: string): Promise<void> => {
       const response = await fetch(`/api/bookings?id=${bookingId}`, {
         method: 'DELETE',
       });

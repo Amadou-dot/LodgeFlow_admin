@@ -5,7 +5,7 @@ import { Card, CardBody, CardFooter } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown';
 import Image from 'next/image';
-import type { Cabin } from '@/app/api/cabins/route';
+import type { Cabin } from '@/types';
 
 interface CabinCardProps {
   cabin: Cabin;

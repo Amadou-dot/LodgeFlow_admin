@@ -4,7 +4,7 @@ export const formatBookingDates = (
   checkIn: string,
   checkOut: string,
   numNights: number,
-  status: 'unconfirmed' | 'checked-in' | 'checked-out' | 'cancelled'
+  status: 'unconfirmed' | 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled'
 ) => {
   const checkInDate = new Date(checkIn);
   const checkOutDate = new Date(checkOut);
@@ -27,6 +27,7 @@ export const formatBookingDates = (
       timeInfo = `${formatDistanceToNow(checkOutDate, { addSuffix: true })} → ${numNights} night${numNights !== 1 ? 's' : ''} stay`;
       break;
     
+    case 'confirmed':
     case 'unconfirmed':
       // Future booking - show time until check-in
       if (isAfter(checkInDate, now)) {
@@ -54,12 +55,14 @@ export const getStatusColor = (status: string) => {
   switch (status) {
     case 'unconfirmed':
       return 'warning';
+    case 'confirmed':
+      return 'primary';
     case 'checked-in':
       return 'success';
     case 'checked-out':
-      return 'primary';
-    case 'cancelled':
       return 'default';
+    case 'cancelled':
+      return 'danger';
     default:
       return 'default';
   }
@@ -69,6 +72,8 @@ export const getStatusLabel = (status: string) => {
   switch (status) {
     case 'unconfirmed':
       return 'Unconfirmed';
+    case 'confirmed':
+      return 'Confirmed';
     case 'checked-in':
       return 'Checked In';
     case 'checked-out':

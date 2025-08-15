@@ -7,9 +7,10 @@ import { Card, CardBody } from '@heroui/card';
 import { PlusIcon } from '@/components/icons';
 import CabinCard from '@/components/CabinCard';
 import CabinModal from '@/components/CabinModal';
-import CabinFilters, { type CabinFilters as CabinFiltersType } from '@/components/CabinFilters';
+import CabinFilters from '@/components/CabinFilters';
+import type { CabinFilters as CabinFiltersType } from '@/types';
 import { useCabins, useDeleteCabin } from '@/hooks/useCabins';
-import type { Cabin } from '@/app/api/cabins/route';
+import type { Cabin } from '@/types';
 
 export default function CabinsPage() {
   const [filters, setFilters] = useState<CabinFiltersType>({});

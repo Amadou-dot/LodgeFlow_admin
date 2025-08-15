@@ -6,7 +6,7 @@ import { Button } from '@heroui/button';
 import { Input, Textarea } from '@heroui/input';
 import { Chip } from '@heroui/chip';
 import Image from 'next/image';
-import type { Cabin } from '@/app/api/cabins/route';
+import type { Cabin } from '@/types';
 import { useCreateCabin, useUpdateCabin } from '@/hooks/useCabins';
 
 interface CabinModalProps {

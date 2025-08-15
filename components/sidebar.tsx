@@ -24,6 +24,11 @@ const sidebarItems = [
     icon: '📅',
   },
   {
+    label: 'Guests',
+    href: '/guests',
+    icon: '👥',
+  },
+  {
     label: 'Settings',
     href: '/settings',
     icon: '⚙️',

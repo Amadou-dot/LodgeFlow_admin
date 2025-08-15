@@ -8,7 +8,7 @@ import { Select, SelectItem } from '@heroui/select';
 import { Switch } from '@heroui/switch';
 import { Divider } from '@heroui/divider';
 import { Chip } from '@heroui/chip';
-import type { AppSettings } from '@/app/api/settings/route';
+import type { AppSettings } from '@/types';
 import { useUpdateSettings, useResetSettings } from '@/hooks/useSettings';
 
 interface SettingsFormProps {

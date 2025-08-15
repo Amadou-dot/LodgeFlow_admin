@@ -1,11 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Cabin } from '@/app/api/cabins/route';
-
-interface CabinFilters {
-  filter?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
+import type { Cabin, CabinFilters, CreateCabinData, UpdateCabinData } from '@/types';
 
 export function useCabins(filters: CabinFilters = {}) {
   const queryParams = new URLSearchParams();
@@ -21,7 +15,8 @@ export function useCabins(filters: CabinFilters = {}) {
       if (!response.ok) {
         throw new Error('Failed to fetch cabins');
       }
-      return response.json();
+      const result = await response.json();
+      return result.success ? result.data : result; // Handle both old and new format
     },
   });
 }
@@ -30,7 +25,7 @@ export function useCreateCabin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (cabin: Omit<Cabin, 'id' | 'created_at'>) => {
+    mutationFn: async (cabin: CreateCabinData) => {
       const response = await fetch('/api/cabins', {
         method: 'POST',
         headers: {
@@ -40,10 +35,12 @@ export function useCreateCabin() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to create cabin');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create cabin');
       }
       
-      return response.json();
+      const result = await response.json();
+      return result.success ? result.data : result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });
@@ -55,8 +52,8 @@ export function useUpdateCabin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (cabin: Cabin) => {
-      const response = await fetch('/api/cabins', {
+    mutationFn: async (cabin: UpdateCabinData) => {
+      const response = await fetch(`/api/cabins/${cabin._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -65,10 +62,12 @@ export function useUpdateCabin() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to update cabin');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update cabin');
       }
       
-      return response.json();
+      const result = await response.json();
+      return result.success ? result.data : result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });
@@ -80,16 +79,18 @@ export function useDeleteCabin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: number) => {
-      const response = await fetch(`/api/cabins?id=${id}`, {
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/cabins/${id}`, {
         method: 'DELETE',
       });
       
       if (!response.ok) {
-        throw new Error('Failed to delete cabin');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete cabin');
       }
       
-      return response.json();
+      const result = await response.json();
+      return result.success ? result : result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });

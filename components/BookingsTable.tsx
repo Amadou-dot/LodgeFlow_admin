@@ -15,19 +15,19 @@ import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/d
 import { Button } from '@heroui/button';
 import { Pagination } from '@heroui/pagination';
 import { Spinner } from '@heroui/spinner';
-import type { Booking } from '@/app/api/bookings/route';
+import type { PopulatedBooking } from '@/types';
 import { formatBookingDates, getStatusColor, getStatusLabel } from '@/utils/bookingUtils';
 
 interface BookingsTableProps {
-  bookings: Booking[];
+  bookings: PopulatedBooking[];
   isLoading?: boolean;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
   onStatusChange?: (bookingId: number, newStatus: string) => void;
-  onViewDetails?: (booking: Booking) => void;
-  onEdit?: (booking: Booking) => void;
-  onDelete?: (booking: Booking) => void;
+  onViewDetails?: (booking: PopulatedBooking) => void;
+  onEdit?: (booking: PopulatedBooking) => void;
+  onDelete?: (booking: PopulatedBooking) => void;
 }
 
 export default function BookingsTable({
@@ -53,31 +53,39 @@ export default function BookingsTable({
   // Determine loading state: show loading only if we have no data and are loading
   const loadingState = isLoading && bookings.length === 0 ? "loading" : "idle";
 
-  const renderCell = (booking: Booking, columnKey: string) => {
+  const renderCell = (booking: PopulatedBooking, columnKey: string) => {
     switch (columnKey) {
       case 'cabin':
         return (
           <div className="font-medium text-foreground">
-            {booking.cabinName}
+            {booking.cabinName || booking.cabin?.name || 'N/A'}
           </div>
         );
 
       case 'guest':
+        const guest = booking.guest || booking.customer;
         return (
           <User
-            name={booking.guest.name}
-            description={booking.guest.email}
+            name={guest?.name || 'N/A'}
+            description={guest?.email || 'N/A'}
             avatarProps={{
-              name: booking.guest.name,
+              name: guest?.name,
               size: 'sm',
             }}
           />
         );
 
       case 'dates':
+        const checkInDate = booking.checkInDate instanceof Date 
+          ? booking.checkInDate.toISOString() 
+          : booking.checkInDate;
+        const checkOutDate = booking.checkOutDate instanceof Date 
+          ? booking.checkOutDate.toISOString() 
+          : booking.checkOutDate;
+          
         const { dateRange, timeInfo, showTimeInfo } = formatBookingDates(
-          booking.checkInDate,
-          booking.checkOutDate,
+          checkInDate,
+          checkOutDate,
           booking.numNights,
           booking.status
         );

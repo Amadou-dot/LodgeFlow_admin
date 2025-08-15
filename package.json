@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint --fix"
+    "lint": "eslint --fix",
+    "seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",
@@ -41,6 +42,8 @@
     "date-fns": "^4.1.0",
     "framer-motion": "11.18.2",
     "intl-messageformat": "10.7.16",
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.17.1",
     "next": "15.3.1",
     "next-themes": "0.4.6",
     "pnpm": "^10.14.0",
@@ -73,6 +76,7 @@
     "prettier": "3.5.3",
     "tailwind-variants": "2.0.1",
     "tailwindcss": "4.1.11",
+    "tsx": "^4.19.2",
     "typescript": "5.6.3"
   }
 }

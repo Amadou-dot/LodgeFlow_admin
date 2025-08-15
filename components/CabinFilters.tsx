@@ -5,14 +5,7 @@ import { Select, SelectItem } from '@heroui/select';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { SearchIcon } from './icons';
-
-export interface CabinFilters {
-  capacity?: 'small' | 'medium' | 'large';
-  discount?: 'with' | 'without';
-  sortBy?: 'name' | 'price' | 'capacity';
-  sortOrder?: 'asc' | 'desc';
-  search?: string;
-}
+import type { CabinFilters } from '@/types';
 
 interface CabinFiltersProps {
   filters: CabinFilters;

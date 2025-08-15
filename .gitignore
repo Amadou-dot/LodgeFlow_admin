@@ -40,3 +40,6 @@ package-lock.json
 bun.lockb
 /.vscode/
 .vscode/settings.json
+
+.env
+.env.*
