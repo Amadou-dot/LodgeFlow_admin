@@ -1,13 +1,13 @@
-import '@/styles/globals.css';
-import clsx from 'clsx';
-import { Metadata, Viewport } from 'next';
+import "@/styles/globals.css";
+import clsx from "clsx";
+import { Metadata, Viewport } from "next";
 
-import { Providers } from './providers';
+import { Providers } from "./providers";
 
-import { Navbar } from '@/components/navbar';
-import { Sidebar } from '@/components/sidebar';
-import { fontSans } from '@/config/fonts';
-import { siteConfig } from '@/config/site';
+import { Navbar } from "@/components/navbar";
+import { Sidebar } from "@/components/sidebar";
+import { fontSans } from "@/config/fonts";
+import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
   title: {
@@ -16,14 +16,14 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   icons: {
-    icon: '/icon.png',
+    icon: "/icon.png",
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
   ],
 };
 
@@ -33,20 +33,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning lang='en'>
+    <html suppressHydrationWarning lang="en">
       <head />
       <body
         className={clsx(
-          'min-h-screen text-foreground bg-background font-sans antialiased',
-          fontSans.variable
-        )}>
-        <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
-          <div className='flex h-screen'>
+          "min-h-screen text-foreground bg-background font-sans antialiased",
+          fontSans.variable,
+        )}
+      >
+        <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+          <div className="flex h-screen">
             <Sidebar />
-            <div className='flex flex-col flex-1 overflow-hidden'>
+            <div className="flex flex-col flex-1 overflow-hidden">
               <Navbar />
-              <main className='flex-1 overflow-auto'>
-                <div className=' mx-auto  pt-6 px-6 h-full'>{children}</div>
+              <main className="flex-1 overflow-auto">
+                <div className=" mx-auto  pt-6 px-6 h-full">{children}</div>
               </main>
             </div>
             {/* <footer className='w-full flex items-center justify-center py-3 border-t border-default-200'>

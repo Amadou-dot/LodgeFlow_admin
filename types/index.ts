@@ -1,8 +1,8 @@
 import { SVGProps } from "react";
-import type { ICabin } from '@/models/Cabin';
-import type { ICustomer } from '@/models/Customer';
-import type { IBooking } from '@/models/Booking';
-import type { ISettings } from '@/models/Settings';
+import type { ICabin } from "@/models/Cabin";
+import type { ICustomer } from "@/models/Customer";
+import type { IBooking } from "@/models/Booking";
+import type { ISettings } from "@/models/Settings";
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
@@ -15,7 +15,11 @@ export type Booking = IBooking;
 export type Settings = ISettings;
 
 // Extended types for populated models (used in API responses)
-export interface PopulatedBooking extends Omit<IBooking, 'cabin' | 'customer' | 'checkInDate' | 'checkOutDate'> {
+export interface PopulatedBooking
+  extends Omit<
+    IBooking,
+    "cabin" | "customer" | "checkInDate" | "checkOutDate"
+  > {
   cabin: ICabin;
   customer: ICustomer;
   checkInDate: string | Date; // API returns string, but might be Date in some contexts
@@ -60,9 +64,9 @@ export interface PaginationMeta {
 export interface CabinFilters {
   filter?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-  capacity?: 'small' | 'medium' | 'large';
-  discount?: 'with' | 'without';
+  sortOrder?: "asc" | "desc";
+  capacity?: "small" | "medium" | "large";
+  discount?: "with" | "without";
   search?: string;
 }
 
@@ -72,7 +76,7 @@ export interface BookingsFilters {
   status?: string;
   search?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface CustomersFilters {
@@ -80,5 +84,5 @@ export interface CustomersFilters {
   limit?: number;
   search?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }

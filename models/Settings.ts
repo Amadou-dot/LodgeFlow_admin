@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface ISettings extends Document {
   _id: string;
@@ -8,7 +8,7 @@ export interface ISettings extends Document {
   breakfastPrice: number;
   checkInTime: string;
   checkOutTime: string;
-  cancellationPolicy: 'flexible' | 'moderate' | 'strict';
+  cancellationPolicy: "flexible" | "moderate" | "strict";
   requireDeposit: boolean;
   depositPercentage: number;
   allowPets: boolean;
@@ -52,57 +52,58 @@ const SettingsSchema: Schema = new Schema(
   {
     minBookingLength: {
       type: Number,
-      required: [true, 'Minimum booking length is required'],
-      min: [1, 'Minimum booking length must be at least 1 day'],
-      max: [30, 'Minimum booking length cannot exceed 30 days'],
+      required: [true, "Minimum booking length is required"],
+      min: [1, "Minimum booking length must be at least 1 day"],
+      max: [30, "Minimum booking length cannot exceed 30 days"],
     },
     maxBookingLength: {
       type: Number,
-      required: [true, 'Maximum booking length is required'],
-      min: [1, 'Maximum booking length must be at least 1 day'],
-      max: [365, 'Maximum booking length cannot exceed 365 days'],
+      required: [true, "Maximum booking length is required"],
+      min: [1, "Maximum booking length must be at least 1 day"],
+      max: [365, "Maximum booking length cannot exceed 365 days"],
       validate: {
-        validator: function(this: ISettings, maxLength: number) {
+        validator: function (this: ISettings, maxLength: number) {
           return maxLength >= this.minBookingLength;
         },
-        message: 'Maximum booking length must be greater than or equal to minimum booking length',
+        message:
+          "Maximum booking length must be greater than or equal to minimum booking length",
       },
     },
     maxGuestsPerBooking: {
       type: Number,
-      required: [true, 'Maximum guests per booking is required'],
-      min: [1, 'Maximum guests must be at least 1'],
-      max: [50, 'Maximum guests cannot exceed 50'],
+      required: [true, "Maximum guests per booking is required"],
+      min: [1, "Maximum guests must be at least 1"],
+      max: [50, "Maximum guests cannot exceed 50"],
     },
     breakfastPrice: {
       type: Number,
-      required: [true, 'Breakfast price is required'],
-      min: [0, 'Breakfast price must be positive'],
+      required: [true, "Breakfast price is required"],
+      min: [0, "Breakfast price must be positive"],
     },
     checkInTime: {
       type: String,
-      required: [true, 'Check-in time is required'],
+      required: [true, "Check-in time is required"],
       validate: {
-        validator: function(v: string) {
+        validator: function (v: string) {
           return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
         },
-        message: 'Check-in time must be in HH:MM format',
+        message: "Check-in time must be in HH:MM format",
       },
     },
     checkOutTime: {
       type: String,
-      required: [true, 'Check-out time is required'],
+      required: [true, "Check-out time is required"],
       validate: {
-        validator: function(v: string) {
+        validator: function (v: string) {
           return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
         },
-        message: 'Check-out time must be in HH:MM format',
+        message: "Check-out time must be in HH:MM format",
       },
     },
     cancellationPolicy: {
       type: String,
-      enum: ['flexible', 'moderate', 'strict'],
-      default: 'moderate',
+      enum: ["flexible", "moderate", "strict"],
+      default: "moderate",
     },
     requireDeposit: {
       type: Boolean,
@@ -110,9 +111,9 @@ const SettingsSchema: Schema = new Schema(
     },
     depositPercentage: {
       type: Number,
-      required: [true, 'Deposit percentage is required'],
-      min: [0, 'Deposit percentage must be positive'],
-      max: [100, 'Deposit percentage cannot exceed 100'],
+      required: [true, "Deposit percentage is required"],
+      min: [0, "Deposit percentage must be positive"],
+      max: [100, "Deposit percentage cannot exceed 100"],
     },
     allowPets: {
       type: Boolean,
@@ -121,7 +122,7 @@ const SettingsSchema: Schema = new Schema(
     petFee: {
       type: Number,
       default: 0,
-      min: [0, 'Pet fee must be positive'],
+      min: [0, "Pet fee must be positive"],
     },
     smokingAllowed: {
       type: Boolean,
@@ -130,12 +131,12 @@ const SettingsSchema: Schema = new Schema(
     earlyCheckInFee: {
       type: Number,
       default: 0,
-      min: [0, 'Early check-in fee must be positive'],
+      min: [0, "Early check-in fee must be positive"],
     },
     lateCheckOutFee: {
       type: Number,
       default: 0,
-      min: [0, 'Late check-out fee must be positive'],
+      min: [0, "Late check-out fee must be positive"],
     },
     wifiIncluded: {
       type: Boolean,
@@ -148,54 +149,64 @@ const SettingsSchema: Schema = new Schema(
     parkingFee: {
       type: Number,
       default: 0,
-      min: [0, 'Parking fee must be positive'],
+      min: [0, "Parking fee must be positive"],
     },
     currency: {
       type: String,
-      default: 'USD',
+      default: "USD",
       uppercase: true,
-      minlength: [3, 'Currency code must be 3 characters'],
-      maxlength: [3, 'Currency code must be 3 characters'],
+      minlength: [3, "Currency code must be 3 characters"],
+      maxlength: [3, "Currency code must be 3 characters"],
     },
     timezone: {
       type: String,
-      default: 'UTC',
+      default: "UTC",
     },
     businessHours: {
       open: {
         type: String,
-        default: '09:00',
+        default: "09:00",
         validate: {
-          validator: function(v: string) {
+          validator: function (v: string) {
             return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
           },
-          message: 'Business open time must be in HH:MM format',
+          message: "Business open time must be in HH:MM format",
         },
       },
       close: {
         type: String,
-        default: '18:00',
+        default: "18:00",
         validate: {
-          validator: function(v: string) {
+          validator: function (v: string) {
             return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
           },
-          message: 'Business close time must be in HH:MM format',
+          message: "Business close time must be in HH:MM format",
         },
       },
-      daysOpen: [{
-        type: String,
-        enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-      }],
+      daysOpen: [
+        {
+          type: String,
+          enum: [
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+            "sunday",
+          ],
+        },
+      ],
     },
     contactInfo: {
       phone: {
         type: String,
         trim: true,
         validate: {
-          validator: function(v: string) {
+          validator: function (v: string) {
             return !v || /^[\+]?[1-9][\d]{0,15}$/.test(v);
           },
-          message: 'Please provide a valid phone number',
+          message: "Please provide a valid phone number",
         },
       },
       email: {
@@ -203,10 +214,10 @@ const SettingsSchema: Schema = new Schema(
         lowercase: true,
         trim: true,
         validate: {
-          validator: function(v: string) {
+          validator: function (v: string) {
             return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
           },
-          message: 'Please provide a valid email address',
+          message: "Please provide a valid email address",
         },
       },
       address: {
@@ -227,14 +238,14 @@ const SettingsSchema: Schema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Ensure only one settings document exists
 SettingsSchema.index({}, { unique: true });
 
 // Static method to get or create settings
-SettingsSchema.statics.getSettings = async function() {
+SettingsSchema.statics.getSettings = async function () {
   let settings = await this.findOne();
   if (!settings) {
     settings = await this.create({
@@ -242,9 +253,9 @@ SettingsSchema.statics.getSettings = async function() {
       maxBookingLength: 30,
       maxGuestsPerBooking: 8,
       breakfastPrice: 15,
-      checkInTime: '15:00',
-      checkOutTime: '11:00',
-      cancellationPolicy: 'moderate',
+      checkInTime: "15:00",
+      checkOutTime: "11:00",
+      cancellationPolicy: "moderate",
       requireDeposit: true,
       depositPercentage: 25,
       allowPets: true,
@@ -255,12 +266,20 @@ SettingsSchema.statics.getSettings = async function() {
       wifiIncluded: true,
       parkingIncluded: false,
       parkingFee: 10,
-      currency: 'USD',
-      timezone: 'UTC',
+      currency: "USD",
+      timezone: "UTC",
       businessHours: {
-        open: '09:00',
-        close: '18:00',
-        daysOpen: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+        open: "09:00",
+        close: "18:00",
+        daysOpen: [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday",
+        ],
       },
       notifications: {
         emailEnabled: true,
@@ -275,13 +294,14 @@ SettingsSchema.statics.getSettings = async function() {
 };
 
 // Virtual for full contact address
-SettingsSchema.virtual('fullAddress').get(function(this: ISettings) {
-  if (!this.contactInfo?.address) return '';
+SettingsSchema.virtual("fullAddress").get(function (this: ISettings) {
+  if (!this.contactInfo?.address) return "";
   const { street, city, state, country, zipCode } = this.contactInfo.address;
-  return [street, city, state, country, zipCode].filter(Boolean).join(', ');
+  return [street, city, state, country, zipCode].filter(Boolean).join(", ");
 });
 
 // Ensure virtual fields are serialized
-SettingsSchema.set('toJSON', { virtuals: true });
+SettingsSchema.set("toJSON", { virtuals: true });
 
-export default mongoose.models.Settings || mongoose.model<ISettings>('Settings', SettingsSchema);
+export default mongoose.models.Settings ||
+  mongoose.model<ISettings>("Settings", SettingsSchema);

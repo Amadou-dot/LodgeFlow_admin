@@ -3,11 +3,13 @@
 You have two options for MongoDB:
 
 ## Option 1: Local MongoDB (Recommended for Development)
+
 1. Install MongoDB Community Server: https://www.mongodb.com/try/download/community
 2. Start MongoDB service
 3. Use the current `.env.local` with: `MONGODB_URI=mongodb://localhost:27017/thewildoasis`
 
 ## Option 2: MongoDB Atlas (Cloud)
+
 1. Go to https://www.mongodb.com/atlas
 2. Create a free account and cluster
 3. Get your connection string
@@ -23,6 +25,7 @@ pnpm seed
 ```
 
 This will create:
+
 - 5 sample cabins with different capacities and prices
 - 20 sample customers with realistic profiles
 - 40 sample bookings with various statuses

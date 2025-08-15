@@ -1,20 +1,31 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@heroui/button';
-import { Card, CardBody } from '@heroui/card';
-import { PlusIcon } from '@/components/icons';
-import BookingsTable from '@/components/BookingsTable';
-import BookingsFilters, { type BookingsFilters as BookingsFiltersType } from '@/components/BookingsFilters';
-import { useBookings, useUpdateBooking, useDeleteBooking } from '@/hooks/useBookings';
-import type { PopulatedBooking } from '@/types';
+import { useState } from "react";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
+import { PlusIcon } from "@/components/icons";
+import BookingsTable from "@/components/BookingsTable";
+import BookingsFilters, {
+  type BookingsFilters as BookingsFiltersType,
+} from "@/components/BookingsFilters";
+import {
+  useBookings,
+  useUpdateBooking,
+  useDeleteBooking,
+} from "@/hooks/useBookings";
+import type { PopulatedBooking } from "@/types";
 
 export default function BookingsPage() {
   const [filters, setFilters] = useState<BookingsFiltersType>({});
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  const { data: bookingsData, isLoading, error, mutate } = useBookings({
+  const {
+    data: bookingsData,
+    isLoading,
+    error,
+    mutate,
+  } = useBookings({
     page: currentPage,
     limit: pageSize,
     ...filters,
@@ -38,7 +49,7 @@ export default function BookingsPage() {
   };
 
   const handleStatusChange = async (bookingId: number, newStatus: string) => {
-    const booking = bookingsData?.bookings.find(b => b.id === bookingId);
+    const booking = bookingsData?.bookings.find((b) => b.id === bookingId);
     if (booking) {
       try {
         await updateBooking.mutateAsync({
@@ -48,30 +59,34 @@ export default function BookingsPage() {
         // Manually revalidate SWR data
         mutate();
       } catch (error) {
-        console.error('Error updating booking status:', error);
+        console.error("Error updating booking status:", error);
       }
     }
   };
 
   const handleViewDetails = (booking: PopulatedBooking) => {
     // TODO: Implement booking details modal
-    console.log('View details for booking:', booking._id);
+    console.log("View details for booking:", booking._id);
   };
 
   const handleEdit = (booking: PopulatedBooking) => {
     // TODO: Implement booking edit modal
-    console.log('Edit booking:', booking._id);
+    console.log("Edit booking:", booking._id);
   };
 
   const handleDelete = async (booking: PopulatedBooking) => {
     const guest = booking.guest || booking.customer;
-    if (confirm(`Are you sure you want to delete the booking for ${guest?.name || 'this guest'}? This action cannot be undone.`)) {
+    if (
+      confirm(
+        `Are you sure you want to delete the booking for ${guest?.name || "this guest"}? This action cannot be undone.`,
+      )
+    ) {
       try {
         await deleteBooking.mutateAsync(booking._id);
         // Manually revalidate SWR data
         mutate();
       } catch (error) {
-        console.error('Error deleting booking:', error);
+        console.error("Error deleting booking:", error);
       }
     }
   };
@@ -81,7 +96,9 @@ export default function BookingsPage() {
       <div className="container mx-auto px-4 py-8">
         <Card className="bg-danger-50 border-danger-200">
           <CardBody>
-            <p className="text-danger">Error loading bookings: {error.message}</p>
+            <p className="text-danger">
+              Error loading bookings: {error.message}
+            </p>
           </CardBody>
         </Card>
       </div>

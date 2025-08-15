@@ -1,11 +1,16 @@
-'use client';
+"use client";
 
-import { Button } from '@heroui/button';
-import { Card, CardBody, CardFooter } from '@heroui/card';
-import { Chip } from '@heroui/chip';
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown';
-import Image from 'next/image';
-import type { Cabin } from '@/types';
+import { Button } from "@heroui/button";
+import { Card, CardBody, CardFooter } from "@heroui/card";
+import { Chip } from "@heroui/chip";
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/dropdown";
+import Image from "next/image";
+import type { Cabin } from "@/types";
 
 interface CabinCardProps {
   cabin: Cabin;
@@ -14,7 +19,12 @@ interface CabinCardProps {
   onDelete: (cabin: Cabin) => void;
 }
 
-export default function CabinCard({ cabin, onEdit, onView, onDelete }: CabinCardProps) {
+export default function CabinCard({
+  cabin,
+  onEdit,
+  onView,
+  onDelete,
+}: CabinCardProps) {
   const discountedPrice = cabin.price - cabin.discount;
 
   return (
@@ -39,16 +49,12 @@ export default function CabinCard({ cabin, onEdit, onView, onDelete }: CabinCard
             </Chip>
           )}
           <div className="absolute bottom-2 left-2">
-            <Chip
-              color="primary"
-              variant="solid"
-              size="sm"
-            >
+            <Chip color="primary" variant="solid" size="sm">
               {cabin.capacity} guests
             </Chip>
           </div>
         </div>
-        
+
         <div className="p-4">
           <div className="flex justify-between items-start mb-2">
             <h3 className="text-lg font-semibold">{cabin.name}</h3>
@@ -69,9 +75,9 @@ export default function CabinCard({ cabin, onEdit, onView, onDelete }: CabinCard
                 <DropdownItem key="edit" onPress={() => onEdit(cabin)}>
                   Edit
                 </DropdownItem>
-                <DropdownItem 
-                  key="delete" 
-                  className="text-danger" 
+                <DropdownItem
+                  key="delete"
+                  className="text-danger"
                   color="danger"
                   onPress={() => onDelete(cabin)}
                 >
@@ -80,7 +86,7 @@ export default function CabinCard({ cabin, onEdit, onView, onDelete }: CabinCard
               </DropdownMenu>
             </Dropdown>
           </div>
-          
+
           <div className="flex items-center gap-2 mb-3">
             {cabin.discount > 0 ? (
               <>
@@ -94,9 +100,7 @@ export default function CabinCard({ cabin, onEdit, onView, onDelete }: CabinCard
               </>
             ) : (
               <>
-                <span className="text-xl font-bold">
-                  ${cabin.price}
-                </span>
+                <span className="text-xl font-bold">${cabin.price}</span>
                 <span className="text-xs text-default-400">per night</span>
               </>
             )}
@@ -116,7 +120,7 @@ export default function CabinCard({ cabin, onEdit, onView, onDelete }: CabinCard
           </div>
         </div>
       </CardBody>
-      
+
       <CardFooter className="pt-0 px-4 pb-4">
         <div className="flex gap-2 w-full">
           <Button

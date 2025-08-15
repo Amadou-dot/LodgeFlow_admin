@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { useDurationData } from '@/hooks/useData';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { useDurationData } from "@/hooks/useData";
 
 export default function DurationChart() {
   const { data, isLoading, error } = useDurationData();
@@ -28,7 +28,9 @@ export default function DurationChart() {
   if (isLoading) {
     return (
       <div className="bg-content1 p-4 md:p-6 rounded-lg border border-divider h-auto md:h-96">
-        <h3 className="text-lg md:text-xl font-bold mb-4">Stay Duration Distribution</h3>
+        <h3 className="text-lg md:text-xl font-bold mb-4">
+          Stay Duration Distribution
+        </h3>
         <div className="h-64 md:h-80 bg-default-100 rounded-lg animate-pulse"></div>
       </div>
     );
@@ -37,9 +39,11 @@ export default function DurationChart() {
   if (error) {
     return (
       <div className="bg-content1 p-4 md:p-6 rounded-lg border border-divider h-auto md:h-96">
-        <h3 className="text-lg md:text-xl font-bold mb-4">Stay Duration Distribution</h3>
-        <div className='bg-danger-50 border border-danger-200 p-4 rounded-lg'>
-          <p className='text-danger-600'>Failed to load duration data</p>
+        <h3 className="text-lg md:text-xl font-bold mb-4">
+          Stay Duration Distribution
+        </h3>
+        <div className="bg-danger-50 border border-danger-200 p-4 rounded-lg">
+          <p className="text-danger-600">Failed to load duration data</p>
         </div>
       </div>
     );
@@ -49,8 +53,10 @@ export default function DurationChart() {
 
   return (
     <div className="bg-content1 p-4 md:p-6 rounded-lg border border-divider h-auto md:h-96">
-      <h3 className="text-lg md:text-xl font-bold mb-4">Stay Duration Distribution</h3>
-      
+      <h3 className="text-lg md:text-xl font-bold mb-4">
+        Stay Duration Distribution
+      </h3>
+
       {/* Mobile Layout - Stack vertically */}
       <div className="md:hidden">
         <div className="h-64 mb-4">
@@ -76,8 +82,8 @@ export default function DurationChart() {
         <div className="grid grid-cols-2 gap-2">
           {sortedData.map((entry, index) => (
             <div key={index} className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full flex-shrink-0" 
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: entry.color }}
               />
               <span className="text-xs font-medium truncate">{entry.name}</span>
@@ -113,8 +119,8 @@ export default function DurationChart() {
             <div className="space-y-3">
               {sortedData.map((entry, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
+                  <div
+                    className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: entry.color }}
                   />
                   <span className="text-sm font-medium">{entry.name}</span>

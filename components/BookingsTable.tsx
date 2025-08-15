@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
+import { useMemo } from "react";
 import {
   Table,
   TableHeader,
@@ -8,15 +8,24 @@ import {
   TableBody,
   TableRow,
   TableCell,
-} from '@heroui/table';
-import { Chip } from '@heroui/chip';
-import { User } from '@heroui/user';
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown';
-import { Button } from '@heroui/button';
-import { Pagination } from '@heroui/pagination';
-import { Spinner } from '@heroui/spinner';
-import type { PopulatedBooking } from '@/types';
-import { formatBookingDates, getStatusColor, getStatusLabel } from '@/utils/bookingUtils';
+} from "@heroui/table";
+import { Chip } from "@heroui/chip";
+import { User } from "@heroui/user";
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/dropdown";
+import { Button } from "@heroui/button";
+import { Pagination } from "@heroui/pagination";
+import { Spinner } from "@heroui/spinner";
+import type { PopulatedBooking } from "@/types";
+import {
+  formatBookingDates,
+  getStatusColor,
+  getStatusLabel,
+} from "@/utils/bookingUtils";
 
 interface BookingsTableProps {
   bookings: PopulatedBooking[];
@@ -42,12 +51,12 @@ export default function BookingsTable({
   onDelete,
 }: BookingsTableProps) {
   const columns = [
-    { key: 'cabin', label: 'Cabin' },
-    { key: 'guest', label: 'Guest' },
-    { key: 'dates', label: 'Dates' },
-    { key: 'status', label: 'Status' },
-    { key: 'amount', label: 'Amount' },
-    { key: 'actions', label: 'Actions' },
+    { key: "cabin", label: "Cabin" },
+    { key: "guest", label: "Guest" },
+    { key: "dates", label: "Dates" },
+    { key: "status", label: "Status" },
+    { key: "amount", label: "Amount" },
+    { key: "actions", label: "Actions" },
   ];
 
   // Determine loading state: show loading only if we have no data and are loading
@@ -55,55 +64,59 @@ export default function BookingsTable({
 
   const renderCell = (booking: PopulatedBooking, columnKey: string) => {
     switch (columnKey) {
-      case 'cabin':
+      case "cabin":
         return (
           <div className="font-medium text-foreground">
-            {booking.cabinName || booking.cabin?.name || 'N/A'}
+            {booking.cabinName || booking.cabin?.name || "N/A"}
           </div>
         );
 
-      case 'guest':
+      case "guest":
         const guest = booking.guest || booking.customer;
         return (
           <User
-            name={guest?.name || 'N/A'}
-            description={guest?.email || 'N/A'}
+            name={guest?.name || "N/A"}
+            description={guest?.email || "N/A"}
             avatarProps={{
               name: guest?.name,
-              size: 'sm',
+              size: "sm",
             }}
           />
         );
 
-      case 'dates':
-        const checkInDate = booking.checkInDate instanceof Date 
-          ? booking.checkInDate.toISOString() 
-          : booking.checkInDate;
-        const checkOutDate = booking.checkOutDate instanceof Date 
-          ? booking.checkOutDate.toISOString() 
-          : booking.checkOutDate;
-          
+      case "dates":
+        const checkInDate =
+          booking.checkInDate instanceof Date
+            ? booking.checkInDate.toISOString()
+            : booking.checkInDate;
+        const checkOutDate =
+          booking.checkOutDate instanceof Date
+            ? booking.checkOutDate.toISOString()
+            : booking.checkOutDate;
+
         const { dateRange, timeInfo, showTimeInfo } = formatBookingDates(
           checkInDate,
           checkOutDate,
           booking.numNights,
-          booking.status
+          booking.status,
         );
 
         return (
-          <div className={booking.status === 'cancelled' ? 'opacity-50' : ''}>
+          <div className={booking.status === "cancelled" ? "opacity-50" : ""}>
             {showTimeInfo && (
               <div className="text-sm font-medium text-foreground mb-1">
                 {timeInfo}
               </div>
             )}
-            <div className={`text-sm ${booking.status === 'cancelled' ? 'text-default-400 line-through' : 'text-default-600'}`}>
+            <div
+              className={`text-sm ${booking.status === "cancelled" ? "text-default-400 line-through" : "text-default-600"}`}
+            >
               {dateRange}
             </div>
           </div>
         );
 
-      case 'status':
+      case "status":
         return (
           <Chip
             color={getStatusColor(booking.status) as any}
@@ -114,63 +127,70 @@ export default function BookingsTable({
           </Chip>
         );
 
-      case 'amount':
+      case "amount":
         return (
           <div className="text-right">
             <div className="font-semibold text-foreground">
               ${booking.totalPrice}
             </div>
             <div className="text-xs text-default-500">
-              ${booking.cabinPrice} × {booking.numNights} night{booking.numNights !== 1 ? 's' : ''}
+              ${booking.cabinPrice} × {booking.numNights} night
+              {booking.numNights !== 1 ? "s" : ""}
             </div>
           </div>
         );
 
-      case 'actions':
+      case "actions":
         const menuItems = [];
 
         if (onViewDetails) {
           menuItems.push(
             <DropdownItem key="view" onPress={() => onViewDetails(booking)}>
               View Details
-            </DropdownItem>
+            </DropdownItem>,
           );
         }
 
-        if (onEdit && booking.status === 'unconfirmed') {
+        if (onEdit && booking.status === "unconfirmed") {
           menuItems.push(
             <DropdownItem key="edit" onPress={() => onEdit(booking)}>
               Edit Booking
-            </DropdownItem>
+            </DropdownItem>,
           );
         }
 
-        if (onStatusChange && booking.status === 'unconfirmed') {
+        if (onStatusChange && booking.status === "unconfirmed") {
           menuItems.push(
-            <DropdownItem key="checkin" onPress={() => onStatusChange(booking.id, 'checked-in')}>
+            <DropdownItem
+              key="checkin"
+              onPress={() => onStatusChange(booking.id, "checked-in")}
+            >
               Check In
-            </DropdownItem>
+            </DropdownItem>,
           );
         }
 
-        if (onStatusChange && booking.status === 'checked-in') {
+        if (onStatusChange && booking.status === "checked-in") {
           menuItems.push(
-            <DropdownItem key="checkout" onPress={() => onStatusChange(booking.id, 'checked-out')}>
+            <DropdownItem
+              key="checkout"
+              onPress={() => onStatusChange(booking.id, "checked-out")}
+            >
               Check Out
-            </DropdownItem>
+            </DropdownItem>,
           );
         }
 
-        if (onStatusChange && booking.status === 'unconfirmed') {
+        if (onStatusChange && booking.status === "unconfirmed") {
           menuItems.push(
             <DropdownItem
               key="cancel"
               className="text-danger"
               color="danger"
-              onPress={() => onStatusChange(booking.id, 'cancelled')}
+              onPress={() => onStatusChange(booking.id, "cancelled")}
             >
               Cancel Booking
-            </DropdownItem>
+            </DropdownItem>,
           );
         }
 
@@ -183,18 +203,14 @@ export default function BookingsTable({
               onPress={() => onDelete(booking)}
             >
               Delete Booking
-            </DropdownItem>
+            </DropdownItem>,
           );
         }
 
         return (
           <Dropdown>
             <DropdownTrigger>
-              <Button
-                isIconOnly
-                variant="light"
-                size="sm"
-              >
+              <Button isIconOnly variant="light" size="sm">
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -210,9 +226,7 @@ export default function BookingsTable({
                 </svg>
               </Button>
             </DropdownTrigger>
-            <DropdownMenu>
-              {menuItems}
-            </DropdownMenu>
+            <DropdownMenu>{menuItems}</DropdownMenu>
           </Dropdown>
         );
 
@@ -240,8 +254,8 @@ export default function BookingsTable({
           {(column) => (
             <TableColumn
               key={column.key}
-              align={column.key === 'amount' ? 'end' : 'start'}
-              className={column.key === 'actions' ? 'text-center' : ''}
+              align={column.key === "amount" ? "end" : "start"}
+              className={column.key === "actions" ? "text-center" : ""}
             >
               {column.label}
             </TableColumn>
@@ -257,7 +271,9 @@ export default function BookingsTable({
           {(booking) => (
             <TableRow key={booking.id}>
               {(columnKey) => (
-                <TableCell>{renderCell(booking, columnKey as string)}</TableCell>
+                <TableCell>
+                  {renderCell(booking, columnKey as string)}
+                </TableCell>
               )}
             </TableRow>
           )}

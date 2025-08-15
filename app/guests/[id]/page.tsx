@@ -1,60 +1,72 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@heroui/button';
-import { Card, CardBody, CardHeader } from '@heroui/card';
-import { Avatar } from '@heroui/avatar';
-import { Chip } from '@heroui/chip';
-import { Divider } from '@heroui/divider';
-import { Spinner } from '@heroui/spinner';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
-import { ArrowLeftIcon, EditIcon, TrashIcon } from '@/components/icons';
-import { useCustomer } from '@/hooks/useCustomers';
-import Link from 'next/link';
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@heroui/button";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Avatar } from "@heroui/avatar";
+import { Chip } from "@heroui/chip";
+import { Divider } from "@heroui/divider";
+import { Spinner } from "@heroui/spinner";
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@heroui/table";
 
-interface Props {
-  params: {
-    id: string;
-  };
-}
+import { ArrowLeftIcon, EditIcon, TrashIcon } from "@/components/icons";
+import { useCustomer } from "@/hooks/useCustomers";
 
-export default function GuestDetailPage({ params }: Props) {
+export default function GuestDetailPage() {
   const router = useRouter();
-  const { data: customer, isLoading, error } = useCustomer(params.id);
+  const params = useParams();
+  const customerId = params.id as string;
+  const { data: customer, isLoading, error } = useCustomer(customerId);
 
   const getLoyaltyTier = (totalSpent: number) => {
-    if (totalSpent >= 10000) return { tier: 'Diamond', color: 'secondary' as const };
-    if (totalSpent >= 5000) return { tier: 'Gold', color: 'warning' as const };
-    if (totalSpent >= 2000) return { tier: 'Silver', color: 'default' as const };
-    return { tier: 'Bronze', color: 'primary' as const };
+    if (totalSpent >= 10000)
+      return { tier: "Diamond", color: "secondary" as const };
+    if (totalSpent >= 5000) return { tier: "Gold", color: "warning" as const };
+    if (totalSpent >= 2000)
+      return { tier: "Silver", color: "default" as const };
+
+    return { tier: "Bronze", color: "primary" as const };
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'success';
-      case 'unconfirmed': return 'warning';
-      case 'checked-in': return 'primary';
-      case 'checked-out': return 'default';
-      case 'cancelled': return 'danger';
-      default: return 'default';
+      case "confirmed":
+        return "success";
+      case "unconfirmed":
+        return "warning";
+      case "checked-in":
+        return "primary";
+      case "checked-out":
+        return "default";
+      case "cancelled":
+        return "danger";
+      default:
+        return "default";
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -71,12 +83,12 @@ export default function GuestDetailPage({ params }: Props) {
   if (error) {
     return (
       <div className="container mx-auto p-4 md:p-6">
-        <div className='bg-danger-50 border border-danger-200 p-4 rounded-lg'>
-          <p className='text-danger-600'>Failed to load guest details</p>
-          <Button 
-            variant="light" 
-            onClick={() => router.back()}
+        <div className="bg-danger-50 border border-danger-200 p-4 rounded-lg">
+          <p className="text-danger-600">Failed to load guest details</p>
+          <Button
             className="mt-2"
+            variant="light"
+            onClick={() => router.back()}
           >
             Go Back
           </Button>
@@ -88,12 +100,12 @@ export default function GuestDetailPage({ params }: Props) {
   if (!customer) {
     return (
       <div className="container mx-auto p-4 md:p-6">
-        <div className='bg-warning-50 border border-warning-200 p-4 rounded-lg'>
-          <p className='text-warning-600'>Guest not found</p>
-          <Button 
-            variant="light" 
-            onClick={() => router.back()}
+        <div className="bg-warning-50 border border-warning-200 p-4 rounded-lg">
+          <p className="text-warning-600">Guest not found</p>
+          <Button
             className="mt-2"
+            variant="light"
+            onClick={() => router.back()}
           >
             Go Back
           </Button>
@@ -109,11 +121,7 @@ export default function GuestDetailPage({ params }: Props) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-4">
-          <Button
-            isIconOnly
-            variant="light"
-            onClick={() => router.back()}
-          >
+          <Button isIconOnly variant="light" onClick={() => router.back()}>
             <ArrowLeftIcon />
           </Button>
           <div>
@@ -123,18 +131,18 @@ export default function GuestDetailPage({ params }: Props) {
         </div>
         <div className="flex gap-2">
           <Button
-            color="primary"
-            variant="bordered"
-            startContent={<EditIcon />}
             className="w-full sm:w-auto"
+            color="primary"
+            startContent={<EditIcon />}
+            variant="bordered"
           >
             Edit Guest
           </Button>
           <Button
-            color="danger"
-            variant="light"
-            startContent={<TrashIcon />}
             className="w-full sm:w-auto"
+            color="danger"
+            startContent={<TrashIcon />}
+            variant="light"
           >
             Delete
           </Button>
@@ -147,18 +155,18 @@ export default function GuestDetailPage({ params }: Props) {
           <Card>
             <CardHeader className="flex gap-3">
               <Avatar
-                name={getInitials(customer.name)}
                 className="w-16 h-16 text-large"
                 color="primary"
+                name={getInitials(customer.name)}
               />
               <div className="flex flex-col">
                 <p className="text-lg font-semibold">{customer.name}</p>
                 <p className="text-small text-default-600">{customer.email}</p>
                 <Chip
-                  size="sm"
-                  color={loyalty.color}
-                  variant="flat"
                   className="mt-2 w-fit"
+                  color={loyalty.color}
+                  size="sm"
+                  variant="flat"
                 >
                   {loyalty.tier} Member
                 </Chip>
@@ -167,11 +175,13 @@ export default function GuestDetailPage({ params }: Props) {
             <Divider />
             <CardBody className="space-y-4">
               <div>
-                <h4 className="font-semibold text-sm mb-2">Contact Information</h4>
+                <h4 className="font-semibold text-sm mb-2">
+                  Contact Information
+                </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-default-600">Phone:</span>
-                    <span>{customer.phone || 'Not provided'}</span>
+                    <span>{customer.phone || "Not provided"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-default-600">Nationality:</span>
@@ -179,7 +189,9 @@ export default function GuestDetailPage({ params }: Props) {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-default-600">National ID:</span>
-                    <span className="font-mono text-xs">{customer.nationalId}</span>
+                    <span className="font-mono text-xs">
+                      {customer.nationalId}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -189,15 +201,21 @@ export default function GuestDetailPage({ params }: Props) {
                   <h4 className="font-semibold text-sm mb-2">Address</h4>
                   <div className="text-sm text-default-600">
                     <p>{customer.address.street}</p>
-                    <p>{customer.address.city}, {customer.address.state}</p>
-                    <p>{customer.address.country} {customer.address.zipCode}</p>
+                    <p>
+                      {customer.address.city}, {customer.address.state}
+                    </p>
+                    <p>
+                      {customer.address.country} {customer.address.zipCode}
+                    </p>
                   </div>
                 </div>
               )}
 
               {customer.emergencyContact && (
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Emergency Contact</h4>
+                  <h4 className="font-semibold text-sm mb-2">
+                    Emergency Contact
+                  </h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-default-600">Name:</span>
@@ -209,7 +227,9 @@ export default function GuestDetailPage({ params }: Props) {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-default-600">Relationship:</span>
-                      <span className="capitalize">{customer.emergencyContact.relationship}</span>
+                      <span className="capitalize">
+                        {customer.emergencyContact.relationship}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -220,20 +240,37 @@ export default function GuestDetailPage({ params }: Props) {
                   <h4 className="font-semibold text-sm mb-2">Preferences</h4>
                   <div className="space-y-2">
                     {customer.preferences.smokingPreference && (
-                      <Chip size="sm" variant="flat" color="default">
-                        {customer.preferences.smokingPreference.replace('-', ' ')}
+                      <Chip color="default" size="sm" variant="flat">
+                        {customer.preferences.smokingPreference.replace(
+                          "-",
+                          " ",
+                        )}
                       </Chip>
                     )}
-                    {customer.preferences.dietaryRestrictions?.map((restriction: string, index: number) => (
-                      <Chip key={index} size="sm" variant="flat" color="warning">
-                        {restriction}
-                      </Chip>
-                    ))}
-                    {customer.preferences.accessibilityNeeds?.map((need: string, index: number) => (
-                      <Chip key={index} size="sm" variant="flat" color="primary">
-                        {need.replace('-', ' ')}
-                      </Chip>
-                    ))}
+                    {customer.preferences.dietaryRestrictions?.map(
+                      (restriction: string, index: number) => (
+                        <Chip
+                          key={index}
+                          color="warning"
+                          size="sm"
+                          variant="flat"
+                        >
+                          {restriction}
+                        </Chip>
+                      ),
+                    )}
+                    {customer.preferences.accessibilityNeeds?.map(
+                      (need: string, index: number) => (
+                        <Chip
+                          key={index}
+                          color="primary"
+                          size="sm"
+                          variant="flat"
+                        >
+                          {need.replace("-", " ")}
+                        </Chip>
+                      ),
+                    )}
                   </div>
                 </div>
               )}
@@ -247,25 +284,33 @@ export default function GuestDetailPage({ params }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardBody className="text-center">
-                <p className="text-2xl font-bold text-primary">{customer.stats?.totalBookings || 0}</p>
+                <p className="text-2xl font-bold text-primary">
+                  {customer.stats?.totalBookings || 0}
+                </p>
                 <p className="text-sm text-default-600">Total Bookings</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="text-center">
-                <p className="text-2xl font-bold text-success">{customer.stats?.completedBookings || 0}</p>
+                <p className="text-2xl font-bold text-success">
+                  {customer.stats?.completedBookings || 0}
+                </p>
                 <p className="text-sm text-default-600">Completed Stays</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="text-center">
-                <p className="text-2xl font-bold text-warning">${(customer.stats?.totalRevenue || 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-warning">
+                  ${(customer.stats?.totalRevenue || 0).toLocaleString()}
+                </p>
                 <p className="text-sm text-default-600">Total Spent</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="text-center">
-                <p className="text-2xl font-bold text-secondary">{Math.round(customer.stats?.averageStayLength || 0)}</p>
+                <p className="text-2xl font-bold text-secondary">
+                  {Math.round(customer.stats?.averageStayLength || 0)}
+                </p>
                 <p className="text-sm text-default-600">Avg. Stay (nights)</p>
               </CardBody>
             </Card>
@@ -292,26 +337,30 @@ export default function GuestDetailPage({ params }: Props) {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {booking.cabin?.image && (
-                              <img 
-                                src={booking.cabin.image} 
+                              <img
                                 alt={booking.cabin.name}
                                 className="w-8 h-8 rounded object-cover"
+                                src={booking.cabin.image}
                               />
                             )}
-                            <span className="font-medium">{booking.cabin?.name || 'N/A'}</span>
+                            <span className="font-medium">
+                              {booking.cabin?.name || "N/A"}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
                             <p>{formatDate(booking.checkInDate)}</p>
-                            <p className="text-default-600">to {formatDate(booking.checkOutDate)}</p>
+                            <p className="text-default-600">
+                              to {formatDate(booking.checkOutDate)}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>{booking.numNights}</TableCell>
                         <TableCell>
                           <Chip
-                            size="sm"
                             color={getStatusColor(booking.status) as any}
+                            size="sm"
                             variant="flat"
                           >
                             {booking.status}
@@ -327,11 +376,11 @@ export default function GuestDetailPage({ params }: Props) {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-default-600">No bookings found</p>
-                  <Button 
+                  <Button
                     as={Link}
-                    href="/bookings"
-                    color="primary"
                     className="mt-4"
+                    color="primary"
+                    href="/bookings"
                   >
                     Create New Booking
                   </Button>

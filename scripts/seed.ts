@@ -1,64 +1,108 @@
-import { faker } from '@faker-js/faker';
-import connectDB from '../lib/mongodb';
-import { Cabin, Customer, Booking, Settings } from '../models';
-import type { ICabin, ICustomer, IBooking } from '../models';
+import { faker } from "@faker-js/faker";
+import connectDB from "../lib/mongodb";
+import { Cabin, Customer, Booking, Settings } from "../models";
+import type { ICabin, ICustomer, IBooking } from "../models";
 
 // Sample cabin data
 const cabinData = [
   {
-    name: 'Pine Valley Cabin',
-    image: 'https://images.unsplash.com/photo-1586375300773-8384e3e4916f?w=400&h=300&auto=format&fit=crop',
+    name: "Pine Valley Cabin",
+    image:
+      "https://images.unsplash.com/photo-1586375300773-8384e3e4916f?w=400&h=300&auto=format&fit=crop",
     capacity: 4,
     price: 250,
     discount: 25,
-    description: 'A cozy cabin nestled in the pine valley with stunning mountain views and modern amenities.',
-    amenities: ['WiFi', 'Kitchen', 'Fireplace', 'Hot Tub', 'Mountain View', 'BBQ Grill'],
+    description:
+      "A cozy cabin nestled in the pine valley with stunning mountain views and modern amenities.",
+    amenities: [
+      "WiFi",
+      "Kitchen",
+      "Fireplace",
+      "Hot Tub",
+      "Mountain View",
+      "BBQ Grill",
+    ],
   },
   {
-    name: 'Lakeside Haven',
-    image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&auto=format&fit=crop',
+    name: "Lakeside Haven",
+    image:
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&auto=format&fit=crop",
     capacity: 6,
     price: 350,
     discount: 0,
-    description: 'Waterfront cabin with private dock, perfect for fishing and water activities.',
-    amenities: ['WiFi', 'Kitchen', 'Private Dock', 'Kayaks', 'Fire Pit', 'Lake View'],
+    description:
+      "Waterfront cabin with private dock, perfect for fishing and water activities.",
+    amenities: [
+      "WiFi",
+      "Kitchen",
+      "Private Dock",
+      "Kayaks",
+      "Fire Pit",
+      "Lake View",
+    ],
   },
   {
-    name: 'Mountain View Lodge',
-    image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=300&auto=format&fit=crop',
+    name: "Mountain View Lodge",
+    image:
+      "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=300&auto=format&fit=crop",
     capacity: 8,
     price: 450,
     discount: 50,
-    description: 'Luxury lodge with panoramic mountain views and premium furnishings.',
-    amenities: ['WiFi', 'Full Kitchen', 'Jacuzzi', 'Sauna', 'Game Room', 'Panoramic Views'],
+    description:
+      "Luxury lodge with panoramic mountain views and premium furnishings.",
+    amenities: [
+      "WiFi",
+      "Full Kitchen",
+      "Jacuzzi",
+      "Sauna",
+      "Game Room",
+      "Panoramic Views",
+    ],
   },
   {
-    name: 'Forest Edge Cabin',
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=300&auto=format&fit=crop',
+    name: "Forest Edge Cabin",
+    image:
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=300&auto=format&fit=crop",
     capacity: 2,
     price: 180,
     discount: 0,
-    description: 'Intimate cabin on the forest edge, perfect for romantic getaways.',
-    amenities: ['WiFi', 'Kitchenette', 'Fireplace', 'Forest View', 'Bird Watching'],
+    description:
+      "Intimate cabin on the forest edge, perfect for romantic getaways.",
+    amenities: [
+      "WiFi",
+      "Kitchenette",
+      "Fireplace",
+      "Forest View",
+      "Bird Watching",
+    ],
   },
   {
-    name: 'Sunset Retreat',
-    image: 'https://images.unsplash.com/photo-1542718610-a1d656d1884c?w=400&h=300&auto=format&fit=crop',
+    name: "Sunset Retreat",
+    image:
+      "https://images.unsplash.com/photo-1542718610-a1d656d1884c?w=400&h=300&auto=format&fit=crop",
     capacity: 5,
     price: 300,
     discount: 30,
-    description: 'Watch spectacular sunsets from this elevated cabin with wrap-around deck.',
-    amenities: ['WiFi', 'Kitchen', 'Hot Tub', 'Sunset Views', 'Deck', 'Telescope'],
+    description:
+      "Watch spectacular sunsets from this elevated cabin with wrap-around deck.",
+    amenities: [
+      "WiFi",
+      "Kitchen",
+      "Hot Tub",
+      "Sunset Views",
+      "Deck",
+      "Telescope",
+    ],
   },
 ];
 
 async function seedDatabase() {
   try {
-    console.log('🌱 Starting database seeding...');
-    
+    console.log("🌱 Starting database seeding...");
+
     // Connect to database
     await connectDB();
-    console.log('✅ Database connected');
+    console.log("✅ Database connected");
 
     // Clear existing data
     await Promise.all([
@@ -67,7 +111,7 @@ async function seedDatabase() {
       Booking.deleteMany({}),
       Settings.deleteMany({}),
     ]);
-    console.log('🗑️  Cleared existing data');
+    console.log("🗑️  Cleared existing data");
 
     // Create settings
     const settings = await Settings.create({
@@ -75,9 +119,9 @@ async function seedDatabase() {
       maxBookingLength: 30,
       maxGuestsPerBooking: 8,
       breakfastPrice: 15,
-      checkInTime: '15:00',
-      checkOutTime: '11:00',
-      cancellationPolicy: 'moderate',
+      checkInTime: "15:00",
+      checkOutTime: "11:00",
+      cancellationPolicy: "moderate",
       requireDeposit: true,
       depositPercentage: 25,
       allowPets: true,
@@ -88,10 +132,10 @@ async function seedDatabase() {
       wifiIncluded: true,
       parkingIncluded: false,
       parkingFee: 10,
-      currency: 'USD',
-      timezone: 'UTC',
+      currency: "USD",
+      timezone: "UTC",
     });
-    console.log('⚙️  Settings created');
+    console.log("⚙️  Settings created");
 
     // Create cabins
     const cabins: ICabin[] = await Cabin.insertMany(cabinData);
@@ -124,12 +168,27 @@ async function seedDatabase() {
         emergencyContact: {
           name: faker.person.fullName(),
           phone: generatePhoneNumber(),
-          relationship: faker.helpers.arrayElement(['spouse', 'parent', 'sibling', 'friend']),
+          relationship: faker.helpers.arrayElement([
+            "spouse",
+            "parent",
+            "sibling",
+            "friend",
+          ]),
         },
         preferences: {
-          smokingPreference: faker.helpers.arrayElement(['smoking', 'non-smoking', 'no-preference']),
-          dietaryRestrictions: faker.helpers.arrayElements(['vegetarian', 'vegan', 'gluten-free', 'lactose-free'], { min: 0, max: 2 }),
-          accessibilityNeeds: faker.helpers.arrayElements(['wheelchair-accessible', 'hearing-impaired', 'vision-impaired'], { min: 0, max: 1 }),
+          smokingPreference: faker.helpers.arrayElement([
+            "smoking",
+            "non-smoking",
+            "no-preference",
+          ]),
+          dietaryRestrictions: faker.helpers.arrayElements(
+            ["vegetarian", "vegan", "gluten-free", "lactose-free"],
+            { min: 0, max: 2 },
+          ),
+          accessibilityNeeds: faker.helpers.arrayElements(
+            ["wheelchair-accessible", "hearing-impaired", "vision-impaired"],
+            { min: 0, max: 1 },
+          ),
         },
       });
       customers.push(customer);
@@ -141,24 +200,37 @@ async function seedDatabase() {
     for (let i = 0; i < 40; i++) {
       const cabin = faker.helpers.arrayElement(cabins);
       const customer = faker.helpers.arrayElement(customers);
-      const checkInDate = faker.date.between({ from: new Date('2024-01-01'), to: new Date('2025-12-31') });
+      const checkInDate = faker.date.between({
+        from: new Date("2024-01-01"),
+        to: new Date("2025-12-31"),
+      });
       const numNights = faker.number.int({ min: 2, max: 14 });
       const checkOutDate = new Date(checkInDate);
       checkOutDate.setDate(checkOutDate.getDate() + numNights);
-      
-      const discountedPrice = cabin.discount > 0 ? cabin.price - cabin.discount : cabin.price;
+
+      const discountedPrice =
+        cabin.discount > 0 ? cabin.price - cabin.discount : cabin.price;
       const cabinPrice = discountedPrice * numNights;
       const hasBreakfast = faker.datatype.boolean();
       const hasPets = faker.datatype.boolean({ probability: 0.3 });
       const hasParking = faker.datatype.boolean({ probability: 0.4 });
-      
-      const breakfastPrice = hasBreakfast ? settings.breakfastPrice * faker.number.int({ min: 1, max: 4 }) * numNights : 0;
+
+      const breakfastPrice = hasBreakfast
+        ? settings.breakfastPrice *
+          faker.number.int({ min: 1, max: 4 }) *
+          numNights
+        : 0;
       const petFee = hasPets ? settings.petFee * numNights : 0;
-      const parkingFee = hasParking && !settings.parkingIncluded ? settings.parkingFee * numNights : 0;
-      
+      const parkingFee =
+        hasParking && !settings.parkingIncluded
+          ? settings.parkingFee * numNights
+          : 0;
+
       const extrasPrice = breakfastPrice + petFee + parkingFee;
       const totalPrice = cabinPrice + extrasPrice;
-      const depositAmount = settings.requireDeposit ? Math.round(totalPrice * (settings.depositPercentage / 100)) : 0;
+      const depositAmount = settings.requireDeposit
+        ? Math.round(totalPrice * (settings.depositPercentage / 100))
+        : 0;
 
       const booking = await Booking.create({
         cabin: cabin._id,
@@ -167,12 +239,23 @@ async function seedDatabase() {
         checkOutDate,
         numNights,
         numGuests: faker.number.int({ min: 1, max: cabin.capacity }),
-        status: faker.helpers.arrayElement(['unconfirmed', 'confirmed', 'checked-in', 'checked-out', 'cancelled']),
+        status: faker.helpers.arrayElement([
+          "unconfirmed",
+          "confirmed",
+          "checked-in",
+          "checked-out",
+          "cancelled",
+        ]),
         cabinPrice: discountedPrice,
         extrasPrice,
         totalPrice,
         isPaid: faker.datatype.boolean({ probability: 0.7 }),
-        paymentMethod: faker.helpers.arrayElement(['cash', 'card', 'bank-transfer', 'online']),
+        paymentMethod: faker.helpers.arrayElement([
+          "cash",
+          "card",
+          "bank-transfer",
+          "online",
+        ]),
         extras: {
           hasBreakfast,
           breakfastPrice,
@@ -185,33 +268,48 @@ async function seedDatabase() {
           hasLateCheckOut: false,
           lateCheckOutFee: 0,
         },
-        observations: faker.datatype.boolean({ probability: 0.3 }) ? faker.lorem.paragraph() : undefined,
-        specialRequests: faker.datatype.boolean({ probability: 0.2 }) 
-          ? faker.helpers.arrayElements(['late checkout', 'early checkin', 'extra towels', 'baby crib'], { min: 1, max: 2 })
+        observations: faker.datatype.boolean({ probability: 0.3 })
+          ? faker.lorem.paragraph()
+          : undefined,
+        specialRequests: faker.datatype.boolean({ probability: 0.2 })
+          ? faker.helpers.arrayElements(
+              ["late checkout", "early checkin", "extra towels", "baby crib"],
+              { min: 1, max: 2 },
+            )
           : [],
-        depositPaid: depositAmount > 0 ? faker.datatype.boolean({ probability: 0.8 }) : false,
+        depositPaid:
+          depositAmount > 0
+            ? faker.datatype.boolean({ probability: 0.8 })
+            : false,
         depositAmount,
       });
-      
+
       bookings.push(booking);
     }
     console.log(`📅 Created ${bookings.length} bookings`);
 
     // Update customer statistics
     for (const customer of customers) {
-      const customerBookings = bookings.filter(b => b.customer.toString() === customer._id.toString());
-      const totalSpent = customerBookings.reduce((sum, booking) => sum + booking.totalPrice, 0);
-      const lastBooking = customerBookings.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-      
+      const customerBookings = bookings.filter(
+        (b) => b.customer.toString() === customer._id.toString(),
+      );
+      const totalSpent = customerBookings.reduce(
+        (sum, booking) => sum + booking.totalPrice,
+        0,
+      );
+      const lastBooking = customerBookings.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      )[0];
+
       await Customer.findByIdAndUpdate(customer._id, {
         totalBookings: customerBookings.length,
         totalSpent,
         lastBookingDate: lastBooking?.createdAt,
       });
     }
-    console.log('📊 Updated customer statistics');
+    console.log("📊 Updated customer statistics");
 
-    console.log('🎉 Database seeding completed successfully!');
+    console.log("🎉 Database seeding completed successfully!");
     console.log(`
 📈 Summary:
 - Settings: 1
@@ -219,9 +317,8 @@ async function seedDatabase() {
 - Customers: ${customers.length}
 - Bookings: ${bookings.length}
     `);
-
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    console.error("❌ Error seeding database:", error);
     throw error;
   }
 }
@@ -230,11 +327,11 @@ async function seedDatabase() {
 if (require.main === module) {
   seedDatabase()
     .then(() => {
-      console.log('✅ Seeding completed');
+      console.log("✅ Seeding completed");
       process.exit(0);
     })
     .catch((error) => {
-      console.error('❌ Seeding failed:', error);
+      console.error("❌ Seeding failed:", error);
       process.exit(1);
     });
 }

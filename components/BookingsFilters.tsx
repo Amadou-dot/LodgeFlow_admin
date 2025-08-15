@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Select, SelectItem } from '@heroui/select';
-import { Input } from '@heroui/input';
-import { Button } from '@heroui/button';
-import { SearchIcon } from '@/components/icons';
+import { useState } from "react";
+import { Select, SelectItem } from "@heroui/select";
+import { Input } from "@heroui/input";
+import { Button } from "@heroui/button";
+import { SearchIcon } from "@/components/icons";
 
 export interface BookingsFilters {
   status?: string;
   search?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 interface BookingsFiltersProps {
@@ -20,13 +20,13 @@ interface BookingsFiltersProps {
   totalCount?: number;
 }
 
-export default function BookingsFilters({ 
-  filters, 
-  onFiltersChange, 
-  onReset, 
-  totalCount 
+export default function BookingsFilters({
+  filters,
+  onFiltersChange,
+  onReset,
+  totalCount,
 }: BookingsFiltersProps) {
-  const [searchValue, setSearchValue] = useState(filters.search || '');
+  const [searchValue, setSearchValue] = useState(filters.search || "");
 
   const handleFilterChange = (key: keyof BookingsFilters, value: string) => {
     onFiltersChange({
@@ -43,14 +43,16 @@ export default function BookingsFilters({
   };
 
   const handleSearchClear = () => {
-    setSearchValue('');
+    setSearchValue("");
     onFiltersChange({
       ...filters,
       search: undefined,
     });
   };
 
-  const hasActiveFilters = Object.values(filters).some(value => value !== undefined);
+  const hasActiveFilters = Object.values(filters).some(
+    (value) => value !== undefined,
+  );
 
   return (
     <div className="space-y-4">
@@ -60,7 +62,7 @@ export default function BookingsFilters({
           placeholder="Search by cabin, guest name, or email..."
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit()}
+          onKeyPress={(e) => e.key === "Enter" && handleSearchSubmit()}
           startContent={<SearchIcon size={18} />}
           className="flex-1"
           isClearable
@@ -84,7 +86,7 @@ export default function BookingsFilters({
           selectedKeys={filters.status ? [filters.status] : []}
           onSelectionChange={(keys: any) => {
             const value = Array.from(keys)[0] as string;
-            handleFilterChange('status', value);
+            handleFilterChange("status", value);
           }}
           className="w-48"
           size="sm"
@@ -100,10 +102,10 @@ export default function BookingsFilters({
         <Select
           label="Sort by"
           placeholder="Recent first"
-          selectedKeys={filters.sortBy ? [filters.sortBy] : ['created_at']}
+          selectedKeys={filters.sortBy ? [filters.sortBy] : ["created_at"]}
           onSelectionChange={(keys: any) => {
             const value = Array.from(keys)[0] as string;
-            handleFilterChange('sortBy', value);
+            handleFilterChange("sortBy", value);
           }}
           className="w-40"
           size="sm"
@@ -119,10 +121,10 @@ export default function BookingsFilters({
         <Select
           label="Order"
           placeholder="Desc"
-          selectedKeys={filters.sortOrder ? [filters.sortOrder] : ['desc']}
+          selectedKeys={filters.sortOrder ? [filters.sortOrder] : ["desc"]}
           onSelectionChange={(keys: any) => {
             const value = Array.from(keys)[0] as string;
-            handleFilterChange('sortOrder', value);
+            handleFilterChange("sortOrder", value);
           }}
           className="w-28"
           size="sm"
@@ -134,7 +136,7 @@ export default function BookingsFilters({
         {/* Results Count */}
         {totalCount !== undefined && (
           <div className="text-sm text-default-600 px-2 py-1">
-            {totalCount} booking{totalCount !== 1 ? 's' : ''}
+            {totalCount} booking{totalCount !== 1 ? "s" : ""}
           </div>
         )}
 
@@ -154,11 +156,20 @@ export default function BookingsFilters({
       {/* Active Filters Summary */}
       {hasActiveFilters && (
         <div className="text-sm text-default-600">
-          Showing results for: {' '}
-          {filters.search && <span className="font-medium">"{filters.search}"</span>}
-          {filters.status && filters.status !== 'all' && <span className="font-medium">{filters.status} bookings</span>}
-          {filters.sortBy && <span className="font-medium">sorted by {filters.sortBy}</span>}
-          {(filters.search || (filters.status && filters.status !== 'all') || filters.sortBy) && ' • '}
+          Showing results for:{" "}
+          {filters.search && (
+            <span className="font-medium">&quot;{filters.search}&quot;</span>
+          )}
+          {filters.status && filters.status !== "all" && (
+            <span className="font-medium">{filters.status} bookings</span>
+          )}
+          {filters.sortBy && (
+            <span className="font-medium">sorted by {filters.sortBy}</span>
+          )}
+          {(filters.search ||
+            (filters.status && filters.status !== "all") ||
+            filters.sortBy) &&
+            " • "}
         </div>
       )}
     </div>

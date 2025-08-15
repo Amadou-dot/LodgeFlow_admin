@@ -24,7 +24,7 @@ declare module "@react-types/shared" {
 
 export function Providers({ children, themeProps }: ProvidersProps) {
   const router = useRouter();
-  
+
   // Create a client
   const [queryClient] = React.useState(
     () =>
@@ -37,7 +37,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
             refetchOnWindowFocus: false,
           },
         },
-      })
+      }),
   );
 
   return (

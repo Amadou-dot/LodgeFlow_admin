@@ -1,21 +1,23 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@heroui/button';
-import { Spinner } from '@heroui/spinner';
-import { Card, CardBody } from '@heroui/card';
-import { PlusIcon } from '@/components/icons';
-import CabinCard from '@/components/CabinCard';
-import CabinModal from '@/components/CabinModal';
-import CabinFilters from '@/components/CabinFilters';
-import type { CabinFilters as CabinFiltersType } from '@/types';
-import { useCabins, useDeleteCabin } from '@/hooks/useCabins';
-import type { Cabin } from '@/types';
+import { useState } from "react";
+import { Button } from "@heroui/button";
+import { Spinner } from "@heroui/spinner";
+import { Card, CardBody } from "@heroui/card";
+import { PlusIcon } from "@/components/icons";
+import CabinCard from "@/components/CabinCard";
+import CabinModal from "@/components/CabinModal";
+import CabinFilters from "@/components/CabinFilters";
+import type { CabinFilters as CabinFiltersType } from "@/types";
+import { useCabins, useDeleteCabin } from "@/hooks/useCabins";
+import type { Cabin } from "@/types";
 
 export default function CabinsPage() {
   const [filters, setFilters] = useState<CabinFiltersType>({});
   const [selectedCabin, setSelectedCabin] = useState<Cabin | null>(null);
-  const [modalMode, setModalMode] = useState<'view' | 'create' | 'edit'>('view');
+  const [modalMode, setModalMode] = useState<"view" | "create" | "edit">(
+    "view",
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: cabins, isLoading, error } = useCabins(filters);
@@ -23,28 +25,32 @@ export default function CabinsPage() {
 
   const handleCreateCabin = () => {
     setSelectedCabin(null);
-    setModalMode('create');
+    setModalMode("create");
     setIsModalOpen(true);
   };
 
   const handleViewCabin = (cabin: Cabin) => {
     setSelectedCabin(cabin);
-    setModalMode('view');
+    setModalMode("view");
     setIsModalOpen(true);
   };
 
   const handleEditCabin = (cabin: Cabin) => {
     setSelectedCabin(cabin);
-    setModalMode('edit');
+    setModalMode("edit");
     setIsModalOpen(true);
   };
 
   const handleDeleteCabin = async (cabin: Cabin) => {
-    if (confirm(`Are you sure you want to delete "${cabin.name}"? This action cannot be undone.`)) {
+    if (
+      confirm(
+        `Are you sure you want to delete "${cabin.name}"? This action cannot be undone.`,
+      )
+    ) {
       try {
         await deleteCabin.mutateAsync(cabin.id);
       } catch (error) {
-        console.error('Error deleting cabin:', error);
+        console.error("Error deleting cabin:", error);
       }
     }
   };
@@ -113,10 +119,9 @@ export default function CabinsPage() {
             <Card className="bg-default-50">
               <CardBody className="text-center py-12">
                 <p className="text-default-600 text-lg mb-4">
-                  {Object.keys(filters).length > 0 
-                    ? 'No cabins match your current filters'
-                    : 'No cabins available'
-                  }
+                  {Object.keys(filters).length > 0
+                    ? "No cabins match your current filters"
+                    : "No cabins available"}
                 </p>
                 {Object.keys(filters).length > 0 ? (
                   <Button
@@ -142,8 +147,8 @@ export default function CabinsPage() {
               {/* Results Count */}
               <div className="mb-6">
                 <p className="text-default-600">
-                  Showing {cabins.length} cabin{cabins.length !== 1 ? 's' : ''}
-                  {Object.keys(filters).length > 0 && ' matching your filters'}
+                  Showing {cabins.length} cabin{cabins.length !== 1 ? "s" : ""}
+                  {Object.keys(filters).length > 0 && " matching your filters"}
                 </p>
               </div>
 

@@ -33,14 +33,17 @@ pnpm install
 ### 2. Setup Database
 
 **Option A: MongoDB Atlas (Recommended)**
+
 1. Create free account at https://mongodb.com/atlas
 2. Create cluster and get connection string
 3. Update `.env.local`:
+
 ```env
 MONGODB_URI=mongodb+srv://username:password@cluster.xxxxx.mongodb.net/thewildoasis
 ```
 
 **Option B: Local MongoDB**
+
 1. Install MongoDB Community Server
 2. Start MongoDB service
 3. Use existing `.env.local` configuration

@@ -1,24 +1,29 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@heroui/button';
-import { Input } from '@heroui/input';
-import { Spinner } from '@heroui/spinner';
-import { Card, CardBody } from '@heroui/card';
-import { Avatar } from '@heroui/avatar';
-import { Chip } from '@heroui/chip';
-import { Pagination } from '@heroui/pagination';
-import { SearchIcon, PlusIcon } from '@/components/icons';
-import { useCustomers } from '@/hooks/useCustomers';
-import Link from 'next/link';
+import { useState } from "react";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
+import { Spinner } from "@heroui/spinner";
+import { Card, CardBody } from "@heroui/card";
+import { Avatar } from "@heroui/avatar";
+import { Chip } from "@heroui/chip";
+import { Pagination } from "@heroui/pagination";
+import { SearchIcon, PlusIcon } from "@/components/icons";
+import { useCustomers } from "@/hooks/useCustomers";
+import Link from "next/link";
 
 export default function GuestsPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const { data: customers, pagination, isLoading, error } = useCustomers({
+  const {
+    data: customers,
+    pagination,
+    isLoading,
+    error,
+  } = useCustomers({
     page: currentPage,
     limit: 12,
     search: searchTerm,
@@ -32,17 +37,19 @@ export default function GuestsPage() {
   };
 
   const getLoyaltyTier = (totalSpent: number) => {
-    if (totalSpent >= 10000) return { tier: 'Diamond', color: 'secondary' as const };
-    if (totalSpent >= 5000) return { tier: 'Gold', color: 'warning' as const };
-    if (totalSpent >= 2000) return { tier: 'Silver', color: 'default' as const };
-    return { tier: 'Bronze', color: 'primary' as const };
+    if (totalSpent >= 10000)
+      return { tier: "Diamond", color: "secondary" as const };
+    if (totalSpent >= 5000) return { tier: "Gold", color: "warning" as const };
+    if (totalSpent >= 2000)
+      return { tier: "Silver", color: "default" as const };
+    return { tier: "Bronze", color: "primary" as const };
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -50,8 +57,8 @@ export default function GuestsPage() {
   if (error) {
     return (
       <div className="container mx-auto p-4 md:p-6">
-        <div className='bg-danger-50 border border-danger-200 p-4 rounded-lg'>
-          <p className='text-danger-600'>Failed to load guests</p>
+        <div className="bg-danger-50 border border-danger-200 p-4 rounded-lg">
+          <p className="text-danger-600">Failed to load guests</p>
         </div>
       </div>
     );
@@ -90,23 +97,23 @@ export default function GuestsPage() {
         </div>
         <div className="flex gap-2">
           <Button
-            variant={sortBy === 'name' ? 'solid' : 'bordered'}
+            variant={sortBy === "name" ? "solid" : "bordered"}
             size="sm"
-            onClick={() => setSortBy('name')}
+            onClick={() => setSortBy("name")}
           >
             Name
           </Button>
           <Button
-            variant={sortBy === 'totalSpent' ? 'solid' : 'bordered'}
+            variant={sortBy === "totalSpent" ? "solid" : "bordered"}
             size="sm"
-            onClick={() => setSortBy('totalSpent')}
+            onClick={() => setSortBy("totalSpent")}
           >
             Spending
           </Button>
           <Button
-            variant={sortBy === 'totalBookings' ? 'solid' : 'bordered'}
+            variant={sortBy === "totalBookings" ? "solid" : "bordered"}
             size="sm"
-            onClick={() => setSortBy('totalBookings')}
+            onClick={() => setSortBy("totalBookings")}
           >
             Bookings
           </Button>
@@ -114,9 +121,9 @@ export default function GuestsPage() {
             isIconOnly
             variant="bordered"
             size="sm"
-            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
           >
-            {sortOrder === 'asc' ? '↑' : '↓'}
+            {sortOrder === "asc" ? "↑" : "↓"}
           </Button>
         </div>
       </div>
@@ -146,7 +153,7 @@ export default function GuestsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
             {customers.map((customer: any) => {
               const loyalty = getLoyaltyTier(customer.totalSpent || 0);
-              
+
               return (
                 <Link key={customer._id} href={`/guests/${customer._id}`}>
                   <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer h-full">
@@ -169,22 +176,28 @@ export default function GuestsPage() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="mt-4 space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs text-default-600">Bookings:</span>
+                          <span className="text-xs text-default-600">
+                            Bookings:
+                          </span>
                           <span className="text-xs font-medium">
                             {customer.totalBookings || 0}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-xs text-default-600">Spent:</span>
+                          <span className="text-xs text-default-600">
+                            Spent:
+                          </span>
                           <span className="text-xs font-medium">
                             ${(customer.totalSpent || 0).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-xs text-default-600">Status:</span>
+                          <span className="text-xs text-default-600">
+                            Status:
+                          </span>
                           <Chip
                             size="sm"
                             color={loyalty.color}
@@ -208,7 +221,9 @@ export default function GuestsPage() {
               <CardBody className="text-center">
                 <p className="text-default-600 text-lg">No guests found</p>
                 <p className="text-default-400 text-sm mt-1">
-                  {searchTerm ? 'Try adjusting your search terms' : 'Add your first guest to get started'}
+                  {searchTerm
+                    ? "Try adjusting your search terms"
+                    : "Add your first guest to get started"}
                 </p>
               </CardBody>
             </Card>
