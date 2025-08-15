@@ -1,35 +1,54 @@
 'use client';
 
-import { faker } from '@faker-js/faker';
 import OverviewInfoCard from './OverviewInfoCard';
+import { useOverview } from '@/hooks/useData';
 
 export default function OverviewInfoCards() {
-  // Generate fake data that updates on each render for demo purposes
-  const bookingsCount = faker.number.int({ min: 15, max: 85 });
-  const cancellationsCount = faker.number.int({ min: 0, max: 8 });
-  const revenue = faker.finance.amount({ min: 5000, max: 25000, dec: 0 });
-  const customersCount = faker.number.int({ min: 100, max: 500 });
+  const { data: overview, isLoading, error } = useOverview();
+
+  if (isLoading) {
+    return (
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full'>
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-content1 p-4 rounded-lg border border-divider animate-pulse">
+            <div className="h-4 bg-default-200 rounded mb-2"></div>
+            <div className="h-6 bg-default-200 rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='bg-danger-50 border border-danger-200 p-4 rounded-lg'>
+        <p className='text-danger-600'>Failed to load overview data</p>
+      </div>
+    );
+  }
+
+  if (!overview) return null;
 
   return (
     <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full'>
       <OverviewInfoCard 
         title='Bookings' 
-        description={bookingsCount.toString()} 
+        description={overview.bookings.toString()} 
         variant='blue' 
       />
       <OverviewInfoCard
         title='Cancellations'
-        description={cancellationsCount.toString()}
+        description={overview.cancellations.toString()}
         variant='orange'
       />
       <OverviewInfoCard 
         title='Revenue' 
-        description={`$${revenue}`} 
+        description={`$${overview.revenue.toLocaleString()}`} 
         variant='green' 
       />
       <OverviewInfoCard 
         title='Customers' 
-        description={customersCount.toString()} 
+        description={overview.customers.toString()} 
         variant='purple' 
       />
     </div>

@@ -1,6 +1,5 @@
 'use client';
 
-import { faker } from '@faker-js/faker';
 import {
     Area,
     CartesianGrid,
@@ -10,40 +9,10 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
+import { useSalesData } from '@/hooks/useData';
 
 export default function AreaChart() {
-  // Generate fake sales data for the last 30 days
-  const generateSalesData = () => {
-    const data = [];
-    const today = new Date();
-
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-
-      // Generate more realistic sales patterns (higher on weekends, lower on weekdays)
-      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-      const baseAmount = isWeekend ? 800 : 500;
-      const variance = isWeekend ? 400 : 300;
-
-      data.push({
-        date: date.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-        }),
-        fullDate: date.toISOString().split('T')[0],
-        sales: faker.number.int({
-          min: baseAmount - variance,
-          max: baseAmount + variance,
-        }),
-        bookings: faker.number.int({ min: 5, max: isWeekend ? 25 : 15 }),
-      });
-    }
-
-    return data;
-  };
-
-  const data = generateSalesData();
+  const { data, isLoading, error } = useSalesData();
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -80,6 +49,32 @@ export default function AreaChart() {
   const formatYAxisBookings = (value: number) => {
     return value.toString();
   };
+
+  if (isLoading) {
+    return (
+      <div className='bg-content1 p-4 md:p-6 rounded-lg border border-divider'>
+        <h3 className='text-lg md:text-xl font-bold mb-4'>
+          Sales & Bookings Trend
+        </h3>
+        <div className='h-64 md:h-80 bg-default-100 rounded-lg animate-pulse'></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='bg-content1 p-4 md:p-6 rounded-lg border border-divider'>
+        <h3 className='text-lg md:text-xl font-bold mb-4'>
+          Sales & Bookings Trend
+        </h3>
+        <div className='bg-danger-50 border border-danger-200 p-4 rounded-lg'>
+          <p className='text-danger-600'>Failed to load sales data</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
 
   return (
     <div className='bg-content1 p-4 md:p-6 rounded-lg border border-divider'>

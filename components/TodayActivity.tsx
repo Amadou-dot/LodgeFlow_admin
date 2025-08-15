@@ -1,27 +1,10 @@
 'use client';
 
-import { faker } from '@faker-js/faker';
 import ActivityCard from './ActivityCard';
+import { useActivities } from '@/hooks/useData';
 
 export default function TodayActivity() {
-  // Generate fake activity data
-  const generateActivities = () => {
-    const activities = [];
-    const activityCount = faker.number.int({ min: 4, max: 4 });
-    
-    for (let i = 0; i < activityCount; i++) {
-      activities.push({
-        id: i,
-        status: faker.helpers.arrayElement(['arriving', 'departing']) as 'arriving' | 'departing',
-        name: faker.person.fullName(),
-        stayDuration: faker.number.int({ min: 1, max: 14 })
-      });
-    }
-    
-    return activities;
-  };
-
-  const activities = generateActivities();
+  const { data: activities, isLoading, error } = useActivities();
 
   return (
     <div className='bg-content1 p-4 md:p-6 rounded-lg border border-divider h-auto md:h-96 flex flex-col'>
@@ -36,7 +19,23 @@ export default function TodayActivity() {
       </div>
 
       <div className='flex-1 flex flex-col md:justify-between space-y-2 md:space-y-0'>
-        {activities.map((activity) => (
+        {isLoading && (
+          <>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-default-100 p-3 rounded-lg animate-pulse">
+                <div className="h-4 bg-default-200 rounded"></div>
+              </div>
+            ))}
+          </>
+        )}
+        
+        {error && (
+          <div className='bg-danger-50 border border-danger-200 p-4 rounded-lg'>
+            <p className='text-danger-600 text-sm'>Failed to load activities</p>
+          </div>
+        )}
+        
+        {activities && activities.map((activity) => (
           <ActivityCard 
             key={activity.id}
             status={activity.status}
