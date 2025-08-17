@@ -99,21 +99,21 @@ export default function GuestsPage() {
           <Button
             variant={sortBy === "name" ? "solid" : "bordered"}
             size="sm"
-            onClick={() => setSortBy("name")}
+            onPress={() => setSortBy("name")}
           >
             Name
           </Button>
           <Button
             variant={sortBy === "totalSpent" ? "solid" : "bordered"}
             size="sm"
-            onClick={() => setSortBy("totalSpent")}
+            onPress={() => setSortBy("totalSpent")}
           >
             Spending
           </Button>
           <Button
             variant={sortBy === "totalBookings" ? "solid" : "bordered"}
             size="sm"
-            onClick={() => setSortBy("totalBookings")}
+            onPress={() => setSortBy("totalBookings")}
           >
             Bookings
           </Button>
@@ -121,7 +121,7 @@ export default function GuestsPage() {
             isIconOnly
             variant="bordered"
             size="sm"
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            onPress={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
           >
             {sortOrder === "asc" ? "↑" : "↓"}
           </Button>

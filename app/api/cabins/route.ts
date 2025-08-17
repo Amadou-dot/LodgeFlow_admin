@@ -8,29 +8,64 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter");
+    const search = searchParams.get("search");
+    const capacity = searchParams.get("capacity");
+    const discount = searchParams.get("discount");
     const sortBy = searchParams.get("sortBy") || "name";
     const sortOrder = searchParams.get("sortOrder") || "asc";
 
     // Build query
-    let query = {};
+    let query: any = {};
 
-    // Apply filters
+    // Apply search
+    if (search) {
+      query.name = { $regex: search, $options: "i" };
+    }
+
+    // Apply capacity filter
+    if (capacity) {
+      switch (capacity) {
+        case "small":
+          query.capacity = { $lte: 3 };
+          break;
+        case "medium":
+          query.capacity = { $gte: 4, $lte: 7 };
+          break;
+        case "large":
+          query.capacity = { $gte: 8 };
+          break;
+      }
+    }
+
+    // Apply discount filter
+    if (discount) {
+      switch (discount) {
+        case "with":
+          query.discount = { $gt: 0 };
+          break;
+        case "without":
+          query.discount = 0;
+          break;
+      }
+    }
+
+    // Apply legacy filters for backward compatibility
     if (filter) {
       switch (filter) {
         case "with-discount":
-          query = { discount: { $gt: 0 } };
+          query.discount = { $gt: 0 };
           break;
         case "no-discount":
-          query = { discount: 0 };
+          query.discount = 0;
           break;
         case "small":
-          query = { capacity: { $lte: 3 } };
+          query.capacity = { $lte: 3 };
           break;
         case "medium":
-          query = { capacity: { $gte: 4, $lte: 6 } };
+          query.capacity = { $gte: 4, $lte: 6 };
           break;
         case "large":
-          query = { capacity: { $gte: 7 } };
+          query.capacity = { $gte: 7 };
           break;
       }
     }

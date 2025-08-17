@@ -10,6 +10,9 @@ export function useCabins(filters: CabinFilters = {}) {
   const queryParams = new URLSearchParams();
 
   if (filters.filter) queryParams.append("filter", filters.filter);
+  if (filters.search) queryParams.append("search", filters.search);
+  if (filters.capacity) queryParams.append("capacity", filters.capacity);
+  if (filters.discount) queryParams.append("discount", filters.discount);
   if (filters.sortBy) queryParams.append("sortBy", filters.sortBy);
   if (filters.sortOrder) queryParams.append("sortOrder", filters.sortOrder);
 

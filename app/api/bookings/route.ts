@@ -10,13 +10,23 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const status = searchParams.get("status");
+    const search = searchParams.get("search");
     const sortBy = searchParams.get("sortBy") || "checkInDate";
     const sortOrder = searchParams.get("sortOrder") || "desc";
 
     // Build query
-    let query = {};
+    let query: any = {};
     if (status && status !== "all") {
-      query = { status };
+      query.status = status;
+    }
+
+    // Add search functionality
+    if (search) {
+      query.$or = [
+        { "cabin.name": { $regex: search, $options: "i" } },
+        { "customer.name": { $regex: search, $options: "i" } },
+        { "customer.email": { $regex: search, $options: "i" } },
+      ];
     }
 
     // Build sort object
@@ -34,13 +44,59 @@ export async function GET(request: NextRequest) {
       .skip(skip)
       .limit(limit);
 
-    // Get total count for pagination
-    const totalBookings = await Booking.countDocuments(query);
+    // Apply search filter after population if search term exists
+    let filteredBookings = bookings;
+    if (search) {
+      filteredBookings = bookings.filter((booking: any) => {
+        const cabin = booking.cabin;
+        const customer = booking.customer || booking.guest;
+        
+        if (!cabin || !customer) return false;
+        
+        const searchLower = search.toLowerCase();
+        return (
+          cabin.name?.toLowerCase().includes(searchLower) ||
+          customer.name?.toLowerCase().includes(searchLower) ||
+          customer.email?.toLowerCase().includes(searchLower)
+        );
+      });
+    }
+
+    // Get total count for pagination (considering search)
+    let totalBookings;
+    if (search) {
+      // For search, we need to get all matching records to count them
+      const allBookings = await Booking.find(
+        status && status !== "all" ? { status } : {}
+      )
+        .populate("cabin", "name")
+        .populate("customer", "name email");
+      
+      const filtered = allBookings.filter((booking: any) => {
+        const cabin = booking.cabin;
+        const customer = booking.customer || booking.guest;
+        
+        if (!cabin || !customer) return false;
+        
+        const searchLower = search.toLowerCase();
+        return (
+          cabin.name?.toLowerCase().includes(searchLower) ||
+          customer.name?.toLowerCase().includes(searchLower) ||
+          customer.email?.toLowerCase().includes(searchLower)
+        );
+      });
+      
+      totalBookings = filtered.length;
+    } else {
+      totalBookings = await Booking.countDocuments(
+        status && status !== "all" ? { status } : {}
+      );
+    }
     const totalPages = Math.ceil(totalBookings / limit);
 
     return NextResponse.json({
       success: true,
-      data: bookings,
+      data: filteredBookings,
       pagination: {
         currentPage: page,
         totalPages,
