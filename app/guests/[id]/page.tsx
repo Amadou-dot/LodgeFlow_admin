@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { useRouter, useParams } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@heroui/button";
-import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Avatar } from "@heroui/avatar";
-import { Chip } from "@heroui/chip";
-import { Divider } from "@heroui/divider";
-import { Spinner } from "@heroui/spinner";
+import { Avatar } from '@heroui/avatar';
+import { Button } from '@heroui/button';
+import { Card, CardBody, CardHeader } from '@heroui/card';
+import { Chip } from '@heroui/chip';
+import { Divider } from '@heroui/divider';
+import { Spinner } from '@heroui/spinner';
 import {
   Table,
-  TableHeader,
-  TableColumn,
   TableBody,
-  TableRow,
   TableCell,
-} from "@heroui/table";
+  TableColumn,
+  TableHeader,
+  TableRow,
+} from '@heroui/table';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
 
-import { ArrowLeftIcon, EditIcon, TrashIcon } from "@/components/icons";
-import { useCustomer } from "@/hooks/useCustomers";
+import { ArrowLeftIcon, EditIcon, TrashIcon } from '@/components/icons';
+import { useCustomer } from '@/hooks/useCustomers';
 
 export default function GuestDetailPage() {
   const router = useRouter();
@@ -28,53 +28,53 @@ export default function GuestDetailPage() {
 
   const getLoyaltyTier = (totalSpent: number) => {
     if (totalSpent >= 10000)
-      return { tier: "Diamond", color: "secondary" as const };
-    if (totalSpent >= 5000) return { tier: "Gold", color: "warning" as const };
+      return { tier: 'Diamond', color: 'secondary' as const };
+    if (totalSpent >= 5000) return { tier: 'Gold', color: 'warning' as const };
     if (totalSpent >= 2000)
-      return { tier: "Silver", color: "default" as const };
+      return { tier: 'Silver', color: 'default' as const };
 
-    return { tier: "Bronze", color: "primary" as const };
+    return { tier: 'Bronze', color: 'primary' as const };
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
+      .split(' ')
+      .map(word => word[0])
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed":
-        return "success";
-      case "unconfirmed":
-        return "warning";
-      case "checked-in":
-        return "primary";
-      case "checked-out":
-        return "default";
-      case "cancelled":
-        return "danger";
+      case 'confirmed':
+        return 'success';
+      case 'unconfirmed':
+        return 'warning';
+      case 'checked-in':
+        return 'primary';
+      case 'checked-out':
+        return 'default';
+      case 'cancelled':
+        return 'danger';
       default:
-        return "default";
+        return 'default';
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 md:p-6">
-        <div className="flex justify-center items-center h-64">
-          <Spinner size="lg" />
+      <div className='container mx-auto p-4 md:p-6'>
+        <div className='flex justify-center items-center h-64'>
+          <Spinner size='lg' label='Loading guest details...' />
         </div>
       </div>
     );
@@ -82,14 +82,13 @@ export default function GuestDetailPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-4 md:p-6">
-        <div className="bg-danger-50 border border-danger-200 p-4 rounded-lg">
-          <p className="text-danger-600">Failed to load guest details</p>
+      <div className='container mx-auto p-4 md:p-6'>
+        <div className='bg-danger-50 border border-danger-200 p-4 rounded-lg'>
+          <p className='text-danger-600'>Failed to load guest details</p>
           <Button
-            className="mt-2"
-            variant="light"
-            onClick={() => router.back()}
-          >
+            className='mt-2'
+            variant='light'
+            onClick={() => router.back()}>
             Go Back
           </Button>
         </div>
@@ -99,14 +98,13 @@ export default function GuestDetailPage() {
 
   if (!customer) {
     return (
-      <div className="container mx-auto p-4 md:p-6">
-        <div className="bg-warning-50 border border-warning-200 p-4 rounded-lg">
-          <p className="text-warning-600">Guest not found</p>
+      <div className='container mx-auto p-4 md:p-6'>
+        <div className='bg-warning-50 border border-warning-200 p-4 rounded-lg'>
+          <p className='text-warning-600'>Guest not found</p>
           <Button
-            className="mt-2"
-            variant="light"
-            onClick={() => router.back()}
-          >
+            className='mt-2'
+            variant='light'
+            onClick={() => router.back()}>
             Go Back
           </Button>
         </div>
@@ -117,79 +115,76 @@ export default function GuestDetailPage() {
   const loyalty = getLoyaltyTier(customer.stats?.totalRevenue || 0);
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
+    <div className='container mx-auto p-4 md:p-6'>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          <Button isIconOnly variant="light" onClick={() => router.back()}>
+      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6'>
+        <div className='flex items-center gap-4'>
+          <Button isIconOnly variant='light' onClick={() => router.back()}>
             <ArrowLeftIcon />
           </Button>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Guest Details</h1>
-            <p className="text-default-600 mt-1">{customer.name}</p>
+            <h1 className='text-2xl md:text-3xl font-bold'>Guest Details</h1>
+            <p className='text-default-600 mt-1'>{customer.name}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className='flex gap-2'>
           <Button
-            className="w-full sm:w-auto"
-            color="primary"
+            className='w-full sm:w-auto'
+            color='primary'
             startContent={<EditIcon />}
-            variant="bordered"
-          >
+            variant='bordered'>
             Edit Guest
           </Button>
           <Button
-            className="w-full sm:w-auto"
-            color="danger"
+            className='w-full sm:w-auto'
+            color='danger'
             startContent={<TrashIcon />}
-            variant="light"
-          >
+            variant='light'>
             Delete
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         {/* Guest Information */}
-        <div className="lg:col-span-1">
+        <div className='lg:col-span-1'>
           <Card>
-            <CardHeader className="flex gap-3">
+            <CardHeader className='flex gap-3'>
               <Avatar
-                className="w-16 h-16 text-large"
-                color="primary"
+                className='w-16 h-16 text-large'
+                color='primary'
                 name={getInitials(customer.name)}
               />
-              <div className="flex flex-col">
-                <p className="text-lg font-semibold">{customer.name}</p>
-                <p className="text-small text-default-600">{customer.email}</p>
+              <div className='flex flex-col'>
+                <p className='text-lg font-semibold'>{customer.name}</p>
+                <p className='text-small text-default-600'>{customer.email}</p>
                 <Chip
-                  className="mt-2 w-fit"
+                  className='mt-2 w-fit'
                   color={loyalty.color}
-                  size="sm"
-                  variant="flat"
-                >
+                  size='sm'
+                  variant='flat'>
                   {loyalty.tier} Member
                 </Chip>
               </div>
             </CardHeader>
             <Divider />
-            <CardBody className="space-y-4">
+            <CardBody className='space-y-4'>
               <div>
-                <h4 className="font-semibold text-sm mb-2">
+                <h4 className='font-semibold text-sm mb-2'>
                   Contact Information
                 </h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-default-600">Phone:</span>
-                    <span>{customer.phone || "Not provided"}</span>
+                <div className='space-y-2 text-sm'>
+                  <div className='flex justify-between'>
+                    <span className='text-default-600'>Phone:</span>
+                    <span>{customer.phone || 'Not provided'}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-default-600">Nationality:</span>
+                  <div className='flex justify-between'>
+                    <span className='text-default-600'>Nationality:</span>
                     <span>{customer.nationality}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-default-600">National ID:</span>
-                    <span className="font-mono text-xs">
+                  <div className='flex justify-between'>
+                    <span className='text-default-600'>National ID:</span>
+                    <span className='font-mono text-xs'>
                       {customer.nationalId}
                     </span>
                   </div>
@@ -198,8 +193,8 @@ export default function GuestDetailPage() {
 
               {customer.address && (
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Address</h4>
-                  <div className="text-sm text-default-600">
+                  <h4 className='font-semibold text-sm mb-2'>Address</h4>
+                  <div className='text-sm text-default-600'>
                     <p>{customer.address.street}</p>
                     <p>
                       {customer.address.city}, {customer.address.state}
@@ -213,21 +208,21 @@ export default function GuestDetailPage() {
 
               {customer.emergencyContact && (
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">
+                  <h4 className='font-semibold text-sm mb-2'>
                     Emergency Contact
                   </h4>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-default-600">Name:</span>
+                  <div className='space-y-1 text-sm'>
+                    <div className='flex justify-between'>
+                      <span className='text-default-600'>Name:</span>
                       <span>{customer.emergencyContact.name}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-default-600">Phone:</span>
+                    <div className='flex justify-between'>
+                      <span className='text-default-600'>Phone:</span>
                       <span>{customer.emergencyContact.phone}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-default-600">Relationship:</span>
-                      <span className="capitalize">
+                    <div className='flex justify-between'>
+                      <span className='text-default-600'>Relationship:</span>
+                      <span className='capitalize'>
                         {customer.emergencyContact.relationship}
                       </span>
                     </div>
@@ -237,13 +232,13 @@ export default function GuestDetailPage() {
 
               {customer.preferences && (
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Preferences</h4>
-                  <div className="space-y-2">
+                  <h4 className='font-semibold text-sm mb-2'>Preferences</h4>
+                  <div className='space-y-2'>
                     {customer.preferences.smokingPreference && (
-                      <Chip color="default" size="sm" variant="flat">
+                      <Chip color='default' size='sm' variant='flat'>
                         {customer.preferences.smokingPreference.replace(
-                          "-",
-                          " ",
+                          '-',
+                          ' '
                         )}
                       </Chip>
                     )}
@@ -251,25 +246,23 @@ export default function GuestDetailPage() {
                       (restriction: string, index: number) => (
                         <Chip
                           key={index}
-                          color="warning"
-                          size="sm"
-                          variant="flat"
-                        >
+                          color='warning'
+                          size='sm'
+                          variant='flat'>
                           {restriction}
                         </Chip>
-                      ),
+                      )
                     )}
                     {customer.preferences.accessibilityNeeds?.map(
                       (need: string, index: number) => (
                         <Chip
                           key={index}
-                          color="primary"
-                          size="sm"
-                          variant="flat"
-                        >
-                          {need.replace("-", " ")}
+                          color='primary'
+                          size='sm'
+                          variant='flat'>
+                          {need.replace('-', ' ')}
                         </Chip>
-                      ),
+                      )
                     )}
                   </div>
                 </div>
@@ -279,39 +272,39 @@ export default function GuestDetailPage() {
         </div>
 
         {/* Statistics and Bookings */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className='lg:col-span-2 space-y-6'>
           {/* Statistics */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
             <Card>
-              <CardBody className="text-center">
-                <p className="text-2xl font-bold text-primary">
+              <CardBody className='text-center'>
+                <p className='text-2xl font-bold text-primary'>
                   {customer.stats?.totalBookings || 0}
                 </p>
-                <p className="text-sm text-default-600">Total Bookings</p>
+                <p className='text-sm text-default-600'>Total Bookings</p>
               </CardBody>
             </Card>
             <Card>
-              <CardBody className="text-center">
-                <p className="text-2xl font-bold text-success">
+              <CardBody className='text-center'>
+                <p className='text-2xl font-bold text-success'>
                   {customer.stats?.completedBookings || 0}
                 </p>
-                <p className="text-sm text-default-600">Completed Stays</p>
+                <p className='text-sm text-default-600'>Completed Stays</p>
               </CardBody>
             </Card>
             <Card>
-              <CardBody className="text-center">
-                <p className="text-2xl font-bold text-warning">
+              <CardBody className='text-center'>
+                <p className='text-2xl font-bold text-warning'>
                   ${(customer.stats?.totalRevenue || 0).toLocaleString()}
                 </p>
-                <p className="text-sm text-default-600">Total Spent</p>
+                <p className='text-sm text-default-600'>Total Spent</p>
               </CardBody>
             </Card>
             <Card>
-              <CardBody className="text-center">
-                <p className="text-2xl font-bold text-secondary">
+              <CardBody className='text-center'>
+                <p className='text-2xl font-bold text-secondary'>
                   {Math.round(customer.stats?.averageStayLength || 0)}
                 </p>
-                <p className="text-sm text-default-600">Avg. Stay (nights)</p>
+                <p className='text-sm text-default-600'>Avg. Stay (nights)</p>
               </CardBody>
             </Card>
           </div>
@@ -319,11 +312,11 @@ export default function GuestDetailPage() {
           {/* Recent Bookings */}
           <Card>
             <CardHeader>
-              <h3 className="text-lg font-semibold">Recent Bookings</h3>
+              <h3 className='text-lg font-semibold'>Recent Bookings</h3>
             </CardHeader>
             <CardBody>
               {customer.recentBookings && customer.recentBookings.length > 0 ? (
-                <Table aria-label="Recent bookings">
+                <Table aria-label='Recent bookings'>
                   <TableHeader>
                     <TableColumn>CABIN</TableColumn>
                     <TableColumn>DATES</TableColumn>
@@ -335,23 +328,23 @@ export default function GuestDetailPage() {
                     {customer.recentBookings.map((booking: any) => (
                       <TableRow key={booking._id}>
                         <TableCell>
-                          <div className="flex items-center gap-2">
+                          <div className='flex items-center gap-2'>
                             {booking.cabin?.image && (
                               <img
                                 alt={booking.cabin.name}
-                                className="w-8 h-8 rounded object-cover"
+                                className='w-8 h-8 rounded object-cover'
                                 src={booking.cabin.image}
                               />
                             )}
-                            <span className="font-medium">
-                              {booking.cabin?.name || "N/A"}
+                            <span className='font-medium'>
+                              {booking.cabin?.name || 'N/A'}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">
+                          <div className='text-sm'>
                             <p>{formatDate(booking.checkInDate)}</p>
-                            <p className="text-default-600">
+                            <p className='text-default-600'>
                               to {formatDate(booking.checkOutDate)}
                             </p>
                           </div>
@@ -360,13 +353,12 @@ export default function GuestDetailPage() {
                         <TableCell>
                           <Chip
                             color={getStatusColor(booking.status) as any}
-                            size="sm"
-                            variant="flat"
-                          >
+                            size='sm'
+                            variant='flat'>
                             {booking.status}
                           </Chip>
                         </TableCell>
-                        <TableCell className="font-medium">
+                        <TableCell className='font-medium'>
                           ${booking.totalPrice.toLocaleString()}
                         </TableCell>
                       </TableRow>
@@ -374,14 +366,13 @@ export default function GuestDetailPage() {
                   </TableBody>
                 </Table>
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-default-600">No bookings found</p>
+                <div className='text-center py-8'>
+                  <p className='text-default-600'>No bookings found</p>
                   <Button
                     as={Link}
-                    className="mt-4"
-                    color="primary"
-                    href="/bookings"
-                  >
+                    className='mt-4'
+                    color='primary'
+                    href='/bookings'>
                     Create New Booking
                   </Button>
                 </div>

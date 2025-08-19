@@ -24,6 +24,16 @@ const sidebarItems = [
     icon: '📅',
   },
   {
+    label: 'Experiences',
+    href: '/experiences',
+    icon: '🌄',
+  },
+  {
+    label: 'Dining',
+    href: '/dining',
+    icon: '🍽️',
+  },
+  {
     label: 'Guests',
     href: '/guests',
     icon: '👥',
