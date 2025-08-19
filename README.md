@@ -1,4 +1,4 @@
-# The Wild Oasis - Hotel Management System
+# LodgeFlow - Hotel Management System
 
 A modern hotel management dashboard built with Next.js 15, HeroUI, and MongoDB. Features comprehensive cabin management, booking system, customer profiles, and business analytics.
 
@@ -39,7 +39,7 @@ pnpm install
 3. Update `.env.local`:
 
 ```env
-MONGODB_URI=mongodb+srv://username:password@cluster.xxxxx.mongodb.net/thewildoasis
+MONGODB_URI=mongodb+srv://username:password@cluster.xxxxx.mongodb.net/lodgeflow
 ```
 
 **Option B: Local MongoDB**

@@ -1,4 +1,4 @@
-# Quick MongoDB Atlas Setup for The Wild Oasis
+# Quick MongoDB Atlas Setup for LodgeFlow
 
 Since MongoDB isn't installed locally, here's the fastest way to get your database running:
 
@@ -14,7 +14,7 @@ Since MongoDB isn't installed locally, here's the fastest way to get your databa
    - Choose "Build a Database"
    - Select "M0 Sandbox" (Free tier)
    - Choose your preferred region
-   - Name your cluster (e.g., "thewildoasis")
+   - Name your cluster (e.g., "lodgeflow")
 
 3. **Setup Database Access**
 
@@ -42,7 +42,7 @@ Since MongoDB isn't installed locally, here's the fastest way to get your databa
 6. **Update Environment**
    - Update your `.env.local` with the Atlas connection string:
    ```
-   MONGODB_URI=mongodb+srv://username:password@cluster.xxxxx.mongodb.net/thewildoasis?retryWrites=true&w=majority
+   MONGODB_URI=mongodb+srv://username:password@cluster.xxxxx.mongodb.net/lodgeflow?retryWrites=true&w=majority
    ```
 
 ## Option 2: Local MongoDB (Advanced)
@@ -62,7 +62,7 @@ If you prefer local development:
    ```
 
 3. **Keep current .env.local**
-   - Your current local URI should work: `mongodb://localhost:27017/thewildoasis`
+   - Your current local URI should work: `mongodb://localhost:27017/lodgeflow`
 
 ## Test Your Setup
 

@@ -6,14 +6,14 @@ You have two options for MongoDB:
 
 1. Install MongoDB Community Server: https://www.mongodb.com/try/download/community
 2. Start MongoDB service
-3. Use the current `.env.local` with: `MONGODB_URI=mongodb://localhost:27017/thewildoasis`
+3. Use the current `.env.local` with: `MONGODB_URI=mongodb://localhost:27017/lodgeflow`
 
 ## Option 2: MongoDB Atlas (Cloud)
 
 1. Go to https://www.mongodb.com/atlas
 2. Create a free account and cluster
 3. Get your connection string
-4. Update `.env.local` with: `MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/thewildoasis`
+4. Update `.env.local` with: `MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/lodgeflow`
 
 ## Running the Seed Script
 

@@ -10,8 +10,54 @@ export async function GET() {
     let settings = await Settings.findOne();
 
     if (!settings) {
+      // Clear any invalid settings first (in case there are partial documents)
+      await Settings.deleteMany({});
+      
       // Create default settings if none exist
-      settings = await Settings.create({});
+      settings = await Settings.create({
+        minBookingLength: 2,
+        maxBookingLength: 30,
+        maxGuestsPerBooking: 8,
+        breakfastPrice: 15,
+        checkInTime: "15:00",
+        checkOutTime: "11:00",
+        cancellationPolicy: "moderate",
+        requireDeposit: true,
+        depositPercentage: 25,
+        allowPets: true,
+        petFee: 20,
+        smokingAllowed: false,
+        earlyCheckInFee: 50,
+        lateCheckOutFee: 50,
+        wifiIncluded: true,
+        parkingIncluded: false,
+        parkingFee: 15,
+        currency: "USD",
+        timezone: "America/New_York",
+        businessHours: {
+          open: "08:00",
+          close: "22:00",
+          daysOpen: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        },
+        contactInfo: {
+          phone: "18005634336",
+          email: "info@lodgeflow.com",
+          address: {
+            street: "1000 Wilderness Drive",
+            city: "Pine Valley",
+            state: "MT",
+            country: "USA",
+            zipCode: "59718"
+          }
+        },
+        notifications: {
+          emailEnabled: true,
+          smsEnabled: false,
+          bookingConfirmation: true,
+          paymentReminders: true,
+          checkInReminders: true
+        }
+      });
     }
 
     return NextResponse.json({

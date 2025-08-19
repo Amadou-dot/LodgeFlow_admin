@@ -1,99 +1,260 @@
+import { config } from "dotenv";
+import { resolve } from "path";
 import { faker } from "@faker-js/faker";
 import connectDB from "../lib/mongodb";
 import { Cabin, Customer, Booking, Settings } from "../models";
 import type { ICabin, ICustomer, IBooking } from "../models";
 
-// Sample cabin data
+// Load environment variables from .env.local
+config({ path: resolve(process.cwd(), ".env.local") });
+
+// Sample cabin data (extracted from database with updated images)
 const cabinData = [
   {
-    name: "Pine Valley Cabin",
-    image:
-      "https://images.unsplash.com/photo-1586375300773-8384e3e4916f?w=400&h=300&auto=format&fit=crop",
-    capacity: 4,
-    price: 250,
-    discount: 25,
-    description:
-      "A cozy cabin nestled in the pine valley with stunning mountain views and modern amenities.",
-    amenities: [
+    "name": "Pine Valley Cabin",
+    "image": "https://images.unsplash.com/photo-1633830902223-727413dfad8f?w=400&h=300&auto=format&fit=crop",
+    "capacity": 4,
+    "price": 250,
+    "discount": 25,
+    "description": "A cozy cabin nestled in the pine valley with stunning mountain views and modern amenities.",
+    "amenities": [
       "WiFi",
       "Kitchen",
       "Fireplace",
       "Hot Tub",
       "Mountain View",
-      "BBQ Grill",
-    ],
+      "BBQ Grill"
+    ]
   },
   {
-    name: "Lakeside Haven",
-    image:
-      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&auto=format&fit=crop",
-    capacity: 6,
-    price: 350,
-    discount: 0,
-    description:
-      "Waterfront cabin with private dock, perfect for fishing and water activities.",
-    amenities: [
+    "name": "Lakeside Haven",
+    "image": "https://images.unsplash.com/photo-1697689841030-000d3594c104?w=400&h=300&auto=format&fit=crop",
+    "capacity": 6,
+    "price": 350,
+    "discount": 0,
+    "description": "Waterfront cabin with private dock, perfect for fishing and water activities.",
+    "amenities": [
       "WiFi",
       "Kitchen",
       "Private Dock",
       "Kayaks",
       "Fire Pit",
-      "Lake View",
-    ],
+      "Lake View"
+    ]
   },
   {
-    name: "Mountain View Lodge",
-    image:
-      "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=300&auto=format&fit=crop",
-    capacity: 8,
-    price: 450,
-    discount: 50,
-    description:
-      "Luxury lodge with panoramic mountain views and premium furnishings.",
-    amenities: [
+    "name": "Mountain View Lodge",
+    "image": "https://images.unsplash.com/photo-1661285129351-2ccc4133dbc0?w=400&h=300&auto=format&fit=crop",
+    "capacity": 8,
+    "price": 450,
+    "discount": 50,
+    "description": "Luxury lodge with panoramic mountain views and premium furnishings.",
+    "amenities": [
       "WiFi",
       "Full Kitchen",
       "Jacuzzi",
       "Sauna",
       "Game Room",
-      "Panoramic Views",
-    ],
+      "Panoramic Views"
+    ]
   },
   {
-    name: "Forest Edge Cabin",
-    image:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=300&auto=format&fit=crop",
-    capacity: 2,
-    price: 180,
-    discount: 0,
-    description:
-      "Intimate cabin on the forest edge, perfect for romantic getaways.",
-    amenities: [
+    "name": "Forest Edge Cabin",
+    "image": "https://images.unsplash.com/photo-1725138187136-790dc99ed924?w=400&h=300&auto=format&fit=crop",
+    "capacity": 2,
+    "price": 180,
+    "discount": 0,
+    "description": "Intimate cabin on the forest edge, perfect for romantic getaways.",
+    "amenities": [
       "WiFi",
       "Kitchenette",
       "Fireplace",
       "Forest View",
-      "Bird Watching",
-    ],
+      "Bird Watching"
+    ]
   },
   {
-    name: "Sunset Retreat",
-    image:
-      "https://images.unsplash.com/photo-1542718610-a1d656d1884c?w=400&h=300&auto=format&fit=crop",
-    capacity: 5,
-    price: 300,
-    discount: 30,
-    description:
-      "Watch spectacular sunsets from this elevated cabin with wrap-around deck.",
-    amenities: [
+    "name": "Sunset Retreat",
+    "image": "https://images.unsplash.com/photo-1542718610-a1d656d1884c?w=400&h=300&auto=format&fit=crop",
+    "capacity": 5,
+    "price": 300,
+    "discount": 30,
+    "description": "Watch spectacular sunsets from this elevated cabin with wrap-around deck.",
+    "amenities": [
       "WiFi",
       "Kitchen",
       "Hot Tub",
       "Sunset Views",
       "Deck",
-      "Telescope",
-    ],
+      "Telescope"
+    ]
   },
+  {
+    "name": "Alpine Sanctuary",
+    "image": "https://images.unsplash.com/photo-1660553926576-b81fd7648618?w=400&h=300&auto=format&fit=crop",
+    "capacity": 3,
+    "price": 220,
+    "discount": 15,
+    "description": "Secluded alpine cabin with rustic charm and breathtaking wilderness views.",
+    "amenities": [
+      "WiFi",
+      "Kitchenette",
+      "Wood Stove",
+      "Hiking Trails",
+      "Wildlife Viewing",
+      "Stargazing Deck"
+    ]
+  },
+  {
+    "name": "Riverside Escape",
+    "image": "https://images.unsplash.com/photo-1580856942656-d4416b6e5c2e?w=400&h=300&auto=format&fit=crop",
+    "capacity": 4,
+    "price": 280,
+    "discount": 0,
+    "description": "Tranquil cabin beside a babbling brook with natural soundscapes and fishing access.",
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "River Access",
+      "Fishing Gear",
+      "Meditation Area",
+      "Nature Sounds"
+    ]
+  },
+  {
+    "name": "Wilderness Estate",
+    "image": "https://images.unsplash.com/photo-1693949231048-5518d112e142?w=400&h=300&auto=format&fit=crop",
+    "capacity": 10,
+    "price": 600,
+    "discount": 75,
+    "description": "Luxurious estate cabin perfect for large groups and special celebrations.",
+    "amenities": [
+      "WiFi",
+      "Gourmet Kitchen",
+      "Multiple Bedrooms",
+      "Home Theater",
+      "Pool Table",
+      "Conference Room",
+      "Private Chef Available"
+    ]
+  },
+  {
+    "name": "Treetop Hideaway",
+    "image": "https://images.unsplash.com/photo-1751834410723-b0dd9afe6237?w=400&h=300&auto=format&fit=crop",
+    "capacity": 2,
+    "price": 320,
+    "discount": 20,
+    "description": "Unique elevated cabin among the treetops for an unforgettable canopy experience.",
+    "amenities": [
+      "WiFi",
+      "Kitchenette",
+      "Tree Views",
+      "Bird Observatory",
+      "Suspension Bridge",
+      "Eco-Friendly"
+    ]
+  },
+  {
+    "name": "Desert Rose Villa",
+    "image": "https://images.unsplash.com/photo-1561026555-13539e82532f?w=400&h=300&auto=format&fit=crop",
+    "capacity": 6,
+    "price": 380,
+    "discount": 0,
+    "description": "Modern villa with desert landscape views and sustainable design features.",
+    "amenities": [
+      "WiFi",
+      "Full Kitchen",
+      "Solar Power",
+      "Desert Garden",
+      "Outdoor Shower",
+      "Yoga Studio"
+    ]
+  },
+  {
+    "name": "Glacier View Chalet",
+    "image": "https://images.unsplash.com/photo-1654949935785-29cbc0090492?w=400&h=300&auto=format&fit=crop",
+    "capacity": 7,
+    "price": 520,
+    "discount": 40,
+    "description": "Premium chalet with glacier views and luxury amenities for discerning guests.",
+    "amenities": [
+      "WiFi",
+      "Gourmet Kitchen",
+      "Wine Cellar",
+      "Heated Floors",
+      "Glacier Views",
+      "Spa Bathroom",
+      "Concierge Service"
+    ]
+  },
+  {
+    "name": "Meadow Brook Cottage",
+    "image": "https://images.unsplash.com/photo-1679480554968-b76deb287584?w=400&h=300&auto=format&fit=crop",
+    "capacity": 3,
+    "price": 195,
+    "discount": 10,
+    "description": "Charming cottage surrounded by wildflower meadows and peaceful brooks.",
+    "amenities": [
+      "WiFi",
+      "Country Kitchen",
+      "Garden View",
+      "Flower Picking",
+      "Reading Nook",
+      "Hammock"
+    ]
+  },
+  {
+    "name": "Canyon Edge Lodge",
+    "image": "https://images.unsplash.com/photo-1597256817041-0c75c0633658?w=400&h=300&auto=format&fit=crop",
+    "capacity": 5,
+    "price": 420,
+    "discount": 35,
+    "description": "Dramatic lodge perched on canyon edge with spectacular views and adventure access.",
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "Canyon Views",
+      "Rock Climbing",
+      "Rappelling Gear",
+      "Safety Equipment",
+      "Guide Services"
+    ]
+  },
+  {
+    "name": "Stoneheart Manor",
+    "image": "https://images.unsplash.com/photo-1739511534497-92b2fc4df100?w=400&h=300&auto=format&fit=crop",
+    "capacity": 12,
+    "price": 750,
+    "discount": 100,
+    "description": "Historic stone manor with antique furnishings and old-world charm for large gatherings.",
+    "amenities": [
+      "WiFi",
+      "Commercial Kitchen",
+      "Library",
+      "Ballroom",
+      "Wine Collection",
+      "Butler Service",
+      "Event Planning",
+      "Antique Furnishings"
+    ]
+  },
+  {
+    "name": "Zen Garden Retreat",
+    "image": "https://images.unsplash.com/photo-1668315808815-538f8f72fee9?w=400&h=300&auto=format&fit=crop",
+    "capacity": 4,
+    "price": 340,
+    "discount": 25,
+    "description": "Peaceful retreat with Japanese-inspired design and meditation gardens.",
+    "amenities": [
+      "WiFi",
+      "Tea Kitchen",
+      "Zen Garden",
+      "Meditation Room",
+      "Bamboo Forest",
+      "Koi Pond",
+      "Yoga Mats"
+    ]
+  }
 ];
 
 async function seedDatabase() {

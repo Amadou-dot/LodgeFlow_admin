@@ -1,4 +1,9 @@
+import { config } from "dotenv";
+import { resolve } from "path";
 import connectDB from "../lib/mongodb";
+
+// Load environment variables from .env.local
+config({ path: resolve(process.cwd(), ".env.local") });
 
 async function testConnection() {
   try {

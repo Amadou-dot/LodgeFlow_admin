@@ -1,7 +1,7 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "The wild Oasis",
+  name: "LodgeFlow",
   description: "",
   navItems: [
     {

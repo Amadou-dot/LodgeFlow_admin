@@ -35,7 +35,7 @@ export const Logo: React.FC<IconSvgProps> = ({
   return (
     <Image
       src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
-      alt="The Wild Oasis"
+      alt="LodgeFlow"
       width={logoSize}
       height={logoSize}
       className="rounded"
