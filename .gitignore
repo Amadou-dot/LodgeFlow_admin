@@ -43,3 +43,5 @@ bun.lockb
 
 .env
 .env.*
+*.code
+*.code-workspace

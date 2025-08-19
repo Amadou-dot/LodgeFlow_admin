@@ -146,7 +146,7 @@ const CustomerSchema: Schema = new Schema(
 );
 
 // Indexes for better query performance
-CustomerSchema.index({ email: 1 }, { unique: true });
+// Note: email index is already created by unique: true
 CustomerSchema.index({ nationality: 1 });
 CustomerSchema.index({ totalBookings: -1 });
 CustomerSchema.index({ lastBookingDate: -1 });
