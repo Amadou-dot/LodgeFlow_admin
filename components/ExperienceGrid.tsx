@@ -13,6 +13,7 @@ import {
 } from '@heroui/modal';
 import { addToast } from '@heroui/toast';
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface ExperienceGridProps {
   items: Experience[];
@@ -73,16 +74,39 @@ function ExperienceCard({ item }: { item: Experience }) {
 
   return (
     <Card
-      className={`py-4 ${item.isPopular ? 'ring-2 ring-primary' : ''}`}
+      className={`${item.isPopular ? 'ring-2 ring-primary' : ''}`}
       shadow={item.isPopular ? 'lg' : 'sm'}>
-      <CardHeader className='pb-0 pt-2 px-4 flex-col items-start'>
+      
+      {/* Image Section */}
+      <div className='relative'>
+        <Image
+          src={item.image || '/placeholder-experience.jpg'}
+          alt={item.name}
+          width={400}
+          height={200}
+          className='w-full h-48 object-cover rounded-t-lg'
+        />
+        {item.isPopular && (
+          <Chip
+            color='primary'
+            variant='solid'
+            size='sm'
+            className='absolute top-2 right-2'>
+            Popular
+          </Chip>
+        )}
+        {item.difficulty && (
+          <div className='absolute bottom-2 left-2'>
+            <Chip color='secondary' variant='solid' size='sm'>
+              {item.difficulty}
+            </Chip>
+          </div>
+        )}
+      </div>
+
+      <CardHeader className='pb-0 pt-4 px-4 flex-col items-start'>
         <div className='flex justify-between items-start w-full mb-2'>
           <h4 className='font-bold text-large'>{item.name}</h4>
-          {item.isPopular && (
-            <Chip color='primary' variant='flat' size='sm'>
-              Popular
-            </Chip>
-          )}
         </div>
 
         {/* Price Section */}
@@ -102,11 +126,6 @@ function ExperienceCard({ item }: { item: Experience }) {
 
         {/* Metadata Chips */}
         <div className='flex flex-wrap gap-2 mb-3'>
-          {item.difficulty && (
-            <Chip size='sm' variant='flat' color='default'>
-              {item.difficulty}
-            </Chip>
-          )}
           {item.category && (
             <Chip size='sm' variant='flat' color='secondary'>
               {item.category}
@@ -177,6 +196,13 @@ function ExperienceCard({ item }: { item: Experience }) {
                       label='Name'
                       value={editedItem.name}
                       onChange={e => handleInputChange('name', e.target.value)}
+                    />
+
+                    <Input
+                      label='Image URL'
+                      value={editedItem.image || ''}
+                      onChange={e => handleInputChange('image', e.target.value)}
+                      placeholder='https://example.com/image.jpg'
                     />
 
                     <div className='grid grid-cols-2 gap-4'>
