@@ -1,34 +1,35 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import { useMutation } from "@tanstack/react-query";
+import useSWR from 'swr';
+import { useMutation } from '@tanstack/react-query';
+import { AppSettings } from '@/types';
 
 // Fetcher function for SWR
 const fetcher = (url: string) =>
   fetch(url)
-    .then((res) => {
+    .then(res => {
       if (!res.ok) {
-        throw new Error("Failed to fetch settings");
+        throw new Error('Failed to fetch settings');
       }
       return res.json();
     })
-    .then((result) => {
+    .then(result => {
       // Handle new API response format
       if (result.success) {
         return result.data;
       }
-      throw new Error(result.error || "Failed to fetch settings");
+      throw new Error(result.error || 'Failed to fetch settings');
     });
 
 // Fetch app settings using SWR
 export const useSettings = () => {
   const { data, error, isLoading, mutate } = useSWR<any>(
-    "/api/settings",
+    '/api/settings',
     fetcher,
     {
       revalidateOnFocus: false,
       dedupingInterval: 30000, // Dedupe requests within 30 seconds
-    },
+    }
   );
 
   return {
@@ -42,23 +43,23 @@ export const useSettings = () => {
 // Update settings
 export const useUpdateSettings = () => {
   return useMutation({
-    mutationFn: async (settings: Partial<any>) => {
-      const response = await fetch("/api/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+    mutationFn: async (settings: Partial<AppSettings>) => {
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update settings");
+        throw new Error(errorData.error || 'Failed to update settings');
       }
 
       const result = await response.json();
       if (result.success) {
         return result.data;
       }
-      throw new Error(result.error || "Failed to update settings");
+      throw new Error(result.error || 'Failed to update settings');
     },
   });
 };
@@ -67,12 +68,12 @@ export const useUpdateSettings = () => {
 export const useResetSettings = () => {
   return useMutation({
     mutationFn: async (): Promise<any> => {
-      const response = await fetch("/api/settings", {
-        method: "POST",
+      const response = await fetch('/api/settings', {
+        method: 'POST',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to reset settings");
+        throw new Error('Failed to reset settings');
       }
       return response.json();
     },
