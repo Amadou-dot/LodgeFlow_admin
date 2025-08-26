@@ -3,14 +3,10 @@
 import { useState } from "react";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
-import { Spinner } from "@heroui/spinner";
-import { Card, CardBody } from "@heroui/card";
-import { Avatar } from "@heroui/avatar";
-import { Chip } from "@heroui/chip";
-import { Pagination } from "@heroui/pagination";
-import { SearchIcon, PlusIcon } from "@/components/icons";
+import { SearchIcon } from "@/components/icons";
 import { useCustomers } from "@/hooks/useCustomers";
-import Link from "next/link";
+import GuestGrid from "@/components/GuestGrid";
+import AddGuestModal from "@/components/AddGuestModal";
 
 export default function GuestsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,6 +19,7 @@ export default function GuestsPage() {
     pagination,
     isLoading,
     error,
+    mutate,
   } = useCustomers({
     page: currentPage,
     limit: 12,
@@ -36,22 +33,8 @@ export default function GuestsPage() {
     setCurrentPage(1); // Reset to first page when searching
   };
 
-  const getLoyaltyTier = (totalSpent: number) => {
-    if (totalSpent >= 10000)
-      return { tier: "Diamond", color: "secondary" as const };
-    if (totalSpent >= 5000) return { tier: "Gold", color: "warning" as const };
-    if (totalSpent >= 2000)
-      return { tier: "Silver", color: "default" as const };
-    return { tier: "Bronze", color: "primary" as const };
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+  const handleGuestAdded = () => {
+    mutate(); // Refresh the guest list after adding a new guest
   };
 
   if (error) {
@@ -74,13 +57,7 @@ export default function GuestsPage() {
             Manage your hotel guests and their information
           </p>
         </div>
-        <Button
-          color="primary"
-          startContent={<PlusIcon />}
-          className="w-full sm:w-auto"
-        >
-          Add New Guest
-        </Button>
+        <AddGuestModal onGuestAdded={handleGuestAdded} />
       </div>
 
       {/* Search and Filters */}
@@ -128,121 +105,14 @@ export default function GuestsPage() {
         </div>
       </div>
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
-            <Card key={i} className="p-4">
-              <CardBody className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-default-200 rounded-full animate-pulse" />
-                  <div className="space-y-2 flex-1">
-                    <div className="h-4 bg-default-200 rounded animate-pulse" />
-                    <div className="h-3 bg-default-200 rounded w-2/3 animate-pulse" />
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Guests Grid */}
-      {!isLoading && customers && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-            {customers.map((customer: any) => {
-              const loyalty = getLoyaltyTier(customer.totalSpent || 0);
-
-              return (
-                <Link key={customer._id} href={`/guests/${customer._id}`}>
-                  <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer h-full">
-                    <CardBody className="p-4">
-                      <div className="flex items-start gap-3">
-                        <Avatar
-                          name={getInitials(customer.name)}
-                          className="flex-shrink-0"
-                          color="primary"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-sm truncate">
-                            {customer.name}
-                          </h3>
-                          <p className="text-xs text-default-600 truncate">
-                            {customer.email}
-                          </p>
-                          <p className="text-xs text-default-500 mt-1">
-                            {customer.nationality}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-default-600">
-                            Bookings:
-                          </span>
-                          <span className="text-xs font-medium">
-                            {customer.totalBookings || 0}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-default-600">
-                            Spent:
-                          </span>
-                          <span className="text-xs font-medium">
-                            ${(customer.totalSpent || 0).toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-default-600">
-                            Status:
-                          </span>
-                          <Chip
-                            size="sm"
-                            color={loyalty.color}
-                            variant="flat"
-                            className="text-xs"
-                          >
-                            {loyalty.tier}
-                          </Chip>
-                        </div>
-                      </div>
-                    </CardBody>
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Empty State */}
-          {customers.length === 0 && (
-            <Card className="p-8">
-              <CardBody className="text-center">
-                <p className="text-default-600 text-lg">No guests found</p>
-                <p className="text-default-400 text-sm mt-1">
-                  {searchTerm
-                    ? "Try adjusting your search terms"
-                    : "Add your first guest to get started"}
-                </p>
-              </CardBody>
-            </Card>
-          )}
-
-          {/* Pagination */}
-          {pagination && pagination.totalPages > 1 && (
-            <div className="flex justify-center">
-              <Pagination
-                total={pagination.totalPages}
-                page={currentPage}
-                onChange={setCurrentPage}
-                showControls
-                className="gap-2"
-              />
-            </div>
-          )}
-        </>
-      )}
+      {/* Guest Grid Component */}
+      <GuestGrid
+        customers={customers || []}
+        pagination={pagination}
+        isLoading={isLoading}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }
