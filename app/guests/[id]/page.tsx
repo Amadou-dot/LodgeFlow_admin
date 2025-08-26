@@ -17,16 +17,16 @@ import {
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
+import DeletionModal from '@/components/DeletionModal';
 import { ArrowLeftIcon, EditIcon } from '@/components/icons';
-import { useCustomer } from '@/hooks/useCustomers';
-import DeleteCustomerBtn from '@/components/DeleteCustomerBtn';
+import { useCustomer, useDeleteCustomer } from '@/hooks/useCustomers';
 
 export default function GuestDetailPage() {
   const router = useRouter();
   const params = useParams();
   const customerId = params.id as string;
   const { data: customer, isLoading, error } = useCustomer(customerId);
-
+  const deleteCustomerMutation = useDeleteCustomer();
   const getLoyaltyTier = (totalSpent: number) => {
     if (totalSpent >= 10000)
       return { tier: 'Diamond', color: 'secondary' as const };
@@ -136,10 +136,13 @@ export default function GuestDetailPage() {
             variant='bordered'>
             Edit Guest
           </Button>
-          <DeleteCustomerBtn 
-            customerId={customer._id} 
-            customerName={customer.name} 
-            onCustomerDeleted={() => router.push('/guests')}
+          <DeletionModal
+            resourceId={customer._id}
+            resourceName='Customer'
+            itemName={customer.name}
+            onDelete={deleteCustomerMutation}
+            note='Customers with active bookings cannot be deleted.'
+            onResourceDeleted={() => router.push('/guests')}
           />
         </div>
       </div>
