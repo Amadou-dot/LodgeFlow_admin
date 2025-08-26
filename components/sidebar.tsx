@@ -78,7 +78,9 @@ export const Sidebar = () => {
       <nav className='flex-1 px-4 py-4'>
         <ul className='space-y-2'>
           {sidebarItems.map(item => {
-            const isActive = pathname === item.href;
+            const isActive = item.href === '/' 
+              ? pathname === '/' 
+              : pathname.startsWith(item.href);
 
             return (
               <li key={item.href}>

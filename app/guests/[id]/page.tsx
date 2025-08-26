@@ -17,8 +17,9 @@ import {
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
-import { ArrowLeftIcon, EditIcon, TrashIcon } from '@/components/icons';
+import { ArrowLeftIcon, EditIcon } from '@/components/icons';
 import { useCustomer } from '@/hooks/useCustomers';
+import DeleteCustomerBtn from '@/components/DeleteCustomerBtn';
 
 export default function GuestDetailPage() {
   const router = useRouter();
@@ -88,7 +89,7 @@ export default function GuestDetailPage() {
           <Button
             className='mt-2'
             variant='light'
-            onClick={() => router.back()}>
+            onPress={() => router.back()}>
             Go Back
           </Button>
         </div>
@@ -104,7 +105,7 @@ export default function GuestDetailPage() {
           <Button
             className='mt-2'
             variant='light'
-            onClick={() => router.back()}>
+            onPress={() => router.back()}>
             Go Back
           </Button>
         </div>
@@ -119,7 +120,7 @@ export default function GuestDetailPage() {
       {/* Header */}
       <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6'>
         <div className='flex items-center gap-4'>
-          <Button isIconOnly variant='light' onClick={() => router.back()}>
+          <Button isIconOnly variant='light' onPress={() => router.back()}>
             <ArrowLeftIcon />
           </Button>
           <div>
@@ -135,13 +136,11 @@ export default function GuestDetailPage() {
             variant='bordered'>
             Edit Guest
           </Button>
-          <Button
-            className='w-full sm:w-auto'
-            color='danger'
-            startContent={<TrashIcon />}
-            variant='light'>
-            Delete
-          </Button>
+          <DeleteCustomerBtn 
+            customerId={customer._id} 
+            customerName={customer.name} 
+            onCustomerDeleted={() => router.push('/guests')}
+          />
         </div>
       </div>
 
