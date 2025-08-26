@@ -1,4 +1,4 @@
-import { useUpdateExperience } from '@/hooks/useExperiences';
+import { useUpdateExperience, useDeleteExperience } from '@/hooks/useExperiences';
 import { Experience } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
@@ -43,9 +43,12 @@ export function ExperienceGrid({
 
 function ExperienceCard({ item }: { item: Experience }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editedItem, setEditedItem] = useState<Experience>(item);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { updateExperience } = useUpdateExperience();
+  const { deleteExperience } = useDeleteExperience();
 
   // Calculate discount for display
   const originalPrice = item.price * 1.2; // Assuming 20% discount for display
@@ -72,9 +75,32 @@ function ExperienceCard({ item }: { item: Experience }) {
     setEditedItem(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleDelete = async () => {
+    if (!item._id) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteExperience(item._id);
+      setIsDeleteModalOpen(false);
+      addToast({
+        title: 'Experience Deleted',
+        description: 'The experience has been successfully deleted.',
+        color: 'success',
+      });
+    } catch (error) {
+      addToast({
+        title: 'Error deleting experience',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        color: 'danger',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <Card
-      className={`${item.isPopular ? 'ring-2 ring-primary' : ''}`}
+      className={`${item.isPopular ? 'ring-2 ring-primary' : ''} h-full flex flex-col`}
       shadow={item.isPopular ? 'lg' : 'sm'}>
       
       {/* Image Section */}
@@ -139,7 +165,7 @@ function ExperienceCard({ item }: { item: Experience }) {
         </div>
       </CardHeader>
 
-      <CardBody className='overflow-visible py-2'>
+      <CardBody className='overflow-visible py-2 flex-grow flex flex-col'>
         <p className='text-default-600 mb-4'>{item.description}</p>
 
         {/* Includes Section */}
@@ -171,12 +197,23 @@ function ExperienceCard({ item }: { item: Experience }) {
           </div>
         )}
 
-        <Button
-          color='primary'
-          className='w-full mt-4'
-          onPress={() => setIsModalOpen(true)}>
-          Edit
-        </Button>
+        <div className='mt-auto'>
+          <div className='flex gap-2'>
+            <Button
+              color='primary'
+              className='flex-2'
+              onPress={() => setIsModalOpen(true)}>
+              Edit
+            </Button>
+            <Button
+              color='danger'
+              variant='light'
+              className='flex-1'
+              onPress={() => setIsDeleteModalOpen(true)}>
+              Delete
+            </Button>
+          </div>
+        </div>
 
         {/* Edit Modal */}
         <Modal
@@ -314,6 +351,41 @@ function ExperienceCard({ item }: { item: Experience }) {
                   </Button>
                   <Button color='primary' onPress={handleSave}>
                     Save Changes
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={isDeleteModalOpen}
+          onOpenChange={setIsDeleteModalOpen}
+          size='md'>
+          <ModalContent>
+            {onClose => (
+              <>
+                <ModalHeader className='flex flex-col gap-1'>
+                  Delete Experience
+                </ModalHeader>
+                <ModalBody>
+                  <p>
+                    Are you sure you want to delete <strong>{item.name}</strong>?
+                  </p>
+                  <p className='text-danger text-sm'>
+                    This action cannot be undone.
+                  </p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button variant='light' onPress={onClose}>
+                    Cancel
+                  </Button>
+                  <Button
+                    color='danger'
+                    onPress={handleDelete}
+                    isLoading={isDeleting}>
+                    {isDeleting ? 'Deleting...' : 'Delete'}
                   </Button>
                 </ModalFooter>
               </>
