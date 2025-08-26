@@ -1,4 +1,3 @@
-import { useDeleteCustomer } from '@/hooks/useCustomers';
 import { Button } from '@heroui/button';
 import {
   Modal,
@@ -9,48 +8,55 @@ import {
   useDisclosure,
 } from '@heroui/modal';
 import { addToast } from '@heroui/toast';
+import { UseMutationResult } from '@tanstack/react-query';
 import { TrashIcon } from './icons';
 
-export default function DeleteCustomerBtn({
-  customerId,
-  customerName,
-  onCustomerDeleted,
-}: {
-  customerId: string;
-  customerName: string;
-  onCustomerDeleted?: () => void;
-}) {
-  const deleteCustomerMutation = useDeleteCustomer();
+interface ModalProps {
+  resourceId: string;
+  resourceName: string;
+  note?: string;
+  onDelete: UseMutationResult<any, Error, string, unknown>;
+  onResourceDeleted?: () => void;
+  itemName?: string;
+}
+export default function DeletionModal({
+  resourceId,
+  resourceName,
+  note,
+  onDelete,
+  onResourceDeleted,
+  itemName
+}: ModalProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const handleDelete = async () => {
-    if (!customerId) {
-      console.error('No customer ID provided');
+    if (!resourceId) {
+      console.error('No resource ID provided');
       return;
     }
 
-    console.log('Attempting to delete customer:', customerId);
+    console.log('Attempting to delete resource:', resourceId);
 
     try {
-      const result = await deleteCustomerMutation.mutateAsync(customerId);
+      const result = await onDelete.mutateAsync(resourceId);
       console.log('Delete successful:', result);
-      
+
       onOpenChange(); // Close modal
-      onCustomerDeleted?.(); // Refresh customer list
+      onResourceDeleted?.(); // Refresh resource list
       addToast({
-        title: 'Customer Deleted',
-        description: 'The customer has been successfully deleted.',
+        title: 'Resource Deleted',
+        description: 'The resource has been successfully deleted.',
         color: 'success',
       });
     } catch (error: any) {
       console.error('Delete error:', error);
-      
+
       // Handle specific error messages from the API
       let errorMessage = 'Unknown error occurred';
       if (error.message) {
         errorMessage = error.message;
       }
-      
+
       addToast({
         title: 'Error deleting customer',
         description: errorMessage,
@@ -74,19 +80,19 @@ export default function DeleteCustomerBtn({
           {onClose => (
             <>
               <ModalHeader className='flex flex-col gap-1'>
-                Delete Customer
+                Delete {resourceName}
               </ModalHeader>
               <ModalBody>
                 <p>
-                  Are you sure you want to delete{' '}
-                  <strong>{customerName}</strong>?
+                  Are you sure you want to delete {resourceName}:{' '}
+                  <strong>{itemName}</strong>?
                 </p>
                 <p className='text-danger text-sm'>
                   This action cannot be undone.
                 </p>
-                <p className='text-warning text-sm mt-2'>
-                  Note: Customers with existing bookings cannot be deleted.
-                </p>
+                {note && (
+                  <p className='text-warning text-sm mt-2'>Note: {note}</p>
+                )}
               </ModalBody>
               <ModalFooter>
                 <Button variant='light' onPress={onClose}>
@@ -94,12 +100,9 @@ export default function DeleteCustomerBtn({
                 </Button>
                 <Button
                   color='danger'
-                  onPress={() => {
-                    console.log('Delete button clicked');
-                    handleDelete();
-                  }}
-                  isLoading={deleteCustomerMutation.isPending}>
-                  {deleteCustomerMutation.isPending ? 'Deleting...' : 'Delete'}
+                  onPress={handleDelete}
+                  isLoading={onDelete.isPending}>
+                  {onDelete.isPending ? 'Deleting...' : 'Delete'}
                 </Button>
               </ModalFooter>
             </>
