@@ -63,7 +63,9 @@ export default function AddExperienceForm({
           <Container>
             <Input
               name='title'
-              placeholder='Experience Title'
+              labelPlacement='inside'
+              label='Experience Title'
+              // placeholder='Experience Title'
               aria-label='Experience Title'
               radius='sm'
               value={formData.title || ''}
@@ -71,7 +73,9 @@ export default function AddExperienceForm({
             />
             <NumberInput
               name='price'
-              placeholder='Experience Price'
+              // placeholder='Experience Price'
+              labelPlacement='inside'
+              label='Experience Price'
               aria-label='Experience Price'
               radius='sm'
               value={formData.price || 0}
@@ -79,7 +83,8 @@ export default function AddExperienceForm({
             />
             <Input
               name='duration'
-              placeholder='Experience Duration'
+              label='Experience Duration'
+              labelPlacement='inside'
               aria-label='Experience Duration'
               radius='sm'
               description='Ex: 2 hours, Half day, Full day'
@@ -88,7 +93,8 @@ export default function AddExperienceForm({
             />
             <Input
               name='category'
-              placeholder='Experience Category'
+              label='Experience Category'
+              labelPlacement='inside'
               aria-label='Experience Category'
               radius='sm'
               description='Ex: Adventure, Relaxation, Cultural'
@@ -97,7 +103,8 @@ export default function AddExperienceForm({
             />
             <Select
               name='difficulty'
-              placeholder='Select Difficulty Level'
+              label='Difficulty Level'
+              labelPlacement='inside'
               aria-label='Difficulty Level'
               radius='sm'
               selectedKeys={formData.difficulty ? [formData.difficulty] : []}
@@ -112,25 +119,36 @@ export default function AddExperienceForm({
             </Select>
             <Input
               name='tags'
-              placeholder='Tags (comma-separated)'
+              label='Tags (comma-separated)'
+              labelPlacement='inside'
               aria-label='Experience Tags'
               radius='sm'
               value={formData.tags || ''}
               onValueChange={value => handleInputChange('tags', value)}
             />
-            <Input
+            <Select
               name='seasonalAvailability'
-              placeholder='Seasonal Availability'
+              label='Seasonal Availability'
+              labelPlacement='inside'
               aria-label='Seasonal Availability'
               radius='sm'
-              value={formData.seasonalAvailability || ''}
-              onValueChange={value =>
-                handleInputChange('seasonalAvailability', value)
-              }
-            />
+              selectionMode='multiple'
+              selectedKeys={formData.seasonalAvailability ? new Set(formData.seasonalAvailability) : new Set()}
+              onSelectionChange={(keys) => {
+                const selectedKeys = Array.from(keys) as string[];
+                handleInputChange('seasonalAvailability', selectedKeys);
+              }}
+            >
+              <SelectItem key='All seasons'>All seasons</SelectItem>
+              <SelectItem key='Spring'>Spring</SelectItem>
+              <SelectItem key='Summer'>Summer</SelectItem>
+              <SelectItem key='Fall'>Fall</SelectItem>
+              <SelectItem key='Winter'>Winter</SelectItem>
+            </Select>
             <Input
               name='location'
-              placeholder='Experience Location'
+              label='Experience Location'
+              labelPlacement='inside'
               aria-label='Experience Location'
               radius='sm'
               value={formData.location || ''}
@@ -145,7 +163,8 @@ export default function AddExperienceForm({
           <Container>
             <Input
               name='imageUrl'
-              placeholder='Experience Image URL'
+              label='Experience Image URL'
+              labelPlacement='inside'
               aria-label='Experience Image URL'
               radius='sm'
               value={formData.imageUrl || ''}
@@ -153,7 +172,8 @@ export default function AddExperienceForm({
             />
             <Input
               name='imageGallery'
-              placeholder='Image Gallery URL (comma-separated)'
+              label='Image Gallery URL (comma-separated)'
+              labelPlacement='inside'
               aria-label='Image Gallery URLs'
               radius='sm'
               value={formData.imageGallery || ''}
@@ -168,7 +188,8 @@ export default function AddExperienceForm({
           <Container>
             <Textarea
               name='shortDescription'
-              placeholder='Short Description'
+              label='Short Description'
+              labelPlacement='inside'
               aria-label='Short Description'
               radius='sm'
               value={formData.shortDescription || ''}
@@ -178,7 +199,8 @@ export default function AddExperienceForm({
             />
             <Textarea
               name='longDescription'
-              placeholder='Long Description'
+              label='Long Description'
+              labelPlacement='inside'
               aria-label='Long Description'
               radius='sm'
               value={formData.longDescription || ''}
@@ -188,7 +210,8 @@ export default function AddExperienceForm({
             />
             <Input
               name='highlights'
-              placeholder='Experience Highlights (comma-separated)'
+              label='Experience Highlights (comma-separated)'
+              labelPlacement='inside'
               aria-label='Experience Highlights'
               radius='sm'
               value={formData.highlights || ''}
@@ -203,7 +226,8 @@ export default function AddExperienceForm({
           <Container>
             <Input
               name='includes'
-              placeholder='Experience Includes (comma-separated)'
+              label='Experience Includes (comma-separated)'
+              labelPlacement='inside'
               aria-label='What the experience includes'
               radius='sm'
               description='Ex: Binoculars, Sunscreen, Notebook'
@@ -212,26 +236,19 @@ export default function AddExperienceForm({
             />
             <Input
               name='whatToBring'
-              placeholder='What to bring (comma-separated)'
+              label='What to bring (comma-separated)'
+              labelPlacement='inside'
               aria-label='What participants should bring'
               radius='sm'
               description='Ex: Sunscreen, Water Bottle, Hat'
               value={formData.whatToBring || ''}
               onValueChange={value => handleInputChange('whatToBring', value)}
             />
-            <Input
-              name='experienceRequirements'
-              placeholder='Experience Requirements (comma-separated)'
-              aria-label='Experience Requirements'
-              radius='sm'
-              value={formData.experienceRequirements || ''}
-              onValueChange={value =>
-                handleInputChange('experienceRequirements', value)
-              }
-            />
+            
             <Input
               name='requirements'
-              placeholder='Requirements (comma-separated)'
+              label='Requirements (comma-separated)'
+              labelPlacement='inside'
               aria-label='General Requirements'
               radius='sm'
               description='Ex: No pets, Must be 18+, Ability to swim'
@@ -240,7 +257,8 @@ export default function AddExperienceForm({
             />
             <Input
               name='availableTimes'
-              placeholder='Experience Available times (comma-separated)'
+              label='Experience Available times (comma-separated)'
+              labelPlacement='inside'
               aria-label='Available Times'
               radius='sm'
               description='Ex: Weekends, Weekdays, Mornings, Afternoons'
@@ -258,7 +276,8 @@ export default function AddExperienceForm({
           <Container>
             <Input
               name='callToAction'
-              placeholder='Experience call to action text'
+              label='Experience call to action text'
+              labelPlacement='inside'
               aria-label='Call to Action Text'
               radius='sm'
               value={formData.callToAction || ''}
@@ -266,7 +285,8 @@ export default function AddExperienceForm({
             />
             <Input
               name='cancellationPolicy'
-              placeholder='Cancellation Policy'
+              label='Cancellation Policy'
+              labelPlacement='inside'
               aria-label='Cancellation Policy'
               radius='sm'
               value={formData.cancellationPolicy || ''}
@@ -276,7 +296,8 @@ export default function AddExperienceForm({
             />
             <NumberInput
               name='maxParticipants'
-              placeholder='Max Participants'
+              label='Max Participants'
+              labelPlacement='inside'
               aria-label='Maximum Number of Participants'
               min={1}
               radius='sm'
@@ -287,7 +308,8 @@ export default function AddExperienceForm({
             />
             <NumberInput
               name='minimumAge'
-              placeholder='Minimum Age'
+              label='Minimum Age'
+              labelPlacement='inside'
               aria-label='Minimum Age Requirement'
               min={0}
               radius='sm'
