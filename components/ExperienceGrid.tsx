@@ -3,7 +3,6 @@ import { Experience } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Chip } from '@heroui/chip';
-import { Input, Textarea } from '@heroui/input';
 import {
   Modal,
   ModalBody,
@@ -14,6 +13,7 @@ import {
 import { addToast } from '@heroui/toast';
 import { useState } from 'react';
 import Image from 'next/image';
+import EditExperienceForm from './EditExperienceForm';
 
 interface ExperienceGridProps {
   items: Experience[];
@@ -44,7 +44,6 @@ export function ExperienceGrid({
 function ExperienceCard({ item }: { item: Experience }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [editedItem, setEditedItem] = useState<Experience>(item);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { updateExperience } = useUpdateExperience();
@@ -54,25 +53,31 @@ function ExperienceCard({ item }: { item: Experience }) {
   const originalPrice = item.price * 1.2; // Assuming 20% discount for display
   const hasDiscount = item.isPopular; // Show discount for popular items
 
-  const handleSave = async () => {
+  const handleSave = async (updatedExperience: Experience) => {
     if (!item._id) return;
 
     setIsLoading(true);
     try {
-      await updateExperience(item._id, editedItem);
+      await updateExperience(item._id, updatedExperience);
       setIsModalOpen(false);
+      addToast({
+        title: 'Experience Updated',
+        description: 'The experience has been successfully updated.',
+        color: 'success',
+      });
     } catch (error) {
       addToast({
         title: 'Error updating experience',
         description: error instanceof Error ? error.message : 'Unknown error',
+        color: 'danger',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (field: keyof Experience, value: any) => {
-    setEditedItem(prev => ({ ...prev, [field]: value }));
+  const handleCancel = () => {
+    setIsModalOpen(false);
   };
 
   const handleDelete = async () => {
@@ -219,140 +224,22 @@ function ExperienceCard({ item }: { item: Experience }) {
         <Modal
           isOpen={isModalOpen}
           onOpenChange={setIsModalOpen}
-          size='2xl'
+          size='4xl'
           scrollBehavior='inside'>
           <ModalContent>
             {onClose => (
               <>
                 <ModalHeader className='flex flex-col gap-1'>
-                  Edit Experience
+                  Edit Experience: {item.name}
                 </ModalHeader>
                 <ModalBody>
-                  <div className='space-y-4'>
-                    <Input
-                      label='Name'
-                      value={editedItem.name}
-                      onChange={e => handleInputChange('name', e.target.value)}
-                    />
-
-                    <Input
-                      label='Image URL'
-                      value={editedItem.image || ''}
-                      onChange={e => handleInputChange('image', e.target.value)}
-                      placeholder='https://example.com/image.jpg'
-                    />
-
-                    <div className='grid grid-cols-2 gap-4'>
-                      <Input
-                        label='Price'
-                        type='number'
-                        value={editedItem.price.toString()}
-                        onChange={e =>
-                          handleInputChange(
-                            'price',
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                      />
-                      <Input
-                        label='Duration'
-                        value={editedItem.duration || ''}
-                        onChange={e =>
-                          handleInputChange('duration', e.target.value)
-                        }
-                      />
-                    </div>
-
-                    <div className='grid grid-cols-2 gap-4'>
-                      <Input
-                        label='Max Participants'
-                        type='number'
-                        value={editedItem.maxParticipants?.toString() || ''}
-                        onChange={e =>
-                          handleInputChange(
-                            'maxParticipants',
-                            e.target.value
-                              ? parseInt(e.target.value)
-                              : undefined
-                          )
-                        }
-                      />
-                      <Input
-                        label='Min Age'
-                        type='number'
-                        value={editedItem.minAge?.toString() || ''}
-                        onChange={e =>
-                          handleInputChange(
-                            'minAge',
-                            e.target.value
-                              ? parseInt(e.target.value)
-                              : undefined
-                          )
-                        }
-                      />
-                    </div>
-
-                    <Textarea
-                      label='Description'
-                      value={editedItem.description}
-                      onChange={e =>
-                        handleInputChange('description', e.target.value)
-                      }
-                      minRows={3}
-                    />
-
-                    <div className='grid grid-cols-2 gap-4'>
-                      <Input
-                        label='Difficulty'
-                        value={editedItem.difficulty || ''}
-                        onChange={e =>
-                          handleInputChange('difficulty', e.target.value)
-                        }
-                      />
-                      <Input
-                        label='Category'
-                        value={editedItem.category || ''}
-                        onChange={e =>
-                          handleInputChange('category', e.target.value)
-                        }
-                      />
-                    </div>
-
-                    <Textarea
-                      label='Includes (one per line)'
-                      value={editedItem.includes?.join('\n') || ''}
-                      onChange={e =>
-                        handleInputChange(
-                          'includes',
-                          e.target.value.split('\n').filter(line => line.trim())
-                        )
-                      }
-                      minRows={3}
-                      placeholder='Equipment rental&#10;Professional guide&#10;Lunch included'
-                    />
-
-                    <Textarea
-                      label='Availability (one per line)'
-                      value={editedItem.available?.join('\n') || ''}
-                      onChange={e =>
-                        handleInputChange(
-                          'available',
-                          e.target.value.split('\n').filter(line => line.trim())
-                        )
-                      }
-                      minRows={2}
-                      placeholder='Monday-Friday&#10;Weekends'
-                    />
-                  </div>
+                  <EditExperienceForm
+                    experience={item}
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                    isLoading={isLoading}
+                  />
                 </ModalBody>
-                <ModalFooter>
-                  <Button color='danger' variant='light' onPress={onClose}>
-                    Cancel
-                  </Button>
-                  <Button color='primary' onPress={handleSave}>
-                    Save Changes
-                  </Button>
-                </ModalFooter>
               </>
             )}
           </ModalContent>
