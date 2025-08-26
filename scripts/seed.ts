@@ -1,9 +1,10 @@
+
 import { faker } from '@faker-js/faker';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import connectDB from '../lib/mongodb';
-import type { IBooking, ICabin, ICustomer, IExperience } from '../models';
-import { Booking, Cabin, Customer, Experience, Settings } from '../models';
+import type { IBooking, ICabin, ICustomer, IExperience, IDining } from '../models';
+import { Booking, Cabin, Customer, Experience, Settings, Dining } from '../models';
 
 // Load environment variables from .env.local
 config({ path: resolve(process.cwd(), '.env.local') });
@@ -651,6 +652,342 @@ const experienceData = [
   },
 ];
 
+// Sample dining data
+const diningData = [
+  // Regular Menu Items - Breakfast
+  {
+    name: 'Lodge Breakfast Platter',
+    description: 'Traditional hearty breakfast with scrambled eggs, bacon, sausage, hash browns, and toast',
+    type: 'menu',
+    mealType: 'breakfast',
+    price: 18.99,
+    servingTime: { start: '07:00', end: '11:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'regular',
+    image: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=300&auto=format&fit=crop',
+    ingredients: ['eggs', 'bacon', 'sausage', 'potatoes', 'bread'],
+    allergens: ['eggs', 'gluten'],
+    dietary: ['gluten-free'],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['breakfast', 'traditional', 'hearty'],
+  },
+  {
+    name: 'Mountain Berry Pancakes',
+    description: 'Fluffy pancakes topped with fresh mountain berries and maple syrup',
+    type: 'menu',
+    mealType: 'breakfast',
+    price: 14.99,
+    servingTime: { start: '07:00', end: '11:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'regular',
+    image: 'https://images.unsplash.com/photo-1506084868230-bb9d95c24759?w=400&h=300&auto=format&fit=crop',
+    ingredients: ['flour', 'eggs', 'milk', 'berries', 'maple syrup'],
+    allergens: ['eggs', 'gluten', 'dairy'],
+    dietary: ['vegetarian'],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['breakfast', 'sweet', 'vegetarian'],
+  },
+
+  // Regular Menu Items - Lunch
+  {
+    name: 'Grilled Mountain Trout',
+    description: 'Fresh-caught trout grilled to perfection with lemon herbs and seasonal vegetables',
+    type: 'menu',
+    mealType: 'lunch',
+    price: 28.99,
+    servingTime: { start: '11:30', end: '15:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'regular',
+    image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=400&h=300&auto=format&fit=crop',
+    ingredients: ['trout', 'lemon', 'herbs', 'seasonal vegetables'],
+    allergens: ['fish'],
+    dietary: ['gluten-free', 'dairy-free'],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['lunch', 'fish', 'local', 'healthy'],
+  },
+  {
+    name: 'Lodge Burger',
+    description: 'Premium beef burger with lodge sauce, cheese, lettuce, tomato, and hand-cut fries',
+    type: 'menu',
+    mealType: 'lunch',
+    price: 22.99,
+    servingTime: { start: '11:30', end: '15:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'regular',
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&auto=format&fit=crop',
+    ingredients: ['beef', 'cheese', 'lettuce', 'tomato', 'bun', 'potatoes'],
+    allergens: ['gluten', 'dairy'],
+    dietary: [],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['lunch', 'burger', 'classic'],
+  },
+
+  // Regular Menu Items - Dinner
+  {
+    name: 'Wild Game Steak',
+    description: 'Locally sourced wild game steak with roasted root vegetables and red wine reduction',
+    type: 'menu',
+    mealType: 'dinner',
+    price: 45.99,
+    servingTime: { start: '17:00', end: '21:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'regular',
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&auto=format&fit=crop',
+    ingredients: ['wild game', 'root vegetables', 'red wine', 'herbs'],
+    allergens: [],
+    dietary: ['gluten-free', 'dairy-free'],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['dinner', 'local', 'premium', 'wild game'],
+  },
+
+  // Craft Beer Selection
+  {
+    name: 'LodgeFlow IPA',
+    description: 'Our signature India Pale Ale with citrus notes and a hoppy finish',
+    type: 'menu',
+    mealType: 'all-day',
+    price: 8.99,
+    servingTime: { start: '11:00', end: '23:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'craft-beer',
+    subCategory: 'IPA',
+    image: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=300&auto=format&fit=crop',
+    beverages: [{
+      name: 'LodgeFlow IPA',
+      description: 'Signature IPA with citrus notes',
+      alcoholContent: 6.2,
+      category: 'craft-beer',
+    }],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['beer', 'craft', 'IPA', 'signature'],
+  },
+  {
+    name: 'Mountain Mist Lager',
+    description: 'Light and crisp lager perfect for outdoor adventures',
+    type: 'menu',
+    mealType: 'all-day',
+    price: 7.99,
+    servingTime: { start: '11:00', end: '23:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'craft-beer',
+    subCategory: 'Lager',
+    image: 'https://images.unsplash.com/photo-1437750769465-301382cdf094?w=400&h=300&auto=format&fit=crop',
+    beverages: [{
+      name: 'Mountain Mist Lager',
+      description: 'Light and crisp lager',
+      alcoholContent: 4.8,
+      category: 'craft-beer',
+    }],
+    isPopular: false,
+    isAvailable: true,
+    tags: ['beer', 'craft', 'lager', 'light'],
+  },
+
+  // Wine Selection
+  {
+    name: 'Valley Pinot Noir',
+    description: 'Elegant red wine from local valley vineyards with berry and earth notes',
+    type: 'menu',
+    mealType: 'all-day',
+    price: 12.99,
+    servingTime: { start: '16:00', end: '23:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'wine',
+    subCategory: 'Red Wine',
+    image: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=400&h=300&auto=format&fit=crop',
+    beverages: [{
+      name: 'Valley Pinot Noir',
+      description: 'Local Pinot Noir with berry notes',
+      alcoholContent: 13.5,
+      category: 'wine',
+    }],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['wine', 'red', 'local', 'pinot noir'],
+  },
+  {
+    name: 'Mountain Chardonnay',
+    description: 'Crisp white wine with apple and citrus notes, perfectly chilled',
+    type: 'menu',
+    mealType: 'all-day',
+    price: 11.99,
+    servingTime: { start: '16:00', end: '23:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'wine',
+    subCategory: 'White Wine',
+    image: 'https://images.unsplash.com/photo-1558346648-9757f2fa4474?w=400&h=300&auto=format&fit=crop',
+    beverages: [{
+      name: 'Mountain Chardonnay',
+      description: 'Crisp white wine with citrus notes',
+      alcoholContent: 12.8,
+      category: 'wine',
+    }],
+    isPopular: false,
+    isAvailable: true,
+    tags: ['wine', 'white', 'chardonnay', 'crisp'],
+  },
+
+  // Artisan Spirits
+  {
+    name: 'Lodge Whiskey',
+    description: 'Locally distilled whiskey aged in oak barrels with vanilla and caramel notes',
+    type: 'menu',
+    mealType: 'all-day',
+    price: 15.99,
+    servingTime: { start: '17:00', end: '23:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'spirits',
+    subCategory: 'Whiskey',
+    image: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=400&h=300&auto=format&fit=crop',
+    beverages: [{
+      name: 'Lodge Whiskey',
+      description: 'Locally distilled with vanilla notes',
+      alcoholContent: 42,
+      category: 'spirits',
+    }],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['whiskey', 'spirits', 'local', 'aged'],
+  },
+
+  // Non-Alcoholic Options
+  {
+    name: 'Mountain Spring Water',
+    description: 'Pure natural spring water from our mountain source',
+    type: 'menu',
+    mealType: 'all-day',
+    price: 3.99,
+    servingTime: { start: '07:00', end: '23:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'non-alcoholic',
+    image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&auto=format&fit=crop',
+    beverages: [{
+      name: 'Mountain Spring Water',
+      description: 'Pure natural spring water',
+      category: 'non-alcoholic',
+    }],
+    isPopular: false,
+    isAvailable: true,
+    tags: ['water', 'natural', 'spring', 'refreshing'],
+  },
+  {
+    name: 'Fresh Pressed Apple Juice',
+    description: 'Made from local orchard apples, pressed fresh daily',
+    type: 'menu',
+    mealType: 'all-day',
+    price: 5.99,
+    servingTime: { start: '07:00', end: '20:00' },
+    maxPeople: 1,
+    minPeople: 1,
+    category: 'non-alcoholic',
+    image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400&h=300&auto=format&fit=crop',
+    beverages: [{
+      name: 'Fresh Pressed Apple Juice',
+      description: 'From local orchard apples',
+      category: 'non-alcoholic',
+    }],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['juice', 'fresh', 'local', 'apple'],
+  },
+
+  // Dining Experiences
+  {
+    name: 'Wine & Dine Mountain Experience',
+    description: 'Exclusive 3-course dining experience paired with local wines and mountain views',
+    type: 'experience',
+    mealType: 'dinner',
+    price: 125.99,
+    servingTime: { start: '18:00', end: '21:00' },
+    maxPeople: 8,
+    minPeople: 2,
+    category: 'wine',
+    image: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=400&h=300&auto=format&fit=crop',
+    duration: '3 hours',
+    location: 'Mountain View Terrace',
+    includes: [
+      '3-course gourmet meal',
+      'Wine pairings',
+      'Sommelier service',
+      'Mountain view seating',
+    ],
+    beverages: [
+      {
+        name: 'Valley Pinot Noir',
+        description: 'Paired with main course',
+        category: 'wine',
+      },
+      {
+        name: 'Mountain Chardonnay',
+        description: 'Paired with appetizer',
+        category: 'wine',
+      },
+    ],
+    specialRequirements: ['Advance reservation required', '21+ only'],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['experience', 'wine', 'fine dining', 'romantic'],
+  },
+  {
+    name: 'Craft Beer & BBQ Experience',
+    description: 'Outdoor BBQ experience featuring our craft beer selection and grilled specialties',
+    type: 'experience',
+    mealType: 'lunch',
+    price: 89.99,
+    servingTime: { start: '12:00', end: '16:00' },
+    maxPeople: 12,
+    minPeople: 4,
+    category: 'craft-beer',
+    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&auto=format&fit=crop',
+    duration: '4 hours',
+    location: 'Outdoor Fire Pit Area',
+    includes: [
+      'BBQ lunch buffet',
+      'Beer flight tasting',
+      'Live acoustic music',
+      'Fire pit gathering',
+    ],
+    beverages: [
+      {
+        name: 'LodgeFlow IPA',
+        description: 'Signature craft beer',
+        category: 'craft-beer',
+      },
+      {
+        name: 'Mountain Mist Lager',
+        description: 'Light craft beer',
+        category: 'craft-beer',
+      },
+      {
+        name: 'Seasonal Ales',
+        description: 'Rotating seasonal selection',
+        category: 'craft-beer',
+      },
+    ],
+    specialRequirements: ['Weather dependent', '21+ for alcohol'],
+    isPopular: true,
+    isAvailable: true,
+    tags: ['experience', 'beer', 'BBQ', 'outdoor', 'group'],
+  },
+];
+
 async function seedDatabase() {
   try {
     console.log('🌱 Starting database seeding...');
@@ -666,6 +1003,7 @@ async function seedDatabase() {
       Booking.deleteMany({}),
       Settings.deleteMany({}),
       Experience.deleteMany({}),
+      Dining.deleteMany({}),
     ]);
     console.log('🗑️  Cleared existing data');
 
@@ -701,6 +1039,10 @@ async function seedDatabase() {
     const experiences: IExperience[] =
       await Experience.insertMany(experienceData);
     console.log(`🎯 Created ${experiences.length} experiences`);
+
+    // Create dining items
+    const dining: IDining[] = await Dining.insertMany(diningData);
+    console.log(`🍽️ Created ${dining.length} dining items`);
 
     // Create customers
     const customers: ICustomer[] = [];
@@ -876,6 +1218,7 @@ async function seedDatabase() {
 - Settings: 1
 - Cabins: ${cabins.length}
 - Experiences: ${experiences.length}
+- Dining Items: ${dining.length}
 - Customers: ${customers.length}
 - Bookings: ${bookings.length}
     `);
