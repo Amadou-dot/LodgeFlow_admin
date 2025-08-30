@@ -1,7 +1,7 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "LodgeFlow",
+  name: "LodgeFlow Admin",
   description: "",
   navItems: [
     {
