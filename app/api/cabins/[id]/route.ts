@@ -48,6 +48,32 @@ export async function PUT(
 
     const body = await request.json();
 
+    // Get the current cabin to validate discount vs price
+    const currentCabin = await Cabin.findById(id);
+    if (!currentCabin) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Cabin not found",
+        },
+        { status: 404 },
+      );
+    }
+
+    // Validate discount vs price
+    const newPrice = body.price !== undefined ? body.price : currentCabin.price;
+    const newDiscount = body.discount !== undefined ? body.discount : currentCabin.discount;
+    
+    if (newDiscount >= newPrice) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Discount cannot be greater than or equal to the price",
+        },
+        { status: 400 },
+      );
+    }
+
     const cabin = await Cabin.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,

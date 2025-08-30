@@ -97,6 +97,18 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
+    
+    // Validate discount vs price
+    if (body.discount && body.discount >= body.price) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Discount cannot be greater than or equal to the price",
+        },
+        { status: 400 },
+      );
+    }
+    
     const cabin = await Cabin.create(body);
 
     return NextResponse.json(
