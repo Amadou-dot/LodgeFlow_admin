@@ -13,6 +13,7 @@ import {
   useUpdateBooking,
   useDeleteBooking,
 } from "@/hooks/useBookings";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import type { PopulatedBooking } from "@/types";
 
 export default function BookingsPage() {
@@ -33,6 +34,7 @@ export default function BookingsPage() {
 
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
+  const { showConfirm, ConfirmDialog } = useConfirmDialog();
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -76,19 +78,22 @@ export default function BookingsPage() {
 
   const handleDelete = async (booking: PopulatedBooking) => {
     const guest = booking.guest || booking.customer;
-    if (
-      confirm(
-        `Are you sure you want to delete the booking for ${guest?.name || "this guest"}? This action cannot be undone.`,
-      )
-    ) {
-      try {
-        await deleteBooking.mutateAsync(booking._id);
-        // Manually revalidate SWR data
-        mutate();
-      } catch (error) {
-        console.error("Error deleting booking:", error);
-      }
-    }
+    showConfirm({
+      title: "Delete Booking",
+      message: `Are you sure you want to delete the booking for ${guest?.name || "this guest"}? This action cannot be undone.`,
+      confirmText: "Delete",
+      confirmColor: "danger",
+      onConfirm: async () => {
+        try {
+          await deleteBooking.mutateAsync(booking._id);
+          // Manually revalidate SWR data
+          mutate();
+        } catch (error) {
+          console.error("Error deleting booking:", error);
+        }
+      },
+      isLoading: deleteBooking.isPending
+    });
   };
 
   if (error) {
@@ -148,6 +153,9 @@ export default function BookingsPage() {
           onDelete={handleDelete}
         />
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog />
     </div>
   );
 }

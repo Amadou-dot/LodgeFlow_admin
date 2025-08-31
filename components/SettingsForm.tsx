@@ -10,6 +10,7 @@ import { Divider } from "@heroui/divider";
 import { Chip } from "@heroui/chip";
 import type { AppSettings } from "@/types";
 import { useUpdateSettings, useResetSettings } from "@/hooks/useSettings";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 interface SettingsFormProps {
   settings: AppSettings;
@@ -25,6 +26,7 @@ export default function SettingsForm({
 
   const updateSettings = useUpdateSettings();
   const resetSettings = useResetSettings();
+  const { showConfirm, ConfirmDialog } = useConfirmDialog();
 
   useEffect(() => {
     setFormData(settings);
@@ -58,19 +60,22 @@ export default function SettingsForm({
   };
 
   const handleReset = async () => {
-    if (
-      confirm(
-        "Are you sure you want to reset all settings to default values? This action cannot be undone.",
-      )
-    ) {
-      try {
-        await resetSettings.mutateAsync();
-        onSettingsUpdate();
-        setHasChanges(false);
-      } catch (error) {
-        console.error("Error resetting settings:", error);
-      }
-    }
+    showConfirm({
+      title: "Reset Settings",
+      message: "Are you sure you want to reset all settings to default values? This action cannot be undone.",
+      confirmText: "Reset",
+      confirmColor: "danger",
+      onConfirm: async () => {
+        try {
+          await resetSettings.mutateAsync();
+          onSettingsUpdate();
+          setHasChanges(false);
+        } catch (error) {
+          console.error("Error resetting settings:", error);
+        }
+      },
+      isLoading: resetSettings.isPending
+    });
   };
 
   const handleDiscard = () => {
@@ -421,6 +426,9 @@ export default function SettingsForm({
           )}
         </CardBody>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog />
     </div>
   );
 }

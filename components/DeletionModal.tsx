@@ -10,24 +10,46 @@ import {
 import { addToast } from '@heroui/toast';
 import { UseMutationResult } from '@tanstack/react-query';
 import { TrashIcon } from './icons';
+import { ReactNode } from 'react';
 
 interface ModalProps {
   resourceId: string;
   resourceName: string;
   note?: string;
-  onDelete: UseMutationResult<any, Error, string, unknown>;
+  onDelete: UseMutationResult<any, Error, string, unknown> | (() => Promise<void>);
   onResourceDeleted?: () => void;
   itemName?: string;
+  children?: ReactNode; // Custom trigger button
+  isOpen?: boolean; // For external control
+  onOpenChange?: (open: boolean) => void; // For external control
+  buttonProps?: {
+    className?: string;
+    color?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
+    variant?: 'solid' | 'bordered' | 'light' | 'flat' | 'faded' | 'shadow' | 'ghost';
+    size?: 'sm' | 'md' | 'lg';
+    startContent?: ReactNode;
+    disabled?: boolean;
+  };
 }
+
 export default function DeletionModal({
   resourceId,
   resourceName,
   note,
   onDelete,
   onResourceDeleted,
-  itemName
+  itemName,
+  children,
+  isOpen: externalIsOpen,
+  onOpenChange: externalOnOpenChange,
+  buttonProps = {}
 }: ModalProps) {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const internalDisclosure = useDisclosure();
+  
+  // Use external control if provided, otherwise use internal
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalDisclosure.isOpen;
+  const onOpenChange = externalOnOpenChange || internalDisclosure.onOpenChange;
+  const onOpen = internalDisclosure.onOpen;
 
   const handleDelete = async () => {
     if (!resourceId) {
@@ -38,14 +60,21 @@ export default function DeletionModal({
     console.log('Attempting to delete resource:', resourceId);
 
     try {
-      const result = await onDelete.mutateAsync(resourceId);
+      let result;
+      if (typeof onDelete === 'function') {
+        // Handle simple async function
+        result = await onDelete();
+      } else {
+        // Handle React Query mutation
+        result = await onDelete.mutateAsync(resourceId);
+      }
       console.log('Delete successful:', result);
 
-      onOpenChange(); // Close modal
+      onOpenChange(false); // Close modal
       onResourceDeleted?.(); // Refresh resource list
       addToast({
-        title: 'Resource Deleted',
-        description: 'The resource has been successfully deleted.',
+        title: `${resourceName} Deleted`,
+        description: `The ${resourceName.toLowerCase()} has been successfully deleted.`,
         color: 'success',
       });
     } catch (error: any) {
@@ -58,23 +87,39 @@ export default function DeletionModal({
       }
 
       addToast({
-        title: 'Error deleting customer',
+        title: `Error deleting ${resourceName.toLowerCase()}`,
         description: errorMessage,
         color: 'danger',
       });
     }
   };
 
+  const defaultButtonProps = {
+    className: 'w-full sm:w-auto',
+    color: 'danger' as const,
+    startContent: <TrashIcon />,
+    variant: 'light' as const,
+    ...buttonProps
+  };
+
+  const isDeleting = typeof onDelete !== 'function' && onDelete.isPending;
+
   return (
     <>
-      <Button
-        className='w-full sm:w-auto'
-        color='danger'
-        startContent={<TrashIcon />}
-        variant='light'
-        onPress={onOpen}>
-        Delete
-      </Button>
+      {/* Render custom trigger or default button */}
+      {children ? (
+        <div onClick={onOpen} className="cursor-pointer">
+          {children}
+        </div>
+      ) : (
+        <Button
+          {...defaultButtonProps}
+          onPress={onOpen}
+        >
+          Delete
+        </Button>
+      )}
+      
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='md'>
         <ModalContent>
           {onClose => (
@@ -84,8 +129,10 @@ export default function DeletionModal({
               </ModalHeader>
               <ModalBody>
                 <p>
-                  Are you sure you want to delete {resourceName}:{' '}
-                  <strong>{itemName}</strong>?
+                  Are you sure you want to delete {resourceName.toLowerCase()}
+                  {itemName && (
+                    <>: <strong>{itemName}</strong></>
+                  )}?
                 </p>
                 <p className='text-danger text-sm'>
                   This action cannot be undone.
@@ -101,8 +148,8 @@ export default function DeletionModal({
                 <Button
                   color='danger'
                   onPress={handleDelete}
-                  isLoading={onDelete.isPending}>
-                  {onDelete.isPending ? 'Deleting...' : 'Delete'}
+                  isLoading={isDeleting}>
+                  {isDeleting ? 'Deleting...' : 'Delete'}
                 </Button>
               </ModalFooter>
             </>

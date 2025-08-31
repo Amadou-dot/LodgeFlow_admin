@@ -4,12 +4,6 @@ import type { Cabin } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardFooter } from '@heroui/card';
 import { Chip } from '@heroui/chip';
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-} from '@heroui/dropdown';
 import Image from 'next/image';
 
 interface CabinCardProps {
@@ -57,31 +51,6 @@ export default function CabinCard({
         <div className='p-4'>
           <div className='flex justify-between items-start mb-2'>
             <h3 className='text-lg font-semibold'>{cabin.name}</h3>
-            <Dropdown>
-              <DropdownTrigger>
-                <Button
-                  variant='light'
-                  size='sm'
-                  className='min-w-0 w-8 h-8 rounded-full'>
-                  ⋯
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label='Cabin actions'>
-                {/* <DropdownItem key='view' onPress={() => onView(cabin)}>
-                  View Details
-                </DropdownItem>
-                <DropdownItem key='edit' onPress={() => onEdit(cabin)}>
-                  Edit
-                </DropdownItem> */}
-                <DropdownItem
-                  key='delete'
-                  className='text-danger'
-                  color='danger'
-                  onPress={() => onDelete(cabin)}>
-                  Delete
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
           </div>
 
           <div className='flex items-center gap-2 mb-3'>
@@ -125,6 +94,13 @@ export default function CabinCard({
             className='flex-1'
             onPress={() => onEdit(cabin)}>
             Edit
+          </Button>
+          <Button
+            color='danger'
+            variant='light'
+            className='flex-1'
+            onPress={() => onDelete(cabin)}>
+            Delete
           </Button>
         </div>
       </CardFooter>

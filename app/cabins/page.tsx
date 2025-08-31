@@ -8,6 +8,7 @@ import { useCabins, useDeleteCabin } from '@/hooks/useCabins';
 import type { Cabin, CabinFilters as CabinFiltersType } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/modal';
 import { Spinner } from '@heroui/spinner';
 import { useState } from 'react';
 
@@ -18,6 +19,7 @@ export default function CabinsPage() {
     'view'
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cabinToDelete, setCabinToDelete] = useState<Cabin | null>(null);
 
   const { data: cabins, isLoading, error } = useCabins(filters);
   const deleteCabin = useDeleteCabin();
@@ -40,18 +42,8 @@ export default function CabinsPage() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteCabin = async (cabin: Cabin) => {
-    if (
-      confirm(
-        `Are you sure you want to delete "${cabin.name}"? This action cannot be undone.`
-      )
-    ) {
-      try {
-        await deleteCabin.mutateAsync(cabin.id);
-      } catch (error) {
-        console.error('Error deleting cabin:', error);
-      }
-    }
+  const handleDeleteCabin = (cabin: Cabin) => {
+    setCabinToDelete(cabin);
   };
 
   const handleCloseModal = () => {
@@ -172,6 +164,53 @@ export default function CabinsPage() {
         cabin={selectedCabin}
         mode={modalMode}
       />
+
+      {/* Delete Confirmation Modal */}
+      {cabinToDelete && (
+        <Modal isOpen={true} onClose={() => setCabinToDelete(null)} size="md">
+          <ModalContent>
+            {(onClose: () => void) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1">
+                  Delete Cabin
+                </ModalHeader>
+                <ModalBody>
+                  <p>
+                    Are you sure you want to delete cabin:{' '}
+                    <strong>{cabinToDelete.name}</strong>?
+                  </p>
+                  <p className="text-danger text-sm">
+                    This action cannot be undone.
+                  </p>
+                  <p className="text-warning text-sm mt-2">
+                    Note: Cabins with active bookings cannot be deleted.
+                  </p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button variant="light" onPress={onClose}>
+                    Cancel
+                  </Button>
+                  <Button
+                    color="danger"
+                    onPress={async () => {
+                      try {
+                        await deleteCabin.mutateAsync(cabinToDelete.id);
+                        onClose();
+                        setCabinToDelete(null);
+                      } catch (error) {
+                        console.error('Error deleting cabin:', error);
+                      }
+                    }}
+                    isLoading={deleteCabin.isPending}
+                  >
+                    {deleteCabin.isPending ? 'Deleting...' : 'Delete'}
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+      )}
     </div>
   );
 }

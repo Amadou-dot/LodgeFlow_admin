@@ -4,6 +4,7 @@ import { Button } from '@heroui/button';
 import { Dining } from '@/types';
 import { useState } from 'react';
 import { EditIcon, TrashIcon } from './icons';
+import DeletionModal from './DeletionModal';
 import Image from 'next/image';
 
 interface DiningCardProps {
@@ -16,7 +17,7 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleDelete = async () => {
-    if (onDelete && window.confirm('Are you sure you want to delete this dining item?')) {
+    if (onDelete) {
       setIsLoading(true);
       await onDelete(dining._id);
       setIsLoading(false);
@@ -196,17 +197,20 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
           >
             Edit
           </Button>
-          <Button
-            variant="bordered"
-            color="danger"
-            startContent={<TrashIcon />}
-            onPress={handleDelete}
-            isLoading={isLoading}
-            className="flex-1"
-            size="sm"
-          >
-            Delete
-          </Button>
+          {onDelete && (
+            <DeletionModal
+              resourceId={dining._id}
+              resourceName="Dining Item"
+              itemName={dining.name}
+              onDelete={handleDelete}
+              buttonProps={{
+                variant: "bordered",
+                color: "danger",
+                size: "sm",
+                className: "flex-1"
+              }}
+            />
+          )}
         </div>
       </CardFooter>
     </Card>
