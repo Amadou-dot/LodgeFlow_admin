@@ -85,7 +85,7 @@ export default function GuestsPage() {
           onSortChange={handleSortChange}
           sortOrder={sortOrder}
           onSortOrderChange={handleSortOrderChange}
-          totalCount={pagination?.totalItems || customers?.length || 0}
+          totalCount={(pagination as any)?.totalCustomers || customers?.length || 0}
           itemName="guest"
         />
       </div>
