@@ -60,27 +60,19 @@ export function useActivities() {
   });
 }
 
-// Sales data hook - uses revenue chart data from dashboard API
+// Sales data hook - uses the dedicated sales API endpoint
 export function useSalesData() {
   return useQuery({
     queryKey: ["sales"],
     queryFn: async () => {
-      const response = await fetch("/api/dashboard");
+      const response = await fetch("/api/sales");
       if (!response.ok) {
         throw new Error("Failed to fetch sales data");
       }
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || "Failed to fetch sales data");
-      }
-
-      // Transform revenue chart data
-      const { charts } = result.data;
-      return charts.revenue.map((item: any) => ({
-        date: item.week,
-        sales: item.revenue,
-        bookings: item.bookings,
-      }));
+      const data = await response.json();
+      
+      // Data is already in the correct format from the sales API
+      return data;
     },
   });
 }
