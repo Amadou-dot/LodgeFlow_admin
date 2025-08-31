@@ -5,6 +5,15 @@ import type {
   CreateCabinData,
   UpdateCabinData,
 } from "@/types";
+import { addToast } from "@heroui/toast";
+
+const displayCabinToast = (message: string, type: "success" | "error") => {
+  addToast({
+    title: type === "success" ? "Success" : "Error",
+    description: message,
+    color: type === "success" ? "success" : "danger",
+  });
+};
 
 export function useCabins(filters: CabinFilters = {}) {
   const queryParams = new URLSearchParams();
@@ -44,6 +53,7 @@ export function useCreateCabin() {
 
       if (!response.ok) {
         const error = await response.json();
+        displayCabinToast(error.message || "Failed to create cabin", "error");
         throw new Error(error.error || "Failed to create cabin");
       }
 
@@ -52,6 +62,7 @@ export function useCreateCabin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cabins"] });
+      displayCabinToast("Cabin created successfully", "success");
     },
   });
 }
@@ -71,6 +82,7 @@ export function useUpdateCabin() {
 
       if (!response.ok) {
         const error = await response.json();
+        displayCabinToast(error.message || "Failed to update cabin", "error");
         throw new Error(error.error || "Failed to update cabin");
       }
 
@@ -79,6 +91,7 @@ export function useUpdateCabin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cabins"] });
+      displayCabinToast("Cabin updated successfully", "success");
     },
   });
 }
@@ -94,6 +107,7 @@ export function useDeleteCabin() {
 
       if (!response.ok) {
         const error = await response.json();
+        displayCabinToast(error.message || "Failed to delete cabin", "error");
         throw new Error(error.error || "Failed to delete cabin");
       }
 
@@ -102,6 +116,7 @@ export function useDeleteCabin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cabins"] });
+      displayCabinToast("Cabin deleted successfully", "success");
     },
   });
 }
