@@ -91,7 +91,7 @@ export default function CabinCard({
         <div className='flex gap-2 w-full'>
           <Button
             color='primary'
-            className='flex-1'
+            className='flex-2'
             onPress={() => onEdit(cabin)}>
             Edit
           </Button>

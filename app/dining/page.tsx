@@ -4,9 +4,8 @@ import { useState } from 'react';
 import { Button } from '@heroui/button';
 import { Spinner } from '@heroui/spinner';
 import { useDisclosure } from '@heroui/modal';
-import Title from '@/components/Title';
 import { DiningGrid } from '@/components/DiningGrid';
-import { DiningFilters } from '@/components/DiningFilters';
+import DiningFilters from '@/components/DiningFilters';
 import { DiningModal } from '@/components/DiningModal';
 import { PlusIcon } from '@/components/icons';
 import { useDining } from '@/hooks/useDining';
@@ -14,6 +13,7 @@ import { Dining } from '@/types';
 
 export default function DiningPage() {
   const [selectedDining, setSelectedDining] = useState<Partial<Dining> | undefined>();
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<{
     type: 'menu' | 'experience' | '';
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'all-day' | '';
@@ -34,6 +34,7 @@ export default function DiningPage() {
     mealType: filters.mealType || undefined,
     category: filters.category || undefined,
     isAvailable: filters.isAvailable ?? undefined,
+    search: searchTerm || undefined,
   };
   
   const { dining, loading, error, createDining, updateDining, deleteDining } = useDining(diningFilters);
@@ -74,6 +75,7 @@ export default function DiningPage() {
   };
 
   const handleClearFilters = () => {
+    setSearchTerm("");
     setFilters({
       type: '',
       mealType: '',
@@ -84,27 +86,21 @@ export default function DiningPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-        <div className="text-red-500 mb-4">
-          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-danger-50 border border-danger-200 p-4 rounded-lg">
+          <p className="text-danger-600">Error loading dining items: {error}</p>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading dining items</h3>
-        <p className="text-gray-500 mb-4">{error}</p>
-        <Button onPress={() => window.location.reload()} variant="bordered">
-          Try again
-        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <Title title="Dining Management" />
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold">Dining Management</h1>
+          <p className="text-default-600 mt-1">
             Manage your restaurant menu items and dining experiences
           </p>
         </div>
@@ -112,24 +108,31 @@ export default function DiningPage() {
           color="primary"
           startContent={<PlusIcon />}
           onPress={handleAddDining}
-          size="lg"
+          className="w-full sm:w-auto"
         >
           Add Dining Item
         </Button>
       </div>
 
-      <DiningFilters
-        type={filters.type}
-        mealType={filters.mealType}
-        category={filters.category}
-        isAvailable={filters.isAvailable}
-        onTypeChange={(type) => setFilters({ ...filters, type: type as any })}
-        onMealTypeChange={(mealType) => setFilters({ ...filters, mealType: mealType as any })}
-        onCategoryChange={(category) => setFilters({ ...filters, category: category as any })}
-        onAvailabilityChange={(isAvailable) => setFilters({ ...filters, isAvailable })}
-        onClearFilters={handleClearFilters}
-      />
+      {/* Filters */}
+      <div className="mb-8">
+        <DiningFilters
+          type={filters.type}
+          mealType={filters.mealType}
+          category={filters.category}
+          isAvailable={filters.isAvailable}
+          onTypeChange={(type: string) => setFilters({ ...filters, type: type as any })}
+          onMealTypeChange={(mealType: string) => setFilters({ ...filters, mealType: mealType as any })}
+          onCategoryChange={(category: string) => setFilters({ ...filters, category: category as any })}
+          onAvailabilityChange={(isAvailable: boolean | null) => setFilters({ ...filters, isAvailable })}
+          onClearFilters={handleClearFilters}
+          totalCount={dining?.length || 0}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
+      </div>
 
+      {/* Content */}
       {loading ? (
         <div className="flex justify-center items-center min-h-[300px]">
           <Spinner size="lg" color="primary" />

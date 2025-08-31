@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
-import { SearchIcon } from "@/components/icons";
 import { useCustomers } from "@/hooks/useCustomers";
 import GuestGrid from "@/components/GuestGrid";
 import AddGuestModal from "@/components/AddGuestModal";
+import StandardFilters, { FilterOption } from "@/components/StandardFilters";
 
 export default function GuestsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,9 +26,25 @@ export default function GuestsPage() {
     sortOrder,
   });
 
+  const sortOptions: FilterOption[] = [
+    { key: "name", label: "Name", value: "name" },
+    { key: "totalSpent", label: "Spending", value: "totalSpent" },
+    { key: "totalBookings", label: "Bookings", value: "totalBookings" },
+  ];
+
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleSortChange = (newSortBy: string) => {
+    setSortBy(newSortBy);
+    setCurrentPage(1);
+  };
+
+  const handleSortOrderChange = (newSortOrder: "asc" | "desc") => {
+    setSortOrder(newSortOrder);
+    setCurrentPage(1);
   };
 
   const handleGuestAdded = () => {
@@ -61,48 +75,19 @@ export default function GuestsPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex-1">
-          <Input
-            placeholder="Search guests by name, email, nationality..."
-            startContent={<SearchIcon />}
-            value={searchTerm}
-            onValueChange={handleSearch}
-            className="w-full"
-            isClearable
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant={sortBy === "name" ? "solid" : "bordered"}
-            size="sm"
-            onPress={() => setSortBy("name")}
-          >
-            Name
-          </Button>
-          <Button
-            variant={sortBy === "totalSpent" ? "solid" : "bordered"}
-            size="sm"
-            onPress={() => setSortBy("totalSpent")}
-          >
-            Spending
-          </Button>
-          <Button
-            variant={sortBy === "totalBookings" ? "solid" : "bordered"}
-            size="sm"
-            onPress={() => setSortBy("totalBookings")}
-          >
-            Bookings
-          </Button>
-          <Button
-            isIconOnly
-            variant="bordered"
-            size="sm"
-            onPress={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-          >
-            {sortOrder === "asc" ? "↑" : "↓"}
-          </Button>
-        </div>
+      <div className="mb-6">
+        <StandardFilters
+          searchPlaceholder="Search guests by name, email, nationality..."
+          searchValue={searchTerm}
+          onSearchChange={handleSearch}
+          sortOptions={sortOptions}
+          currentSort={sortBy}
+          onSortChange={handleSortChange}
+          sortOrder={sortOrder}
+          onSortOrderChange={handleSortOrderChange}
+          totalCount={pagination?.totalItems || customers?.length || 0}
+          itemName="guest"
+        />
       </div>
 
       {/* Guest Grid Component */}

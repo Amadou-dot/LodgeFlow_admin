@@ -169,9 +169,8 @@ export default function ExperiencesPage() {
             <>
               {/* Results Count */}
               <div className='mb-6'>
-                <p className='text-default-600'>
-                  Showing {experiences.length} experience
-                  {experiences.length !== 1 ? 's' : ''}
+                <p className='text-sm text-default-600'>
+                  {experiences.length} experience{experiences.length !== 1 ? 's' : ''} found
                 </p>
               </div>
 

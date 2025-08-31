@@ -135,7 +135,7 @@ export default function BookingsPage() {
           filters={filters}
           onFiltersChange={handleFiltersChange}
           onReset={handleResetFilters}
-          totalCount={bookingsData?.pagination.totalBookings}
+          totalCount={bookingsData?.pagination.totalBookings || bookingsData?.bookings?.length || 0}
         />
       </div>
 

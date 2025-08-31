@@ -652,7 +652,7 @@ const experienceData = [
   },
 ];
 
-// Sample dining data
+// Sample dining data (with updated images from database)
 const diningData = [
   // Regular Menu Items - Breakfast
   {
@@ -665,7 +665,7 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'regular',
-    image: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=300&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/flagged/photo-1594959307042-a0d01a430fb2?w=400&h=300&auto=format&fit=crop',
     ingredients: ['eggs', 'bacon', 'sausage', 'potatoes', 'bread'],
     allergens: ['eggs', 'gluten'],
     dietary: ['gluten-free'],
@@ -703,7 +703,7 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'regular',
-    image: 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=400&h=300&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1621998206603-471ba8565bd8?w=400&h=300&auto=format&fit=crop',
     ingredients: ['trout', 'lemon', 'herbs', 'seasonal vegetables'],
     allergens: ['fish'],
     dietary: ['gluten-free', 'dairy-free'],
@@ -741,7 +741,7 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'regular',
-    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1601356616077-695728ae17cb?w=400&h=300&auto=format&fit=crop',
     ingredients: ['wild game', 'root vegetables', 'red wine', 'herbs'],
     allergens: [],
     dietary: ['gluten-free', 'dairy-free'],
@@ -784,7 +784,7 @@ const diningData = [
     minPeople: 1,
     category: 'craft-beer',
     subCategory: 'Lager',
-    image: 'https://images.unsplash.com/photo-1437750769465-301382cdf094?w=400&h=300&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1608742598121-15038a8db33c?w=400&h=300&auto=format&fit=crop',
     beverages: [{
       name: 'Mountain Mist Lager',
       description: 'Light and crisp lager',
@@ -830,7 +830,7 @@ const diningData = [
     minPeople: 1,
     category: 'wine',
     subCategory: 'White Wine',
-    image: 'https://images.unsplash.com/photo-1558346648-9757f2fa4474?w=400&h=300&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1599113656124-b96bf21e30d3?w=400&h=300&auto=format&fit=crop',
     beverages: [{
       name: 'Mountain Chardonnay',
       description: 'Crisp white wine with citrus notes',
@@ -877,7 +877,7 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'non-alcoholic',
-    image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1580600301337-83a86c8839bd?w=400&h=300&auto=format&fit=crop',
     beverages: [{
       name: 'Mountain Spring Water',
       description: 'Pure natural spring water',
@@ -897,7 +897,7 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'non-alcoholic',
-    image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400&h=300&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1605199910378-edb0c0709ab4?w=400&h=300&auto=format&fit=crop',
     beverages: [{
       name: 'Fresh Pressed Apple Juice',
       description: 'From local orchard apples',
@@ -1046,7 +1046,7 @@ async function seedDatabase() {
 
     // Create customers
     const customers: ICustomer[] = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 100; i++) {
       // Generate simple phone numbers that match the validation pattern
       const generatePhoneNumber = () => {
         // Generate a number starting with 1-9 followed by 9-14 digits
@@ -1100,7 +1100,7 @@ async function seedDatabase() {
 
     // Create bookings
     const bookings: IBooking[] = [];
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 150; i++) {
       const cabin = faker.helpers.arrayElement(cabins);
       const customer = faker.helpers.arrayElement(customers);
       const checkInDate = faker.date.between({
