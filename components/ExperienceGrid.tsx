@@ -1,4 +1,7 @@
-import { useUpdateExperience, useDeleteExperience } from '@/hooks/useExperiences';
+import {
+  useUpdateExperience,
+  useDeleteExperience,
+} from '@/hooks/useExperiences';
 import { Experience } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
@@ -106,8 +109,8 @@ function ExperienceCard({ item }: { item: Experience }) {
   return (
     <Card
       className={`${item.isPopular ? 'ring-2 ring-primary' : ''} h-full flex flex-col`}
-      shadow={item.isPopular ? 'lg' : 'sm'}>
-      
+      shadow={item.isPopular ? 'lg' : 'sm'}
+    >
       {/* Image Section */}
       <div className='relative'>
         <Image
@@ -122,7 +125,8 @@ function ExperienceCard({ item }: { item: Experience }) {
             color='primary'
             variant='solid'
             size='sm'
-            className='absolute top-2 right-2'>
+            className='absolute top-2 right-2'
+          >
             Popular
           </Chip>
         )}
@@ -207,14 +211,16 @@ function ExperienceCard({ item }: { item: Experience }) {
             <Button
               color='primary'
               className='flex-2'
-              onPress={() => setIsModalOpen(true)}>
+              onPress={() => setIsModalOpen(true)}
+            >
               Edit
             </Button>
             <Button
               color='danger'
               variant='light'
               className='flex-1'
-              onPress={() => setIsDeleteModalOpen(true)}>
+              onPress={() => setIsDeleteModalOpen(true)}
+            >
               Delete
             </Button>
           </div>
@@ -225,7 +231,8 @@ function ExperienceCard({ item }: { item: Experience }) {
           isOpen={isModalOpen}
           onOpenChange={setIsModalOpen}
           size='4xl'
-          scrollBehavior='inside'>
+          scrollBehavior='inside'
+        >
           <ModalContent>
             {onClose => (
               <>
@@ -249,7 +256,8 @@ function ExperienceCard({ item }: { item: Experience }) {
         <Modal
           isOpen={isDeleteModalOpen}
           onOpenChange={setIsDeleteModalOpen}
-          size='md'>
+          size='md'
+        >
           <ModalContent>
             {onClose => (
               <>
@@ -258,7 +266,8 @@ function ExperienceCard({ item }: { item: Experience }) {
                 </ModalHeader>
                 <ModalBody>
                   <p>
-                    Are you sure you want to delete <strong>{item.name}</strong>?
+                    Are you sure you want to delete <strong>{item.name}</strong>
+                    ?
                   </p>
                   <p className='text-danger text-sm'>
                     This action cannot be undone.
@@ -271,7 +280,8 @@ function ExperienceCard({ item }: { item: Experience }) {
                   <Button
                     color='danger'
                     onPress={handleDelete}
-                    isLoading={isDeleting}>
+                    isLoading={isDeleting}
+                  >
                     {isDeleting ? 'Deleting...' : 'Delete'}
                   </Button>
                 </ModalFooter>

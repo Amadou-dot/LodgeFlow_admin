@@ -87,7 +87,8 @@ export default function CabinsPage() {
           color='primary'
           startContent={<PlusIcon size={18} />}
           onPress={handleCreateCabin}
-          className='w-full sm:w-auto'>
+          className='w-full sm:w-auto'
+        >
           Add New Cabin
         </Button>
       </div>
@@ -124,14 +125,16 @@ export default function CabinsPage() {
                   <Button
                     color='default'
                     variant='bordered'
-                    onPress={handleResetFilters}>
+                    onPress={handleResetFilters}
+                  >
                     Clear Filters
                   </Button>
                 ) : (
                   <Button
                     color='primary'
                     onPress={handleCreateCabin}
-                    startContent={<PlusIcon size={18} />}>
+                    startContent={<PlusIcon size={18} />}
+                  >
                     Create Your First Cabin
                   </Button>
                 )}
@@ -200,7 +203,8 @@ export default function CabinsPage() {
                         console.error('Error deleting cabin:', error);
                       }
                     }}
-                    isLoading={deleteCabin.isPending}>
+                    isLoading={deleteCabin.isPending}
+                  >
                     {deleteCabin.isPending ? 'Deleting...' : 'Delete'}
                   </Button>
                 </ModalFooter>

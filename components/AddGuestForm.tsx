@@ -131,11 +131,16 @@ export default function AddGuestForm({
           relationship: initialData.emergencyContact?.relationship || '',
         },
         preferences: {
-          smokingPreference: initialData.preferences?.smokingPreference || 'no-preference',
-          dietaryRestrictions: Array.isArray(initialData.preferences?.dietaryRestrictions) 
-            ? initialData.preferences.dietaryRestrictions.join(', ') 
+          smokingPreference:
+            initialData.preferences?.smokingPreference || 'no-preference',
+          dietaryRestrictions: Array.isArray(
+            initialData.preferences?.dietaryRestrictions
+          )
+            ? initialData.preferences.dietaryRestrictions.join(', ')
             : initialData.preferences?.dietaryRestrictions || '',
-          accessibilityNeeds: Array.isArray(initialData.preferences?.accessibilityNeeds)
+          accessibilityNeeds: Array.isArray(
+            initialData.preferences?.accessibilityNeeds
+          )
             ? initialData.preferences.accessibilityNeeds.join(', ')
             : initialData.preferences?.accessibilityNeeds || '',
         },
@@ -230,7 +235,10 @@ export default function AddGuestForm({
       setErrors({});
       onSuccess?.();
     } catch (error: any) {
-      console.error(`Error ${isEditing ? 'updating' : 'creating'} guest:`, error);
+      console.error(
+        `Error ${isEditing ? 'updating' : 'creating'} guest:`,
+        error
+      );
       setErrors({ general: error.message });
     }
   };
@@ -244,18 +252,27 @@ export default function AddGuestForm({
     <Form
       onSubmit={onSubmit}
       className='w-full space-y-6'
-      validationBehavior='native'>
+      validationBehavior='native'
+    >
       <div className='flex flex-col my-4'>
-        <h2 className='text-xl font-bold'>{isEditing ? 'Edit Guest' : 'Add New Guest'}</h2>
+        <h2 className='text-xl font-bold'>
+          {isEditing ? 'Edit Guest' : 'Add New Guest'}
+        </h2>
         <p className='text-small text-default-600'>
-          {isEditing ? 'Update the guest information below' : 'Fill in the guest information below'}
+          {isEditing
+            ? 'Update the guest information below'
+            : 'Fill in the guest information below'}
         </p>
       </div>
 
-      {(errors.general || createCustomerMutation.error || updateCustomerMutation.error) && (
+      {(errors.general ||
+        createCustomerMutation.error ||
+        updateCustomerMutation.error) && (
         <div className='bg-danger-50 border border-danger-200 p-3 rounded-lg'>
           <p className='text-danger-600 text-sm'>
-            {errors.general || createCustomerMutation.error?.message || updateCustomerMutation.error?.message}
+            {errors.general ||
+              createCustomerMutation.error?.message ||
+              updateCustomerMutation.error?.message}
           </p>
         </div>
       )}
@@ -303,7 +320,8 @@ export default function AddGuestForm({
             isInvalid={!!errors.nationality}
             errorMessage={errors.nationality}
             isRequired
-            name='nationality'>
+            name='nationality'
+          >
             {countries.map(country => (
               <SelectItem key={country}>{country}</SelectItem>
             ))}
@@ -393,7 +411,8 @@ export default function AddGuestForm({
                 'emergencyContact.relationship',
                 selected || ''
               );
-            }}>
+            }}
+          >
             {relationships.map(relationship => (
               <SelectItem key={relationship}>{relationship}</SelectItem>
             ))}
@@ -415,7 +434,8 @@ export default function AddGuestForm({
                 'preferences.smokingPreference',
                 selected || 'no-preference'
               );
-            }}>
+            }}
+          >
             <SelectItem key='smoking'>Smoking</SelectItem>
             <SelectItem key='non-smoking'>Non-smoking</SelectItem>
             <SelectItem key='no-preference'>No Preference</SelectItem>
@@ -447,17 +467,28 @@ export default function AddGuestForm({
           <Button
             variant='bordered'
             onPress={onCancel}
-            isDisabled={createCustomerMutation.isPending || updateCustomerMutation.isPending}>
+            isDisabled={
+              createCustomerMutation.isPending ||
+              updateCustomerMutation.isPending
+            }
+          >
             Cancel
           </Button>
         )}
         <Button
           color='primary'
           type='submit'
-          isLoading={createCustomerMutation.isPending || updateCustomerMutation.isPending}>
-          {(createCustomerMutation.isPending || updateCustomerMutation.isPending) 
-            ? (isEditing ? 'Updating...' : 'Creating...') 
-            : (isEditing ? 'Update Guest' : 'Create Guest')}
+          isLoading={
+            createCustomerMutation.isPending || updateCustomerMutation.isPending
+          }
+        >
+          {createCustomerMutation.isPending || updateCustomerMutation.isPending
+            ? isEditing
+              ? 'Updating...'
+              : 'Creating...'
+            : isEditing
+              ? 'Update Guest'
+              : 'Create Guest'}
         </Button>
       </div>
     </Form>

@@ -14,7 +14,10 @@ interface UseDiningReturn {
   error: string | null;
   refetch: () => Promise<void>;
   createDining: (diningData: Partial<Dining>) => Promise<Dining | null>;
-  updateDining: (id: string, diningData: Partial<Dining>) => Promise<Dining | null>;
+  updateDining: (
+    id: string,
+    diningData: Partial<Dining>
+  ) => Promise<Dining | null>;
   deleteDining: (id: string) => Promise<boolean>;
 }
 
@@ -25,12 +28,13 @@ export const useDining = (options: UseDiningOptions = {}): UseDiningReturn => {
 
   const buildQueryString = (params: UseDiningOptions) => {
     const searchParams = new URLSearchParams();
-    
+
     if (params.type) searchParams.append('type', params.type);
     if (params.mealType) searchParams.append('mealType', params.mealType);
     if (params.category) searchParams.append('category', params.category);
-    if (params.isAvailable !== undefined) searchParams.append('isAvailable', params.isAvailable.toString());
-    
+    if (params.isAvailable !== undefined)
+      searchParams.append('isAvailable', params.isAvailable.toString());
+
     return searchParams.toString();
   };
 
@@ -38,16 +42,16 @@ export const useDining = (options: UseDiningOptions = {}): UseDiningReturn => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const queryString = buildQueryString(options);
       const response = await fetch(`/api/dining?${queryString}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setDining(data.data);
       } else {
@@ -61,10 +65,12 @@ export const useDining = (options: UseDiningOptions = {}): UseDiningReturn => {
     }
   };
 
-  const createDining = async (diningData: Partial<Dining>): Promise<Dining | null> => {
+  const createDining = async (
+    diningData: Partial<Dining>
+  ): Promise<Dining | null> => {
     try {
       setError(null);
-      
+
       const response = await fetch('/api/dining', {
         method: 'POST',
         headers: {
@@ -72,9 +78,9 @@ export const useDining = (options: UseDiningOptions = {}): UseDiningReturn => {
         },
         body: JSON.stringify(diningData),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         await fetchDining(); // Refresh the list
         return data.data;
@@ -88,10 +94,13 @@ export const useDining = (options: UseDiningOptions = {}): UseDiningReturn => {
     }
   };
 
-  const updateDining = async (id: string, diningData: Partial<Dining>): Promise<Dining | null> => {
+  const updateDining = async (
+    id: string,
+    diningData: Partial<Dining>
+  ): Promise<Dining | null> => {
     try {
       setError(null);
-      
+
       const response = await fetch(`/api/dining/${id}`, {
         method: 'PUT',
         headers: {
@@ -99,9 +108,9 @@ export const useDining = (options: UseDiningOptions = {}): UseDiningReturn => {
         },
         body: JSON.stringify(diningData),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         await fetchDining(); // Refresh the list
         return data.data;
@@ -118,13 +127,13 @@ export const useDining = (options: UseDiningOptions = {}): UseDiningReturn => {
   const deleteDining = async (id: string): Promise<boolean> => {
     try {
       setError(null);
-      
+
       const response = await fetch(`/api/dining/${id}`, {
         method: 'DELETE',
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         await fetchDining(); // Refresh the list
         return true;

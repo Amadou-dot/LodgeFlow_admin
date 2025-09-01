@@ -10,7 +10,10 @@ interface EditGuestModalProps {
   onGuestUpdated?: () => void;
 }
 
-export default function EditGuestModal({ guestData, onGuestUpdated }: EditGuestModalProps) {
+export default function EditGuestModal({
+  guestData,
+  onGuestUpdated,
+}: EditGuestModalProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const handleSuccess = () => {
@@ -25,7 +28,8 @@ export default function EditGuestModal({ guestData, onGuestUpdated }: EditGuestM
         startContent={<EditIcon />}
         variant='bordered'
         onPress={onOpen}
-        className='w-full sm:w-auto'>
+        className='w-full sm:w-auto'
+      >
         Edit Guest
       </Button>
 
@@ -34,14 +38,14 @@ export default function EditGuestModal({ guestData, onGuestUpdated }: EditGuestM
         onOpenChange={onOpenChange}
         size='3xl'
         scrollBehavior='inside'
-        backdrop="transparent"
+        backdrop='transparent'
       >
         <ModalContent>
           {onClose => (
             <ModalBody>
-              <AddGuestForm 
+              <AddGuestForm
                 initialData={guestData}
-                onSuccess={handleSuccess} 
+                onSuccess={handleSuccess}
                 onCancel={onClose}
                 isEditing={true}
               />

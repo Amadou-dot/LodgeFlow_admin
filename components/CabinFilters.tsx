@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import type { CabinFilters } from "@/types";
-import { Button } from "@heroui/button";
-import { Select, SelectItem } from "@heroui/select";
-import StandardFilters, { FilterOption } from "./StandardFilters";
+import type { CabinFilters } from '@/types';
+import { Button } from '@heroui/button';
+import { Select, SelectItem } from '@heroui/select';
+import StandardFilters, { FilterOption } from './StandardFilters';
 
 interface CabinFiltersProps {
   filters: CabinFilters;
@@ -19,9 +19,9 @@ export default function CabinFilters({
   totalCount,
 }: CabinFiltersProps) {
   const sortOptions: FilterOption[] = [
-    { key: "name", label: "Name", value: "name" },
-    { key: "price", label: "Price", value: "price" },
-    { key: "capacity", label: "Capacity", value: "capacity" },
+    { key: 'name', label: 'Name', value: 'name' },
+    { key: 'price', label: 'Price', value: 'price' },
+    { key: 'capacity', label: 'Capacity', value: 'capacity' },
   ];
 
   const handleSearchChange = (search: string) => {
@@ -38,7 +38,7 @@ export default function CabinFilters({
     });
   };
 
-  const handleSortOrderChange = (sortOrder: "asc" | "desc") => {
+  const handleSortOrderChange = (sortOrder: 'asc' | 'desc') => {
     onFiltersChange({
       ...filters,
       sortOrder,
@@ -48,14 +48,14 @@ export default function CabinFilters({
   const handleCapacityChange = (capacity: string) => {
     onFiltersChange({
       ...filters,
-      capacity: capacity as "small" | "medium" | "large" | undefined,
+      capacity: capacity as 'small' | 'medium' | 'large' | undefined,
     });
   };
 
   const handleDiscountChange = (discount: string) => {
     onFiltersChange({
       ...filters,
-      discount: discount as "with" | "without" | undefined,
+      discount: discount as 'with' | 'without' | undefined,
     });
   };
 
@@ -64,43 +64,38 @@ export default function CabinFilters({
   const additionalFilters = (
     <>
       <Select
-        placeholder="All capacities"
+        placeholder='All capacities'
         selectedKeys={filters.capacity ? [filters.capacity] : []}
         onSelectionChange={(keys: any) => {
           const value = Array.from(keys)[0] as string;
           handleCapacityChange(value);
         }}
-        className="w-36"
-        size="sm"
-        variant="bordered"
+        className='w-36'
+        size='sm'
+        variant='bordered'
       >
-        <SelectItem key="small">Small (1-3)</SelectItem>
-        <SelectItem key="medium">Medium (4-7)</SelectItem>
-        <SelectItem key="large">Large (8+)</SelectItem>
+        <SelectItem key='small'>Small (1-3)</SelectItem>
+        <SelectItem key='medium'>Medium (4-7)</SelectItem>
+        <SelectItem key='large'>Large (8+)</SelectItem>
       </Select>
 
       <Select
-        placeholder="All discounts"
+        placeholder='All discounts'
         selectedKeys={filters.discount ? [filters.discount] : []}
         onSelectionChange={(keys: any) => {
           const value = Array.from(keys)[0] as string;
           handleDiscountChange(value);
         }}
-        className="w-36"
-        size="sm"
-        variant="bordered"
+        className='w-36'
+        size='sm'
+        variant='bordered'
       >
-        <SelectItem key="with">With Discount</SelectItem>
-        <SelectItem key="without">No Discount</SelectItem>
+        <SelectItem key='with'>With Discount</SelectItem>
+        <SelectItem key='without'>No Discount</SelectItem>
       </Select>
 
       {hasActiveFilters && (
-        <Button
-          color="default"
-          variant="light"
-          onPress={onReset}
-          size="sm"
-        >
+        <Button color='default' variant='light' onPress={onReset} size='sm'>
           Clear
         </Button>
       )}
@@ -109,17 +104,17 @@ export default function CabinFilters({
 
   return (
     <StandardFilters
-      searchPlaceholder="Search cabins..."
+      searchPlaceholder='Search cabins...'
       searchValue={filters.search}
       onSearchChange={handleSearchChange}
       sortOptions={sortOptions}
       currentSort={filters.sortBy}
       onSortChange={handleSortChange}
-      sortOrder={filters.sortOrder || "asc"}
+      sortOrder={filters.sortOrder || 'asc'}
       onSortOrderChange={handleSortOrderChange}
       additionalFilters={additionalFilters}
       totalCount={totalCount}
-      itemName="cabin"
+      itemName='cabin'
     />
   );
 }

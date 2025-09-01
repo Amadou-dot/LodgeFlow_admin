@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IBooking extends Document {
   _id: string;
@@ -9,16 +9,16 @@ export interface IBooking extends Document {
   numNights: number;
   numGuests: number;
   status:
-    | "unconfirmed"
-    | "confirmed"
-    | "checked-in"
-    | "checked-out"
-    | "cancelled";
+    | 'unconfirmed'
+    | 'confirmed'
+    | 'checked-in'
+    | 'checked-out'
+    | 'cancelled';
   cabinPrice: number;
   extrasPrice: number;
   totalPrice: number;
   isPaid: boolean;
-  paymentMethod?: "cash" | "card" | "bank-transfer" | "online";
+  paymentMethod?: 'cash' | 'card' | 'bank-transfer' | 'online';
   extras: {
     hasBreakfast: boolean;
     breakfastPrice: number;
@@ -46,63 +46,63 @@ const BookingSchema: Schema = new Schema(
   {
     cabin: {
       type: Schema.Types.ObjectId,
-      ref: "Cabin",
-      required: [true, "Cabin is required"],
+      ref: 'Cabin',
+      required: [true, 'Cabin is required'],
     },
     customer: {
       type: Schema.Types.ObjectId,
-      ref: "Customer",
-      required: [true, "Customer is required"],
+      ref: 'Customer',
+      required: [true, 'Customer is required'],
     },
     checkInDate: {
       type: Date,
-      required: [true, "Check-in date is required"],
+      required: [true, 'Check-in date is required'],
     },
     checkOutDate: {
       type: Date,
-      required: [true, "Check-out date is required"],
+      required: [true, 'Check-out date is required'],
       validate: {
         validator: function (this: IBooking, checkOutDate: Date) {
           return checkOutDate > this.checkInDate;
         },
-        message: "Check-out date must be after check-in date",
+        message: 'Check-out date must be after check-in date',
       },
     },
     numNights: {
       type: Number,
-      required: [true, "Number of nights is required"],
-      min: [1, "Number of nights must be at least 1"],
+      required: [true, 'Number of nights is required'],
+      min: [1, 'Number of nights must be at least 1'],
     },
     numGuests: {
       type: Number,
-      required: [true, "Number of guests is required"],
-      min: [1, "Number of guests must be at least 1"],
+      required: [true, 'Number of guests is required'],
+      min: [1, 'Number of guests must be at least 1'],
     },
     status: {
       type: String,
       enum: [
-        "unconfirmed",
-        "confirmed",
-        "checked-in",
-        "checked-out",
-        "cancelled",
+        'unconfirmed',
+        'confirmed',
+        'checked-in',
+        'checked-out',
+        'cancelled',
       ],
-      default: "unconfirmed",
+      default: 'unconfirmed',
     },
     cabinPrice: {
       type: Number,
-      required: [true, "Cabin price is required"],
-      min: [0, "Cabin price must be positive"],
+      required: [true, 'Cabin price is required'],
+      min: [0, 'Cabin price must be positive'],
     },
     extrasPrice: {
       type: Number,
       default: 0,
-      min: [0, "Extras price must be positive"],
+      min: [0, 'Extras price must be positive'],
     },
     totalPrice: {
       type: Number,
-      required: [true, "Total price is required"],
-      min: [0, "Total price must be positive"],
+      required: [true, 'Total price is required'],
+      min: [0, 'Total price must be positive'],
     },
     isPaid: {
       type: Boolean,
@@ -110,7 +110,7 @@ const BookingSchema: Schema = new Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["cash", "card", "bank-transfer", "online"],
+      enum: ['cash', 'card', 'bank-transfer', 'online'],
     },
     extras: {
       hasBreakfast: { type: Boolean, default: false },
@@ -127,7 +127,7 @@ const BookingSchema: Schema = new Schema(
     observations: {
       type: String,
       trim: true,
-      maxlength: [1000, "Observations cannot exceed 1000 characters"],
+      maxlength: [1000, 'Observations cannot exceed 1000 characters'],
     },
     specialRequests: [
       {
@@ -142,12 +142,12 @@ const BookingSchema: Schema = new Schema(
     depositAmount: {
       type: Number,
       default: 0,
-      min: [0, "Deposit amount must be positive"],
+      min: [0, 'Deposit amount must be positive'],
     },
     remainingAmount: {
       type: Number,
       default: 0,
-      min: [0, "Remaining amount must be positive"],
+      min: [0, 'Remaining amount must be positive'],
     },
     checkInTime: {
       type: Date,
@@ -158,7 +158,7 @@ const BookingSchema: Schema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 // Indexes for better query performance
@@ -173,7 +173,7 @@ BookingSchema.index({ isPaid: 1 });
 BookingSchema.index({ checkInDate: 1, checkOutDate: 1 });
 
 // Pre-save middleware to calculate numNights
-BookingSchema.pre("save", function (this: IBooking, next) {
+BookingSchema.pre('save', function (this: IBooking, next) {
   if (this.checkInDate && this.checkOutDate) {
     const timeDiff = this.checkOutDate.getTime() - this.checkInDate.getTime();
     this.numNights = Math.ceil(timeDiff / (1000 * 3600 * 24));
@@ -189,7 +189,7 @@ BookingSchema.pre("save", function (this: IBooking, next) {
 BookingSchema.methods.overlaps = function (
   this: IBooking,
   otherCheckIn: Date,
-  otherCheckOut: Date,
+  otherCheckOut: Date
 ) {
   return this.checkInDate < otherCheckOut && this.checkOutDate > otherCheckIn;
 };
@@ -199,11 +199,11 @@ BookingSchema.statics.findOverlapping = function (
   cabinId: mongoose.Types.ObjectId,
   checkInDate: Date,
   checkOutDate: Date,
-  excludeBookingId?: mongoose.Types.ObjectId,
+  excludeBookingId?: mongoose.Types.ObjectId
 ) {
   const query: any = {
     cabin: cabinId,
-    status: { $nin: ["cancelled"] },
+    status: { $nin: ['cancelled'] },
     $or: [
       {
         checkInDate: { $lt: checkOutDate },
@@ -220,19 +220,19 @@ BookingSchema.statics.findOverlapping = function (
 };
 
 // Virtual for booking duration in a readable format
-BookingSchema.virtual("durationText").get(function (this: IBooking) {
-  return `${this.numNights} night${this.numNights > 1 ? "s" : ""}`;
+BookingSchema.virtual('durationText').get(function (this: IBooking) {
+  return `${this.numNights} night${this.numNights > 1 ? 's' : ''}`;
 });
 
 // Virtual for payment status
-BookingSchema.virtual("paymentStatus").get(function (this: IBooking) {
-  if (this.isPaid) return "paid";
-  if (this.depositPaid) return "partial";
-  return "unpaid";
+BookingSchema.virtual('paymentStatus').get(function (this: IBooking) {
+  if (this.isPaid) return 'paid';
+  if (this.depositPaid) return 'partial';
+  return 'unpaid';
 });
 
 // Ensure virtual fields are serialized
-BookingSchema.set("toJSON", { virtuals: true });
+BookingSchema.set('toJSON', { virtuals: true });
 
 export default mongoose.models.Booking ||
-  mongoose.model<IBooking>("Booking", BookingSchema);
+  mongoose.model<IBooking>('Booking', BookingSchema);

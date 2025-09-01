@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Button } from "@heroui/button";
-import { Select, SelectItem } from "@heroui/select";
-import StandardFilters, { FilterOption } from "./StandardFilters";
+import { Button } from '@heroui/button';
+import { Select, SelectItem } from '@heroui/select';
+import StandardFilters, { FilterOption } from './StandardFilters';
 
 interface DiningFiltersProps {
   type: string;
@@ -30,94 +30,95 @@ export default function DiningFilters({
   onAvailabilityChange,
   onClearFilters,
   totalCount,
-  searchTerm = "",
+  searchTerm = '',
   onSearchChange = () => {},
 }: DiningFiltersProps) {
   const sortOptions: FilterOption[] = [
-    { key: "name", label: "Name", value: "name" },
-    { key: "price", label: "Price", value: "price" },
-    { key: "type", label: "Type", value: "type" },
+    { key: 'name', label: 'Name', value: 'name' },
+    { key: 'price', label: 'Price', value: 'price' },
+    { key: 'type', label: 'Type', value: 'type' },
   ];
 
-  const hasActiveFilters = [type, mealType, category, isAvailable !== null].filter(Boolean).length > 0;
+  const hasActiveFilters =
+    [type, mealType, category, isAvailable !== null].filter(Boolean).length > 0;
 
   const additionalFilters = (
     <>
       <Select
-        placeholder="All types"
+        placeholder='All types'
         selectedKeys={type ? [type] : []}
-        onSelectionChange={(keys) => {
+        onSelectionChange={keys => {
           const selected = Array.from(keys)[0] as string;
-          onTypeChange(selected || "");
+          onTypeChange(selected || '');
         }}
-        className="w-36"
-        size="sm"
-        variant="bordered"
+        className='w-36'
+        size='sm'
+        variant='bordered'
       >
-        <SelectItem key="menu">Regular Menu</SelectItem>
-        <SelectItem key="experience">Dining Experience</SelectItem>
+        <SelectItem key='menu'>Regular Menu</SelectItem>
+        <SelectItem key='experience'>Dining Experience</SelectItem>
       </Select>
 
       <Select
-        placeholder="All meals"
+        placeholder='All meals'
         selectedKeys={mealType ? [mealType] : []}
-        onSelectionChange={(keys) => {
+        onSelectionChange={keys => {
           const selected = Array.from(keys)[0] as string;
-          onMealTypeChange(selected || "");
+          onMealTypeChange(selected || '');
         }}
-        className="w-36"
-        size="sm"
-        variant="bordered"
+        className='w-36'
+        size='sm'
+        variant='bordered'
       >
-        <SelectItem key="breakfast">Breakfast</SelectItem>
-        <SelectItem key="lunch">Lunch</SelectItem>
-        <SelectItem key="dinner">Dinner</SelectItem>
-        <SelectItem key="all-day">All Day</SelectItem>
+        <SelectItem key='breakfast'>Breakfast</SelectItem>
+        <SelectItem key='lunch'>Lunch</SelectItem>
+        <SelectItem key='dinner'>Dinner</SelectItem>
+        <SelectItem key='all-day'>All Day</SelectItem>
       </Select>
 
       <Select
-        placeholder="All categories"
+        placeholder='All categories'
         selectedKeys={category ? [category] : []}
-        onSelectionChange={(keys) => {
+        onSelectionChange={keys => {
           const selected = Array.from(keys)[0] as string;
-          onCategoryChange(selected || "");
+          onCategoryChange(selected || '');
         }}
-        className="w-36"
-        size="sm"
-        variant="bordered"
+        className='w-36'
+        size='sm'
+        variant='bordered'
       >
-        <SelectItem key="regular">Regular Food</SelectItem>
-        <SelectItem key="craft-beer">Craft Beer</SelectItem>
-        <SelectItem key="wine">Wine</SelectItem>
-        <SelectItem key="spirits">Spirits</SelectItem>
-        <SelectItem key="non-alcoholic">Non-Alcoholic</SelectItem>
+        <SelectItem key='regular'>Regular Food</SelectItem>
+        <SelectItem key='craft-beer'>Craft Beer</SelectItem>
+        <SelectItem key='wine'>Wine</SelectItem>
+        <SelectItem key='spirits'>Spirits</SelectItem>
+        <SelectItem key='non-alcoholic'>Non-Alcoholic</SelectItem>
       </Select>
 
       <Select
-        placeholder="All items"
+        placeholder='All items'
         selectedKeys={isAvailable !== null ? [isAvailable.toString()] : []}
-        onSelectionChange={(keys) => {
+        onSelectionChange={keys => {
           const selected = Array.from(keys)[0] as string;
           if (!selected) {
             onAvailabilityChange(null);
           } else {
-            onAvailabilityChange(selected === "true");
+            onAvailabilityChange(selected === 'true');
           }
         }}
-        className="w-36"
-        size="sm"
-        variant="bordered"
+        className='w-36'
+        size='sm'
+        variant='bordered'
       >
-        <SelectItem key="true">Available</SelectItem>
-        <SelectItem key="false">Unavailable</SelectItem>
+        <SelectItem key='true'>Available</SelectItem>
+        <SelectItem key='false'>Unavailable</SelectItem>
       </Select>
 
       {hasActiveFilters && (
         <Button
-          color="default"
-          variant="light"
+          color='default'
+          variant='light'
           onPress={onClearFilters}
-          size="sm"
+          size='sm'
         >
           Clear
         </Button>
@@ -127,17 +128,17 @@ export default function DiningFilters({
 
   return (
     <StandardFilters
-      searchPlaceholder="Search dining items..."
+      searchPlaceholder='Search dining items...'
       searchValue={searchTerm}
       onSearchChange={onSearchChange}
       sortOptions={sortOptions}
-      currentSort="name"
+      currentSort='name'
       onSortChange={() => {}} // Dining doesn't seem to have sorting implemented
-      sortOrder="asc"
+      sortOrder='asc'
       onSortOrderChange={() => {}} // Dining doesn't seem to have sorting implemented
       additionalFilters={additionalFilters}
       totalCount={totalCount}
-      itemName="item"
+      itemName='item'
     />
   );
 }

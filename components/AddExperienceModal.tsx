@@ -28,7 +28,8 @@ export default function AddExperienceModal({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       scrollBehavior='inside'
-      size='3xl'>
+      size='3xl'
+    >
       <ModalContent>
         <ModalHeader>Add New Experience</ModalHeader>
         <ModalBody>
@@ -36,8 +37,8 @@ export default function AddExperienceModal({
         </ModalBody>
         <ModalFooter>
           <Button onPress={() => onOpenChange(false)}>Cancel</Button>
-          <Button 
-            color='primary' 
+          <Button
+            color='primary'
             onPress={() => {
               if (onCreate) {
                 onCreate(formData);

@@ -1,5 +1,5 @@
-import { faker } from "@faker-js/faker";
-import { NextResponse } from "next/server";
+import { faker } from '@faker-js/faker';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
@@ -14,8 +14,8 @@ export async function GET() {
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch overview data" },
-      { status: 500 },
+      { error: 'Failed to fetch overview data' },
+      { status: 500 }
     );
   }
 }

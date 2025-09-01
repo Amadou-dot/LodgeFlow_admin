@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock next/router
 jest.mock('next/router', () => ({
@@ -19,9 +19,9 @@ jest.mock('next/router', () => ({
         off: jest.fn(),
         emit: jest.fn(),
       },
-    }
+    };
   },
-}))
+}));
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
@@ -33,15 +33,15 @@ jest.mock('next/navigation', () => ({
       back: jest.fn(),
       forward: jest.fn(),
       refresh: jest.fn(),
-    }
+    };
   },
   useSearchParams() {
-    return new URLSearchParams()
+    return new URLSearchParams();
   },
   usePathname() {
-    return '/'
+    return '/';
   },
-}))
+}));
 
 // Mock SWR
 jest.mock('swr', () => ({
@@ -52,10 +52,10 @@ jest.mock('swr', () => ({
     isLoading: false,
     mutate: jest.fn(),
   })),
-}))
+}));
 
 // Mock fetch
-global.fetch = jest.fn()
+global.fetch = jest.fn();
 
 // Mock window.matchMedia (only in browser environment)
 if (typeof window !== 'undefined') {
@@ -69,7 +69,7 @@ if (typeof window !== 'undefined') {
       removeListener: jest.fn(), // deprecated
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-})
+      dispatchEvent: jest.fn(),
+    })),
+  });
 }

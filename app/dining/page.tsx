@@ -12,12 +12,20 @@ import { useDining } from '@/hooks/useDining';
 import { Dining } from '@/types';
 
 export default function DiningPage() {
-  const [selectedDining, setSelectedDining] = useState<Partial<Dining> | undefined>();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDining, setSelectedDining] = useState<
+    Partial<Dining> | undefined
+  >();
+  const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<{
     type: 'menu' | 'experience' | '';
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'all-day' | '';
-    category: 'regular' | 'craft-beer' | 'wine' | 'spirits' | 'non-alcoholic' | '';
+    category:
+      | 'regular'
+      | 'craft-beer'
+      | 'wine'
+      | 'spirits'
+      | 'non-alcoholic'
+      | '';
     isAvailable: boolean | null;
   }>({
     type: '',
@@ -27,7 +35,7 @@ export default function DiningPage() {
   });
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  
+
   // Transform filters for the hook
   const diningFilters = {
     type: filters.type || undefined,
@@ -36,8 +44,9 @@ export default function DiningPage() {
     isAvailable: filters.isAvailable ?? undefined,
     search: searchTerm || undefined,
   };
-  
-  const { dining, loading, error, createDining, updateDining, deleteDining } = useDining(diningFilters);
+
+  const { dining, loading, error, createDining, updateDining, deleteDining } =
+    useDining(diningFilters);
 
   const handleAddDining = () => {
     setSelectedDining(undefined);
@@ -75,7 +84,7 @@ export default function DiningPage() {
   };
 
   const handleClearFilters = () => {
-    setSearchTerm("");
+    setSearchTerm('');
     setFilters({
       type: '',
       mealType: '',
@@ -86,45 +95,53 @@ export default function DiningPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-danger-50 border border-danger-200 p-4 rounded-lg">
-          <p className="text-danger-600">Error loading dining items: {error}</p>
+      <div className='container mx-auto px-4 py-8'>
+        <div className='bg-danger-50 border border-danger-200 p-4 rounded-lg'>
+          <p className='text-danger-600'>Error loading dining items: {error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className='container mx-auto px-4 py-8'>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8'>
         <div>
-          <h1 className="text-3xl font-bold">Dining Management</h1>
-          <p className="text-default-600 mt-1">
+          <h1 className='text-3xl font-bold'>Dining Management</h1>
+          <p className='text-default-600 mt-1'>
             Manage your restaurant menu items and dining experiences
           </p>
         </div>
         <Button
-          color="primary"
+          color='primary'
           startContent={<PlusIcon />}
           onPress={handleAddDining}
-          className="w-full sm:w-auto"
+          className='w-full sm:w-auto'
         >
           Add Dining Item
         </Button>
       </div>
 
       {/* Filters */}
-      <div className="mb-8">
+      <div className='mb-8'>
         <DiningFilters
           type={filters.type}
           mealType={filters.mealType}
           category={filters.category}
           isAvailable={filters.isAvailable}
-          onTypeChange={(type: string) => setFilters({ ...filters, type: type as any })}
-          onMealTypeChange={(mealType: string) => setFilters({ ...filters, mealType: mealType as any })}
-          onCategoryChange={(category: string) => setFilters({ ...filters, category: category as any })}
-          onAvailabilityChange={(isAvailable: boolean | null) => setFilters({ ...filters, isAvailable })}
+          onTypeChange={(type: string) =>
+            setFilters({ ...filters, type: type as any })
+          }
+          onMealTypeChange={(mealType: string) =>
+            setFilters({ ...filters, mealType: mealType as any })
+          }
+          onCategoryChange={(category: string) =>
+            setFilters({ ...filters, category: category as any })
+          }
+          onAvailabilityChange={(isAvailable: boolean | null) =>
+            setFilters({ ...filters, isAvailable })
+          }
           onClearFilters={handleClearFilters}
           totalCount={dining?.length || 0}
           searchTerm={searchTerm}
@@ -134,8 +151,8 @@ export default function DiningPage() {
 
       {/* Content */}
       {loading ? (
-        <div className="flex justify-center items-center min-h-[300px]">
-          <Spinner size="lg" color="primary" />
+        <div className='flex justify-center items-center min-h-[300px]'>
+          <Spinner size='lg' color='primary' />
         </div>
       ) : (
         <DiningGrid

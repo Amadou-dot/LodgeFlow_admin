@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
-import { SearchIcon } from "@/components/icons";
+import { useState } from 'react';
+import { Button } from '@heroui/button';
+import { Input } from '@heroui/input';
+import { SearchIcon } from '@/components/icons';
 
 export interface FilterOption {
   key: string;
@@ -18,8 +18,8 @@ export interface StandardFiltersProps {
   sortOptions: FilterOption[];
   currentSort?: string;
   onSortChange: (sortBy: string) => void;
-  sortOrder?: "asc" | "desc";
-  onSortOrderChange: (order: "asc" | "desc") => void;
+  sortOrder?: 'asc' | 'desc';
+  onSortOrderChange: (order: 'asc' | 'desc') => void;
   additionalFilters?: React.ReactNode;
   totalCount?: number;
   itemName: string; // e.g., "booking", "cabin", "guest"
@@ -27,12 +27,12 @@ export interface StandardFiltersProps {
 
 export default function StandardFilters({
   searchPlaceholder,
-  searchValue = "",
+  searchValue = '',
   onSearchChange,
   sortOptions,
   currentSort,
   onSortChange,
-  sortOrder = "asc",
+  sortOrder = 'asc',
   onSortOrderChange,
   additionalFilters,
   totalCount,
@@ -45,70 +45,73 @@ export default function StandardFilters({
   };
 
   const handleSearchClear = () => {
-    setLocalSearchValue("");
-    onSearchChange("");
+    setLocalSearchValue('');
+    onSearchChange('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       handleSearchSubmit();
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {/* Search and Sort Row */}
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className='flex flex-col md:flex-row gap-4'>
         {/* Search Input */}
-        <div className="flex-1">
+        <div className='flex-1'>
           <Input
             placeholder={searchPlaceholder}
             startContent={<SearchIcon />}
             value={localSearchValue}
-            onChange={(e) => setLocalSearchValue(e.target.value)}
+            onChange={e => setLocalSearchValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="w-full"
+            className='w-full'
             isClearable
             onClear={handleSearchClear}
           />
         </div>
 
         {/* Sort Options */}
-        <div className="flex gap-2 items-center">
-          {sortOptions.map((option) => (
+        <div className='flex gap-2 items-center'>
+          {sortOptions.map(option => (
             <Button
               key={option.key}
-              variant={currentSort === option.value ? "solid" : "bordered"}
-              size="sm"
+              variant={currentSort === option.value ? 'solid' : 'bordered'}
+              size='sm'
               onPress={() => onSortChange(option.value)}
             >
               {option.label}
             </Button>
           ))}
-          
+
           {/* Sort Order Toggle */}
           <Button
             isIconOnly
-            variant="bordered"
-            size="sm"
-            onPress={() => onSortOrderChange(sortOrder === "asc" ? "desc" : "asc")}
+            variant='bordered'
+            size='sm'
+            onPress={() =>
+              onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')
+            }
           >
-            {sortOrder === "asc" ? "↑" : "↓"}
+            {sortOrder === 'asc' ? '↑' : '↓'}
           </Button>
         </div>
       </div>
 
       {/* Additional Filters Row (if provided) */}
       {additionalFilters && (
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className='flex flex-wrap gap-2 items-center'>
           {additionalFilters}
         </div>
       )}
 
       {/* Results Count */}
       {totalCount !== undefined && (
-        <div className="text-sm text-default-600">
-          {totalCount} {itemName}{totalCount !== 1 ? "s" : ""} found
+        <div className='text-sm text-default-600'>
+          {totalCount} {itemName}
+          {totalCount !== 1 ? 's' : ''} found
         </div>
       )}
     </div>

@@ -1,10 +1,22 @@
-
 import { faker } from '@faker-js/faker';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import connectDB from '../lib/mongodb';
-import type { IBooking, ICabin, ICustomer, IExperience, IDining } from '../models';
-import { Booking, Cabin, Customer, Experience, Settings, Dining } from '../models';
+import type {
+  IBooking,
+  ICabin,
+  ICustomer,
+  IExperience,
+  IDining,
+} from '../models';
+import {
+  Booking,
+  Cabin,
+  Customer,
+  Experience,
+  Settings,
+  Dining,
+} from '../models';
 
 // Load environment variables from .env.local
 config({ path: resolve(process.cwd(), '.env.local') });
@@ -657,7 +669,8 @@ const diningData = [
   // Regular Menu Items - Breakfast
   {
     name: 'Lodge Breakfast Platter',
-    description: 'Traditional hearty breakfast with scrambled eggs, bacon, sausage, hash browns, and toast',
+    description:
+      'Traditional hearty breakfast with scrambled eggs, bacon, sausage, hash browns, and toast',
     type: 'menu',
     mealType: 'breakfast',
     price: 18.99,
@@ -665,7 +678,8 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'regular',
-    image: 'https://images.unsplash.com/flagged/photo-1594959307042-a0d01a430fb2?w=400&h=300&auto=format&fit=crop',
+    image:
+      'https://images.unsplash.com/flagged/photo-1594959307042-a0d01a430fb2?w=400&h=300&auto=format&fit=crop',
     ingredients: ['eggs', 'bacon', 'sausage', 'potatoes', 'bread'],
     allergens: ['eggs', 'gluten'],
     dietary: ['gluten-free'],
@@ -675,7 +689,8 @@ const diningData = [
   },
   {
     name: 'Mountain Berry Pancakes',
-    description: 'Fluffy pancakes topped with fresh mountain berries and maple syrup',
+    description:
+      'Fluffy pancakes topped with fresh mountain berries and maple syrup',
     type: 'menu',
     mealType: 'breakfast',
     price: 14.99,
@@ -683,7 +698,8 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'regular',
-    image: 'https://images.unsplash.com/photo-1506084868230-bb9d95c24759?w=400&h=300&auto=format&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1506084868230-bb9d95c24759?w=400&h=300&auto=format&fit=crop',
     ingredients: ['flour', 'eggs', 'milk', 'berries', 'maple syrup'],
     allergens: ['eggs', 'gluten', 'dairy'],
     dietary: ['vegetarian'],
@@ -695,7 +711,8 @@ const diningData = [
   // Regular Menu Items - Lunch
   {
     name: 'Grilled Mountain Trout',
-    description: 'Fresh-caught trout grilled to perfection with lemon herbs and seasonal vegetables',
+    description:
+      'Fresh-caught trout grilled to perfection with lemon herbs and seasonal vegetables',
     type: 'menu',
     mealType: 'lunch',
     price: 28.99,
@@ -703,7 +720,8 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'regular',
-    image: 'https://images.unsplash.com/photo-1621998206603-471ba8565bd8?w=400&h=300&auto=format&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1621998206603-471ba8565bd8?w=400&h=300&auto=format&fit=crop',
     ingredients: ['trout', 'lemon', 'herbs', 'seasonal vegetables'],
     allergens: ['fish'],
     dietary: ['gluten-free', 'dairy-free'],
@@ -713,7 +731,8 @@ const diningData = [
   },
   {
     name: 'Lodge Burger',
-    description: 'Premium beef burger with lodge sauce, cheese, lettuce, tomato, and hand-cut fries',
+    description:
+      'Premium beef burger with lodge sauce, cheese, lettuce, tomato, and hand-cut fries',
     type: 'menu',
     mealType: 'lunch',
     price: 22.99,
@@ -721,7 +740,8 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'regular',
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&auto=format&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&auto=format&fit=crop',
     ingredients: ['beef', 'cheese', 'lettuce', 'tomato', 'bun', 'potatoes'],
     allergens: ['gluten', 'dairy'],
     dietary: [],
@@ -733,7 +753,8 @@ const diningData = [
   // Regular Menu Items - Dinner
   {
     name: 'Wild Game Steak',
-    description: 'Locally sourced wild game steak with roasted root vegetables and red wine reduction',
+    description:
+      'Locally sourced wild game steak with roasted root vegetables and red wine reduction',
     type: 'menu',
     mealType: 'dinner',
     price: 45.99,
@@ -741,7 +762,8 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'regular',
-    image: 'https://images.unsplash.com/photo-1601356616077-695728ae17cb?w=400&h=300&auto=format&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1601356616077-695728ae17cb?w=400&h=300&auto=format&fit=crop',
     ingredients: ['wild game', 'root vegetables', 'red wine', 'herbs'],
     allergens: [],
     dietary: ['gluten-free', 'dairy-free'],
@@ -753,7 +775,8 @@ const diningData = [
   // Craft Beer Selection
   {
     name: 'LodgeFlow IPA',
-    description: 'Our signature India Pale Ale with citrus notes and a hoppy finish',
+    description:
+      'Our signature India Pale Ale with citrus notes and a hoppy finish',
     type: 'menu',
     mealType: 'all-day',
     price: 8.99,
@@ -762,13 +785,16 @@ const diningData = [
     minPeople: 1,
     category: 'craft-beer',
     subCategory: 'IPA',
-    image: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=300&auto=format&fit=crop',
-    beverages: [{
-      name: 'LodgeFlow IPA',
-      description: 'Signature IPA with citrus notes',
-      alcoholContent: 6.2,
-      category: 'craft-beer',
-    }],
+    image:
+      'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=300&auto=format&fit=crop',
+    beverages: [
+      {
+        name: 'LodgeFlow IPA',
+        description: 'Signature IPA with citrus notes',
+        alcoholContent: 6.2,
+        category: 'craft-beer',
+      },
+    ],
     isPopular: true,
     isAvailable: true,
     tags: ['beer', 'craft', 'IPA', 'signature'],
@@ -784,13 +810,16 @@ const diningData = [
     minPeople: 1,
     category: 'craft-beer',
     subCategory: 'Lager',
-    image: 'https://images.unsplash.com/photo-1608742598121-15038a8db33c?w=400&h=300&auto=format&fit=crop',
-    beverages: [{
-      name: 'Mountain Mist Lager',
-      description: 'Light and crisp lager',
-      alcoholContent: 4.8,
-      category: 'craft-beer',
-    }],
+    image:
+      'https://images.unsplash.com/photo-1608742598121-15038a8db33c?w=400&h=300&auto=format&fit=crop',
+    beverages: [
+      {
+        name: 'Mountain Mist Lager',
+        description: 'Light and crisp lager',
+        alcoholContent: 4.8,
+        category: 'craft-beer',
+      },
+    ],
     isPopular: false,
     isAvailable: true,
     tags: ['beer', 'craft', 'lager', 'light'],
@@ -799,7 +828,8 @@ const diningData = [
   // Wine Selection
   {
     name: 'Valley Pinot Noir',
-    description: 'Elegant red wine from local valley vineyards with berry and earth notes',
+    description:
+      'Elegant red wine from local valley vineyards with berry and earth notes',
     type: 'menu',
     mealType: 'all-day',
     price: 12.99,
@@ -808,20 +838,24 @@ const diningData = [
     minPeople: 1,
     category: 'wine',
     subCategory: 'Red Wine',
-    image: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=400&h=300&auto=format&fit=crop',
-    beverages: [{
-      name: 'Valley Pinot Noir',
-      description: 'Local Pinot Noir with berry notes',
-      alcoholContent: 13.5,
-      category: 'wine',
-    }],
+    image:
+      'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=400&h=300&auto=format&fit=crop',
+    beverages: [
+      {
+        name: 'Valley Pinot Noir',
+        description: 'Local Pinot Noir with berry notes',
+        alcoholContent: 13.5,
+        category: 'wine',
+      },
+    ],
     isPopular: true,
     isAvailable: true,
     tags: ['wine', 'red', 'local', 'pinot noir'],
   },
   {
     name: 'Mountain Chardonnay',
-    description: 'Crisp white wine with apple and citrus notes, perfectly chilled',
+    description:
+      'Crisp white wine with apple and citrus notes, perfectly chilled',
     type: 'menu',
     mealType: 'all-day',
     price: 11.99,
@@ -830,13 +864,16 @@ const diningData = [
     minPeople: 1,
     category: 'wine',
     subCategory: 'White Wine',
-    image: 'https://images.unsplash.com/photo-1599113656124-b96bf21e30d3?w=400&h=300&auto=format&fit=crop',
-    beverages: [{
-      name: 'Mountain Chardonnay',
-      description: 'Crisp white wine with citrus notes',
-      alcoholContent: 12.8,
-      category: 'wine',
-    }],
+    image:
+      'https://images.unsplash.com/photo-1599113656124-b96bf21e30d3?w=400&h=300&auto=format&fit=crop',
+    beverages: [
+      {
+        name: 'Mountain Chardonnay',
+        description: 'Crisp white wine with citrus notes',
+        alcoholContent: 12.8,
+        category: 'wine',
+      },
+    ],
     isPopular: false,
     isAvailable: true,
     tags: ['wine', 'white', 'chardonnay', 'crisp'],
@@ -845,7 +882,8 @@ const diningData = [
   // Artisan Spirits
   {
     name: 'Lodge Whiskey',
-    description: 'Locally distilled whiskey aged in oak barrels with vanilla and caramel notes',
+    description:
+      'Locally distilled whiskey aged in oak barrels with vanilla and caramel notes',
     type: 'menu',
     mealType: 'all-day',
     price: 15.99,
@@ -854,13 +892,16 @@ const diningData = [
     minPeople: 1,
     category: 'spirits',
     subCategory: 'Whiskey',
-    image: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=400&h=300&auto=format&fit=crop',
-    beverages: [{
-      name: 'Lodge Whiskey',
-      description: 'Locally distilled with vanilla notes',
-      alcoholContent: 42,
-      category: 'spirits',
-    }],
+    image:
+      'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=400&h=300&auto=format&fit=crop',
+    beverages: [
+      {
+        name: 'Lodge Whiskey',
+        description: 'Locally distilled with vanilla notes',
+        alcoholContent: 42,
+        category: 'spirits',
+      },
+    ],
     isPopular: true,
     isAvailable: true,
     tags: ['whiskey', 'spirits', 'local', 'aged'],
@@ -877,12 +918,15 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'non-alcoholic',
-    image: 'https://images.unsplash.com/photo-1580600301337-83a86c8839bd?w=400&h=300&auto=format&fit=crop',
-    beverages: [{
-      name: 'Mountain Spring Water',
-      description: 'Pure natural spring water',
-      category: 'non-alcoholic',
-    }],
+    image:
+      'https://images.unsplash.com/photo-1580600301337-83a86c8839bd?w=400&h=300&auto=format&fit=crop',
+    beverages: [
+      {
+        name: 'Mountain Spring Water',
+        description: 'Pure natural spring water',
+        category: 'non-alcoholic',
+      },
+    ],
     isPopular: false,
     isAvailable: true,
     tags: ['water', 'natural', 'spring', 'refreshing'],
@@ -897,12 +941,15 @@ const diningData = [
     maxPeople: 1,
     minPeople: 1,
     category: 'non-alcoholic',
-    image: 'https://images.unsplash.com/photo-1605199910378-edb0c0709ab4?w=400&h=300&auto=format&fit=crop',
-    beverages: [{
-      name: 'Fresh Pressed Apple Juice',
-      description: 'From local orchard apples',
-      category: 'non-alcoholic',
-    }],
+    image:
+      'https://images.unsplash.com/photo-1605199910378-edb0c0709ab4?w=400&h=300&auto=format&fit=crop',
+    beverages: [
+      {
+        name: 'Fresh Pressed Apple Juice',
+        description: 'From local orchard apples',
+        category: 'non-alcoholic',
+      },
+    ],
     isPopular: true,
     isAvailable: true,
     tags: ['juice', 'fresh', 'local', 'apple'],
@@ -911,7 +958,8 @@ const diningData = [
   // Dining Experiences
   {
     name: 'Wine & Dine Mountain Experience',
-    description: 'Exclusive 3-course dining experience paired with local wines and mountain views',
+    description:
+      'Exclusive 3-course dining experience paired with local wines and mountain views',
     type: 'experience',
     mealType: 'dinner',
     price: 125.99,
@@ -919,7 +967,8 @@ const diningData = [
     maxPeople: 8,
     minPeople: 2,
     category: 'wine',
-    image: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=400&h=300&auto=format&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1555244162-803834f70033?w=400&h=300&auto=format&fit=crop',
     duration: '3 hours',
     location: 'Mountain View Terrace',
     includes: [
@@ -947,7 +996,8 @@ const diningData = [
   },
   {
     name: 'Craft Beer & BBQ Experience',
-    description: 'Outdoor BBQ experience featuring our craft beer selection and grilled specialties',
+    description:
+      'Outdoor BBQ experience featuring our craft beer selection and grilled specialties',
     type: 'experience',
     mealType: 'lunch',
     price: 89.99,
@@ -955,7 +1005,8 @@ const diningData = [
     maxPeople: 12,
     minPeople: 4,
     category: 'craft-beer',
-    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&auto=format&fit=crop',
+    image:
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&auto=format&fit=crop',
     duration: '4 hours',
     location: 'Outdoor Fire Pit Area',
     includes: [

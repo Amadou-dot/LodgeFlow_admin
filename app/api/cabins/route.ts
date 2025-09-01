@@ -1,37 +1,37 @@
-import { NextRequest, NextResponse } from "next/server";
-import connectDB from "../../../lib/mongodb";
-import { Cabin } from "../../../models";
+import { NextRequest, NextResponse } from 'next/server';
+import connectDB from '../../../lib/mongodb';
+import { Cabin } from '../../../models';
 
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const filter = searchParams.get("filter");
-    const search = searchParams.get("search");
-    const capacity = searchParams.get("capacity");
-    const discount = searchParams.get("discount");
-    const sortBy = searchParams.get("sortBy") || "name";
-    const sortOrder = searchParams.get("sortOrder") || "asc";
+    const filter = searchParams.get('filter');
+    const search = searchParams.get('search');
+    const capacity = searchParams.get('capacity');
+    const discount = searchParams.get('discount');
+    const sortBy = searchParams.get('sortBy') || 'name';
+    const sortOrder = searchParams.get('sortOrder') || 'asc';
 
     // Build query
     let query: any = {};
 
     // Apply search
     if (search) {
-      query.name = { $regex: search, $options: "i" };
+      query.name = { $regex: search, $options: 'i' };
     }
 
     // Apply capacity filter
     if (capacity) {
       switch (capacity) {
-        case "small":
+        case 'small':
           query.capacity = { $lte: 3 };
           break;
-        case "medium":
+        case 'medium':
           query.capacity = { $gte: 4, $lte: 7 };
           break;
-        case "large":
+        case 'large':
           query.capacity = { $gte: 8 };
           break;
       }
@@ -40,10 +40,10 @@ export async function GET(request: NextRequest) {
     // Apply discount filter
     if (discount) {
       switch (discount) {
-        case "with":
+        case 'with':
           query.discount = { $gt: 0 };
           break;
-        case "without":
+        case 'without':
           query.discount = 0;
           break;
       }
@@ -52,19 +52,19 @@ export async function GET(request: NextRequest) {
     // Apply legacy filters for backward compatibility
     if (filter) {
       switch (filter) {
-        case "with-discount":
+        case 'with-discount':
           query.discount = { $gt: 0 };
           break;
-        case "no-discount":
+        case 'no-discount':
           query.discount = 0;
           break;
-        case "small":
+        case 'small':
           query.capacity = { $lte: 3 };
           break;
-        case "medium":
+        case 'medium':
           query.capacity = { $gte: 4, $lte: 6 };
           break;
-        case "large":
+        case 'large':
           query.capacity = { $gte: 7 };
           break;
       }
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     // Build sort object
     const sort: any = {};
-    sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const cabins = await Cabin.find(query).sort(sort);
 
@@ -81,13 +81,13 @@ export async function GET(request: NextRequest) {
       data: cabins,
     });
   } catch (error) {
-    console.error("Error fetching cabins:", error);
+    console.error('Error fetching cabins:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to fetch cabins",
+        error: 'Failed to fetch cabins',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -97,18 +97,18 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    
+
     // Validate discount vs price
     if (body.discount && body.discount >= body.price) {
       return NextResponse.json(
         {
           success: false,
-          error: "Discount cannot be greater than or equal to the price",
+          error: 'Discount cannot be greater than or equal to the price',
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
-    
+
     const cabin = await Cabin.create(body);
 
     return NextResponse.json(
@@ -116,29 +116,29 @@ export async function POST(request: NextRequest) {
         success: true,
         data: cabin,
       },
-      { status: 201 },
+      { status: 201 }
     );
   } catch (error: any) {
-    console.error("Error creating cabin:", error);
+    console.error('Error creating cabin:', error);
 
     // Handle validation errors
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       return NextResponse.json(
         {
           success: false,
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.errors,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to create cabin",
+        error: 'Failed to create cabin',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -154,9 +154,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Cabin ID is required",
+          error: 'Cabin ID is required',
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -169,9 +169,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Cabin not found",
+          error: 'Cabin not found',
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -180,25 +180,25 @@ export async function PUT(request: NextRequest) {
       data: cabin,
     });
   } catch (error: any) {
-    console.error("Error updating cabin:", error);
+    console.error('Error updating cabin:', error);
 
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       return NextResponse.json(
         {
           success: false,
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.errors,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to update cabin",
+        error: 'Failed to update cabin',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -208,15 +208,15 @@ export async function DELETE(request: NextRequest) {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const id = searchParams.get('id');
 
     if (!id) {
       return NextResponse.json(
         {
           success: false,
-          error: "Cabin ID is required",
+          error: 'Cabin ID is required',
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -226,24 +226,24 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Cabin not found",
+          error: 'Cabin not found',
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Cabin deleted successfully",
+      message: 'Cabin deleted successfully',
     });
   } catch (error) {
-    console.error("Error deleting cabin:", error);
+    console.error('Error deleting cabin:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to delete cabin",
+        error: 'Failed to delete cabin',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

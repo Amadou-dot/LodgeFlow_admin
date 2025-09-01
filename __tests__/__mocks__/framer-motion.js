@@ -1,4 +1,4 @@
-const actual = jest.requireActual('framer-motion')
+const actual = jest.requireActual('framer-motion');
 
 module.exports = {
   ...actual,
@@ -13,4 +13,4 @@ module.exports = {
   },
   useReducedMotion: () => true,
   domAnimation: () => ({}),
-}
+};

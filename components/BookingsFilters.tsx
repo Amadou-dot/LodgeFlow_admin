@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { Button } from "@heroui/button";
-import { Select, SelectItem } from "@heroui/select";
-import StandardFilters, { FilterOption } from "./StandardFilters";
+import { Button } from '@heroui/button';
+import { Select, SelectItem } from '@heroui/select';
+import StandardFilters, { FilterOption } from './StandardFilters';
 
 export interface BookingsFilters {
   status?: string;
   search?: string;
   sortBy?: string;
-  sortOrder?: "asc" | "desc";
+  sortOrder?: 'asc' | 'desc';
 }
 
 interface BookingsFiltersProps {
@@ -25,11 +25,11 @@ export default function BookingsFilters({
   totalCount,
 }: BookingsFiltersProps) {
   const sortOptions: FilterOption[] = [
-    { key: "created_at", label: "Recent", value: "created_at" },
-    { key: "checkInDate", label: "Check-in", value: "checkInDate" },
-    { key: "totalPrice", label: "Amount", value: "totalPrice" },
-    { key: "guestName", label: "Guest", value: "guestName" },
-    { key: "cabinName", label: "Cabin", value: "cabinName" },
+    { key: 'created_at', label: 'Recent', value: 'created_at' },
+    { key: 'checkInDate', label: 'Check-in', value: 'checkInDate' },
+    { key: 'totalPrice', label: 'Amount', value: 'totalPrice' },
+    { key: 'guestName', label: 'Guest', value: 'guestName' },
+    { key: 'cabinName', label: 'Cabin', value: 'cabinName' },
   ];
 
   const handleSearchChange = (search: string) => {
@@ -46,7 +46,7 @@ export default function BookingsFilters({
     });
   };
 
-  const handleSortOrderChange = (sortOrder: "asc" | "desc") => {
+  const handleSortOrderChange = (sortOrder: 'asc' | 'desc') => {
     onFiltersChange({
       ...filters,
       sortOrder,
@@ -60,35 +60,30 @@ export default function BookingsFilters({
     });
   };
 
-  const hasActiveFilters = filters.status && filters.status !== "all";
+  const hasActiveFilters = filters.status && filters.status !== 'all';
 
   const additionalFilters = (
     <>
       <Select
-        placeholder="All statuses"
+        placeholder='All statuses'
         selectedKeys={filters.status ? [filters.status] : []}
         onSelectionChange={(keys: any) => {
           const value = Array.from(keys)[0] as string;
           handleStatusChange(value);
         }}
-        className="w-40"
-        size="sm"
-        variant="bordered"
+        className='w-40'
+        size='sm'
+        variant='bordered'
       >
-        <SelectItem key="all">All</SelectItem>
-        <SelectItem key="unconfirmed">Unconfirmed</SelectItem>
-        <SelectItem key="checked-in">Checked In</SelectItem>
-        <SelectItem key="checked-out">Checked Out</SelectItem>
-        <SelectItem key="cancelled">Cancelled</SelectItem>
+        <SelectItem key='all'>All</SelectItem>
+        <SelectItem key='unconfirmed'>Unconfirmed</SelectItem>
+        <SelectItem key='checked-in'>Checked In</SelectItem>
+        <SelectItem key='checked-out'>Checked Out</SelectItem>
+        <SelectItem key='cancelled'>Cancelled</SelectItem>
       </Select>
 
       {hasActiveFilters && (
-        <Button
-          color="default"
-          variant="light"
-          onPress={onReset}
-          size="sm"
-        >
+        <Button color='default' variant='light' onPress={onReset} size='sm'>
           Clear
         </Button>
       )}
@@ -97,17 +92,17 @@ export default function BookingsFilters({
 
   return (
     <StandardFilters
-      searchPlaceholder="Search by cabin, guest name, or email..."
+      searchPlaceholder='Search by cabin, guest name, or email...'
       searchValue={filters.search}
       onSearchChange={handleSearchChange}
       sortOptions={sortOptions}
       currentSort={filters.sortBy}
       onSortChange={handleSortChange}
-      sortOrder={filters.sortOrder || "desc"}
+      sortOrder={filters.sortOrder || 'desc'}
       onSortOrderChange={handleSortOrderChange}
       additionalFilters={additionalFilters}
       totalCount={totalCount}
-      itemName="booking"
+      itemName='booking'
     />
   );
 }

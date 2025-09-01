@@ -9,7 +9,7 @@ export interface IDining {
   price: number;
   servingTime: {
     start: string; // HH:MM format
-    end: string;   // HH:MM format
+    end: string; // HH:MM format
   };
   maxPeople: number;
   minPeople: number;
@@ -19,7 +19,14 @@ export interface IDining {
   gallery?: string[];
   ingredients?: string[];
   allergens?: string[];
-  dietary?: ('vegetarian' | 'vegan' | 'gluten-free' | 'dairy-free' | 'keto' | 'paleo')[];
+  dietary?: (
+    | 'vegetarian'
+    | 'vegan'
+    | 'gluten-free'
+    | 'dairy-free'
+    | 'keto'
+    | 'paleo'
+  )[];
   beverages?: {
     name: string;
     description?: string;
@@ -74,20 +81,29 @@ const diningSchema = new Schema(
     allergens: { type: [String], default: [] },
     dietary: {
       type: [String],
-      enum: ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'keto', 'paleo'],
+      enum: [
+        'vegetarian',
+        'vegan',
+        'gluten-free',
+        'dairy-free',
+        'keto',
+        'paleo',
+      ],
       default: [],
     },
-    beverages: [{
-      name: { type: String, required: true },
-      description: { type: String },
-      price: { type: Number },
-      alcoholContent: { type: Number },
-      category: {
-        type: String,
-        required: true,
-        enum: ['craft-beer', 'wine', 'spirits', 'non-alcoholic'],
+    beverages: [
+      {
+        name: { type: String, required: true },
+        description: { type: String },
+        price: { type: Number },
+        alcoholContent: { type: Number },
+        category: {
+          type: String,
+          required: true,
+          enum: ['craft-beer', 'wine', 'spirits', 'non-alcoholic'],
+        },
       },
-    }],
+    ],
     includes: { type: [String], default: [] },
     duration: { type: String },
     location: { type: String },

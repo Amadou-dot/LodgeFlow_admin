@@ -34,7 +34,9 @@ export const useExperiences = () => {
 export const useCreateExperience = () => {
   const { mutate } = useExperiences();
 
-  const createExperience = async (data: Omit<Experience, '_id' | 'createdAt' | 'updatedAt'>) => {
+  const createExperience = async (
+    data: Omit<Experience, '_id' | 'createdAt' | 'updatedAt'>
+  ) => {
     const response = await fetch('/api/experiences', {
       method: 'POST',
       headers: {

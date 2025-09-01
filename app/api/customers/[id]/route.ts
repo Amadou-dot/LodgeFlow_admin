@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import connectDB from "../../../../lib/mongodb";
-import { Booking, Customer } from "../../../../models";
+import { NextRequest, NextResponse } from 'next/server';
+import connectDB from '../../../../lib/mongodb';
+import { Booking, Customer } from '../../../../models';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -17,15 +17,15 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          error: "Customer not found",
+          error: 'Customer not found',
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     // Get customer's bookings
     const bookings = await Booking.find({ customer: id })
-      .populate("cabin", "name image capacity price")
+      .populate('cabin', 'name image capacity price')
       .sort({ createdAt: -1 })
       .limit(10); // Last 10 bookings
 
@@ -33,12 +33,12 @@ export async function GET(
     const totalBookings = await Booking.countDocuments({ customer: id });
     const completedBookings = await Booking.countDocuments({
       customer: id,
-      status: "checked-out",
+      status: 'checked-out',
     });
 
     const revenueResult = await Booking.aggregate([
       { $match: { customer: customer._id, isPaid: true } },
-      { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+      { $group: { _id: null, total: { $sum: '$totalPrice' } } },
     ]);
 
     const totalRevenue = revenueResult[0]?.total || 0;
@@ -63,20 +63,20 @@ export async function GET(
       data: customerData,
     });
   } catch (error) {
-    console.error("Error fetching customer:", error);
+    console.error('Error fetching customer:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to fetch customer",
+        error: 'Failed to fetch customer',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -93,9 +93,9 @@ export async function PUT(
       return NextResponse.json(
         {
           success: false,
-          error: "Customer not found",
+          error: 'Customer not found',
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -104,16 +104,16 @@ export async function PUT(
       data: customer,
     });
   } catch (error: any) {
-    console.error("Error updating customer:", error);
+    console.error('Error updating customer:', error);
 
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       return NextResponse.json(
         {
           success: false,
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.errors,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -121,25 +121,25 @@ export async function PUT(
       return NextResponse.json(
         {
           success: false,
-          error: "Email already exists",
+          error: 'Email already exists',
         },
-        { status: 409 },
+        { status: 409 }
       );
     }
 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to update customer",
+        error: 'Failed to update customer',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -152,9 +152,9 @@ export async function DELETE(
       return NextResponse.json(
         {
           success: false,
-          error: "Cannot delete customer with existing bookings",
+          error: 'Cannot delete customer with existing bookings',
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -164,24 +164,24 @@ export async function DELETE(
       return NextResponse.json(
         {
           success: false,
-          error: "Customer not found",
+          error: 'Customer not found',
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Customer deleted successfully",
+      message: 'Customer deleted successfully',
     });
   } catch (error) {
-    console.error("Error deleting customer:", error);
+    console.error('Error deleting customer:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to delete customer",
+        error: 'Failed to delete customer',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

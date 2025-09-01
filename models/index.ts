@@ -8,4 +8,3 @@ export { default as Settings, type ISettings } from './Settings';
 
 // Re-export database connection
 export { default as connectDB } from '../lib/mongodb';
-

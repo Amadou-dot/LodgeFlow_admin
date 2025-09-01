@@ -10,7 +10,9 @@ import { Experience } from '@/models/Experience';
 
 // Mock the database connection
 jest.mock('@/lib/mongodb');
-const mockConnectToDatabase = connectToDatabase as jest.MockedFunction<typeof connectToDatabase>;
+const mockConnectToDatabase = connectToDatabase as jest.MockedFunction<
+  typeof connectToDatabase
+>;
 
 // Mock the Experience model
 jest.mock('@/models/Experience');
@@ -68,7 +70,9 @@ describe('/api/experiences', () => {
     });
 
     it('should handle database errors', async () => {
-      MockExperience.find = jest.fn().mockRejectedValue(new Error('Database error'));
+      MockExperience.find = jest
+        .fn()
+        .mockRejectedValue(new Error('Database error'));
 
       const response = await GET();
       const data = await response.json();
@@ -81,10 +85,13 @@ describe('/api/experiences', () => {
   describe('POST /api/experiences', () => {
     it('should create a new experience', async () => {
       const mockSave = jest.fn().mockResolvedValue(mockExperienceData);
-      MockExperience.mockImplementation(() => ({
-        save: mockSave,
-        ...mockExperienceData,
-      }) as any);
+      MockExperience.mockImplementation(
+        () =>
+          ({
+            save: mockSave,
+            ...mockExperienceData,
+          }) as any
+      );
 
       const request = new NextRequest('http://localhost/api/experiences', {
         method: 'POST',
@@ -126,9 +133,12 @@ describe('/api/experiences', () => {
     });
 
     it('should handle creation errors', async () => {
-      MockExperience.mockImplementation(() => ({
-        save: jest.fn().mockRejectedValue(new Error('Validation error')),
-      }) as any);
+      MockExperience.mockImplementation(
+        () =>
+          ({
+            save: jest.fn().mockRejectedValue(new Error('Validation error')),
+          }) as any
+      );
 
       const request = new NextRequest('http://localhost/api/experiences', {
         method: 'POST',
@@ -167,14 +177,18 @@ describe('/api/experiences/[id]', () => {
     it('should return a specific experience', async () => {
       MockExperience.findById = jest.fn().mockResolvedValue(mockExperienceData);
 
-      const request = new NextRequest('http://localhost/api/experiences/507f1f77bcf86cd799439011');
+      const request = new NextRequest(
+        'http://localhost/api/experiences/507f1f77bcf86cd799439011'
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await getById(request, { params });
       const data = await response.json();
 
       expect(mockConnectToDatabase).toHaveBeenCalledTimes(1);
-      expect(MockExperience.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      expect(MockExperience.findById).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011'
+      );
       expect(response.status).toBe(200);
       expect(data).toEqual(mockExperienceData);
     });
@@ -182,7 +196,9 @@ describe('/api/experiences/[id]', () => {
     it('should return 404 when experience not found', async () => {
       MockExperience.findById = jest.fn().mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost/api/experiences/nonexistent');
+      const request = new NextRequest(
+        'http://localhost/api/experiences/nonexistent'
+      );
       const params = Promise.resolve({ id: 'nonexistent' });
 
       const response = await getById(request, { params });
@@ -193,9 +209,13 @@ describe('/api/experiences/[id]', () => {
     });
 
     it('should handle database errors', async () => {
-      MockExperience.findById = jest.fn().mockRejectedValue(new Error('Database error'));
+      MockExperience.findById = jest
+        .fn()
+        .mockRejectedValue(new Error('Database error'));
 
-      const request = new NextRequest('http://localhost/api/experiences/507f1f77bcf86cd799439011');
+      const request = new NextRequest(
+        'http://localhost/api/experiences/507f1f77bcf86cd799439011'
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await getById(request, { params });
@@ -209,12 +229,17 @@ describe('/api/experiences/[id]', () => {
   describe('PUT /api/experiences/[id]', () => {
     it('should update an existing experience', async () => {
       const updatedData = { ...mockExperienceData, name: 'Updated Adventure' };
-      MockExperience.findByIdAndUpdate = jest.fn().mockResolvedValue(updatedData);
+      MockExperience.findByIdAndUpdate = jest
+        .fn()
+        .mockResolvedValue(updatedData);
 
-      const request = new NextRequest('http://localhost/api/experiences/507f1f77bcf86cd799439011', {
-        method: 'PUT',
-        body: JSON.stringify({ name: 'Updated Adventure' }),
-      });
+      const request = new NextRequest(
+        'http://localhost/api/experiences/507f1f77bcf86cd799439011',
+        {
+          method: 'PUT',
+          body: JSON.stringify({ name: 'Updated Adventure' }),
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await PUT(request, { params });
@@ -233,10 +258,13 @@ describe('/api/experiences/[id]', () => {
     it('should return 404 when updating non-existent experience', async () => {
       MockExperience.findByIdAndUpdate = jest.fn().mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost/api/experiences/nonexistent', {
-        method: 'PUT',
-        body: JSON.stringify({ name: 'Updated Adventure' }),
-      });
+      const request = new NextRequest(
+        'http://localhost/api/experiences/nonexistent',
+        {
+          method: 'PUT',
+          body: JSON.stringify({ name: 'Updated Adventure' }),
+        }
+      );
       const params = Promise.resolve({ id: 'nonexistent' });
 
       const response = await PUT(request, { params });
@@ -247,12 +275,17 @@ describe('/api/experiences/[id]', () => {
     });
 
     it('should handle update errors', async () => {
-      MockExperience.findByIdAndUpdate = jest.fn().mockRejectedValue(new Error('Update error'));
+      MockExperience.findByIdAndUpdate = jest
+        .fn()
+        .mockRejectedValue(new Error('Update error'));
 
-      const request = new NextRequest('http://localhost/api/experiences/507f1f77bcf86cd799439011', {
-        method: 'PUT',
-        body: JSON.stringify({ name: 'Updated Adventure' }),
-      });
+      const request = new NextRequest(
+        'http://localhost/api/experiences/507f1f77bcf86cd799439011',
+        {
+          method: 'PUT',
+          body: JSON.stringify({ name: 'Updated Adventure' }),
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await PUT(request, { params });
@@ -263,10 +296,13 @@ describe('/api/experiences/[id]', () => {
     });
 
     it('should handle invalid JSON in PUT request', async () => {
-      const request = new NextRequest('http://localhost/api/experiences/507f1f77bcf86cd799439011', {
-        method: 'PUT',
-        body: 'invalid json',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/experiences/507f1f77bcf86cd799439011',
+        {
+          method: 'PUT',
+          body: 'invalid json',
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await PUT(request, { params });
@@ -279,18 +315,25 @@ describe('/api/experiences/[id]', () => {
 
   describe('DELETE /api/experiences/[id]', () => {
     it('should delete an existing experience', async () => {
-      MockExperience.findByIdAndDelete = jest.fn().mockResolvedValue(mockExperienceData);
+      MockExperience.findByIdAndDelete = jest
+        .fn()
+        .mockResolvedValue(mockExperienceData);
 
-      const request = new NextRequest('http://localhost/api/experiences/507f1f77bcf86cd799439011', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/experiences/507f1f77bcf86cd799439011',
+        {
+          method: 'DELETE',
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await DELETE(request, { params });
       const data = await response.json();
 
       expect(mockConnectToDatabase).toHaveBeenCalledTimes(1);
-      expect(MockExperience.findByIdAndDelete).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      expect(MockExperience.findByIdAndDelete).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011'
+      );
       expect(response.status).toBe(200);
       expect(data).toEqual({ message: 'Experience deleted' });
     });
@@ -298,9 +341,12 @@ describe('/api/experiences/[id]', () => {
     it('should return 404 when deleting non-existent experience', async () => {
       MockExperience.findByIdAndDelete = jest.fn().mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost/api/experiences/nonexistent', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/experiences/nonexistent',
+        {
+          method: 'DELETE',
+        }
+      );
       const params = Promise.resolve({ id: 'nonexistent' });
 
       const response = await DELETE(request, { params });
@@ -311,11 +357,16 @@ describe('/api/experiences/[id]', () => {
     });
 
     it('should handle deletion errors', async () => {
-      MockExperience.findByIdAndDelete = jest.fn().mockRejectedValue(new Error('Delete error'));
+      MockExperience.findByIdAndDelete = jest
+        .fn()
+        .mockRejectedValue(new Error('Delete error'));
 
-      const request = new NextRequest('http://localhost/api/experiences/507f1f77bcf86cd799439011', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/experiences/507f1f77bcf86cd799439011',
+        {
+          method: 'DELETE',
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await DELETE(request, { params });

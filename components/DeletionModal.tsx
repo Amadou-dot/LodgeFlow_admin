@@ -16,7 +16,9 @@ interface ModalProps {
   resourceId: string;
   resourceName: string;
   note?: string;
-  onDelete: UseMutationResult<any, Error, string, unknown> | (() => Promise<void>);
+  onDelete:
+    | UseMutationResult<any, Error, string, unknown>
+    | (() => Promise<void>);
   onResourceDeleted?: () => void;
   itemName?: string;
   children?: ReactNode; // Custom trigger button
@@ -24,8 +26,21 @@ interface ModalProps {
   onOpenChange?: (open: boolean) => void; // For external control
   buttonProps?: {
     className?: string;
-    color?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
-    variant?: 'solid' | 'bordered' | 'light' | 'flat' | 'faded' | 'shadow' | 'ghost';
+    color?:
+      | 'default'
+      | 'primary'
+      | 'secondary'
+      | 'success'
+      | 'warning'
+      | 'danger';
+    variant?:
+      | 'solid'
+      | 'bordered'
+      | 'light'
+      | 'flat'
+      | 'faded'
+      | 'shadow'
+      | 'ghost';
     size?: 'sm' | 'md' | 'lg';
     startContent?: ReactNode;
     disabled?: boolean;
@@ -42,12 +57,13 @@ export default function DeletionModal({
   children,
   isOpen: externalIsOpen,
   onOpenChange: externalOnOpenChange,
-  buttonProps = {}
+  buttonProps = {},
 }: ModalProps) {
   const internalDisclosure = useDisclosure();
-  
+
   // Use external control if provided, otherwise use internal
-  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalDisclosure.isOpen;
+  const isOpen =
+    externalIsOpen !== undefined ? externalIsOpen : internalDisclosure.isOpen;
   const onOpenChange = externalOnOpenChange || internalDisclosure.onOpenChange;
   const onOpen = internalDisclosure.onOpen;
 
@@ -99,7 +115,7 @@ export default function DeletionModal({
     color: 'danger' as const,
     startContent: <TrashIcon />,
     variant: 'light' as const,
-    ...buttonProps
+    ...buttonProps,
   };
 
   const isDeleting = typeof onDelete !== 'function' && onDelete.isPending;
@@ -108,18 +124,15 @@ export default function DeletionModal({
     <>
       {/* Render custom trigger or default button */}
       {children ? (
-        <div onClick={onOpen} className="cursor-pointer">
+        <div onClick={onOpen} className='cursor-pointer'>
           {children}
         </div>
       ) : (
-        <Button
-          {...defaultButtonProps}
-          onPress={onOpen}
-        >
+        <Button {...defaultButtonProps} onPress={onOpen}>
           Delete
         </Button>
       )}
-      
+
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='md'>
         <ModalContent>
           {onClose => (
@@ -131,8 +144,11 @@ export default function DeletionModal({
                 <p>
                   Are you sure you want to delete {resourceName.toLowerCase()}
                   {itemName && (
-                    <>: <strong>{itemName}</strong></>
-                  )}?
+                    <>
+                      : <strong>{itemName}</strong>
+                    </>
+                  )}
+                  ?
                 </p>
                 <p className='text-danger text-sm'>
                   This action cannot be undone.
@@ -148,7 +164,8 @@ export default function DeletionModal({
                 <Button
                   color='danger'
                   onPress={handleDelete}
-                  isLoading={isDeleting}>
+                  isLoading={isDeleting}
+                >
                   {isDeleting ? 'Deleting...' : 'Delete'}
                 </Button>
               </ModalFooter>

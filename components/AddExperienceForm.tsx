@@ -55,11 +55,13 @@ export default function AddExperienceForm({
         selectionMode='multiple'
         variant='light'
         selectedKeys={isExpanded}
-        onSelectionChange={setIsExpanded as () => void}>
+        onSelectionChange={setIsExpanded as () => void}
+      >
         <AccordionItem
           key={keys[0]}
           aria-label='Basic Information'
-          title='Basic Information'>
+          title='Basic Information'
+        >
           <Container>
             <Input
               name='title'
@@ -108,7 +110,7 @@ export default function AddExperienceForm({
               aria-label='Difficulty Level'
               radius='sm'
               selectedKeys={formData.difficulty ? [formData.difficulty] : []}
-              onSelectionChange={(keys) => {
+              onSelectionChange={keys => {
                 const selectedKey = Array.from(keys)[0] as string;
                 handleInputChange('difficulty', selectedKey);
               }}
@@ -133,8 +135,12 @@ export default function AddExperienceForm({
               aria-label='Seasonal Availability'
               radius='sm'
               selectionMode='multiple'
-              selectedKeys={formData.seasonalAvailability ? new Set(formData.seasonalAvailability) : new Set()}
-              onSelectionChange={(keys) => {
+              selectedKeys={
+                formData.seasonalAvailability
+                  ? new Set(formData.seasonalAvailability)
+                  : new Set()
+              }
+              onSelectionChange={keys => {
                 const selectedKeys = Array.from(keys) as string[];
                 handleInputChange('seasonalAvailability', selectedKeys);
               }}
@@ -159,7 +165,8 @@ export default function AddExperienceForm({
         <AccordionItem
           key={keys[1]}
           aria-label='Media & Visuals'
-          title='Media & Visuals'>
+          title='Media & Visuals'
+        >
           <Container>
             <Input
               name='imageUrl'
@@ -184,7 +191,8 @@ export default function AddExperienceForm({
         <AccordionItem
           key={keys[2]}
           aria-label='Descriptions'
-          title='Descriptions'>
+          title='Descriptions'
+        >
           <Container>
             <Textarea
               name='shortDescription'
@@ -222,7 +230,8 @@ export default function AddExperienceForm({
         <AccordionItem
           key={keys[3]}
           aria-label='Experience Details'
-          title='Experience Details'>
+          title='Experience Details'
+        >
           <Container>
             <Input
               name='includes'
@@ -244,7 +253,7 @@ export default function AddExperienceForm({
               value={formData.whatToBring || ''}
               onValueChange={value => handleInputChange('whatToBring', value)}
             />
-            
+
             <Input
               name='requirements'
               label='Requirements (comma-separated)'
@@ -272,7 +281,8 @@ export default function AddExperienceForm({
         <AccordionItem
           key={keys[4]}
           aria-label='Booking & Policies'
-          title='Booking & Policies'>
+          title='Booking & Policies'
+        >
           <Container>
             <Input
               name='callToAction'
@@ -320,7 +330,8 @@ export default function AddExperienceForm({
               <Checkbox
                 name='isPopular'
                 isSelected={formData.isPopular || false}
-                onValueChange={value => handleInputChange('isPopular', value)}>
+                onValueChange={value => handleInputChange('isPopular', value)}
+              >
                 Mark as popular
               </Checkbox>
             </div>

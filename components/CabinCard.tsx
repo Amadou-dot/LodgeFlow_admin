@@ -37,7 +37,8 @@ export default function CabinCard({
               color='danger'
               variant='solid'
               size='sm'
-              className='absolute top-2 right-2'>
+              className='absolute top-2 right-2'
+            >
               ${cabin.discount} off
             </Chip>
           )}
@@ -92,14 +93,16 @@ export default function CabinCard({
           <Button
             color='primary'
             className='flex-2'
-            onPress={() => onEdit(cabin)}>
+            onPress={() => onEdit(cabin)}
+          >
             Edit
           </Button>
           <Button
             color='danger'
             variant='light'
             className='flex-1'
-            onPress={() => onDelete(cabin)}>
+            onPress={() => onDelete(cabin)}
+          >
             Delete
           </Button>
         </div>

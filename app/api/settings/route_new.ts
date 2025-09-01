@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import connectDB from "../../../lib/mongodb";
-import { Settings } from "../../../models";
+import { NextRequest, NextResponse } from 'next/server';
+import connectDB from '../../../lib/mongodb';
+import { Settings } from '../../../models';
 
 export async function GET() {
   try {
@@ -19,13 +19,13 @@ export async function GET() {
       data: settings,
     });
   } catch (error) {
-    console.error("Error fetching settings:", error);
+    console.error('Error fetching settings:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to fetch settings",
+        error: 'Failed to fetch settings',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -53,25 +53,25 @@ export async function PUT(request: NextRequest) {
       data: settings,
     });
   } catch (error: any) {
-    console.error("Error updating settings:", error);
+    console.error('Error updating settings:', error);
 
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       return NextResponse.json(
         {
           success: false,
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.errors,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to update settings",
+        error: 'Failed to update settings',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

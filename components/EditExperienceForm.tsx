@@ -54,18 +54,19 @@ export default function EditExperienceForm({
           Expand all
         </Button>
       </div>
-      
+
       <Accordion
         aria-label='Edit Experience Form'
         selectionMode='multiple'
         variant='light'
         selectedKeys={isExpanded}
-        onSelectionChange={setIsExpanded as () => void}>
-        
+        onSelectionChange={setIsExpanded as () => void}
+      >
         <AccordionItem
           key={keys[0]}
           aria-label='Basic Information'
-          title='Basic Information'>
+          title='Basic Information'
+        >
           <Container>
             <Input
               label='Experience Title'
@@ -101,8 +102,10 @@ export default function EditExperienceForm({
               label='Difficulty Level'
               labelPlacement='inside'
               radius='sm'
-              selectedKeys={editedItem.difficulty ? [editedItem.difficulty] : []}
-              onSelectionChange={(keys) => {
+              selectedKeys={
+                editedItem.difficulty ? [editedItem.difficulty] : []
+              }
+              onSelectionChange={keys => {
                 const selectedKey = Array.from(keys)[0] as string;
                 handleInputChange('difficulty', selectedKey);
               }}
@@ -116,7 +119,15 @@ export default function EditExperienceForm({
               labelPlacement='inside'
               radius='sm'
               value={editedItem.tags?.join(', ') || ''}
-              onValueChange={value => handleInputChange('tags', value.split(',').map(tag => tag.trim()).filter(tag => tag))}
+              onValueChange={value =>
+                handleInputChange(
+                  'tags',
+                  value
+                    .split(',')
+                    .map(tag => tag.trim())
+                    .filter(tag => tag)
+                )
+              }
             />
             <Input
               label='Experience Location'
@@ -138,7 +149,8 @@ export default function EditExperienceForm({
         <AccordionItem
           key={keys[1]}
           aria-label='Media & Visuals'
-          title='Media & Visuals'>
+          title='Media & Visuals'
+        >
           <Container>
             <Input
               label='Experience Image URL'
@@ -152,7 +164,15 @@ export default function EditExperienceForm({
               labelPlacement='inside'
               radius='sm'
               value={editedItem.gallery?.join(', ') || ''}
-              onValueChange={value => handleInputChange('gallery', value.split(',').map(url => url.trim()).filter(url => url))}
+              onValueChange={value =>
+                handleInputChange(
+                  'gallery',
+                  value
+                    .split(',')
+                    .map(url => url.trim())
+                    .filter(url => url)
+                )
+              }
             />
           </Container>
         </AccordionItem>
@@ -160,7 +180,8 @@ export default function EditExperienceForm({
         <AccordionItem
           key={keys[2]}
           aria-label='Descriptions'
-          title='Descriptions'>
+          title='Descriptions'
+        >
           <Container>
             <Textarea
               label='Short Description'
@@ -175,7 +196,9 @@ export default function EditExperienceForm({
               labelPlacement='inside'
               radius='sm'
               value={editedItem.longDescription || ''}
-              onValueChange={value => handleInputChange('longDescription', value)}
+              onValueChange={value =>
+                handleInputChange('longDescription', value)
+              }
               minRows={3}
             />
             <Input
@@ -183,7 +206,15 @@ export default function EditExperienceForm({
               labelPlacement='inside'
               radius='sm'
               value={editedItem.highlights?.join(', ') || ''}
-              onValueChange={value => handleInputChange('highlights', value.split(',').map(highlight => highlight.trim()).filter(highlight => highlight))}
+              onValueChange={value =>
+                handleInputChange(
+                  'highlights',
+                  value
+                    .split(',')
+                    .map(highlight => highlight.trim())
+                    .filter(highlight => highlight)
+                )
+              }
             />
           </Container>
         </AccordionItem>
@@ -191,7 +222,8 @@ export default function EditExperienceForm({
         <AccordionItem
           key={keys[3]}
           aria-label='Experience Details'
-          title='Experience Details'>
+          title='Experience Details'
+        >
           <Container>
             <Textarea
               label='Experience Includes (one per line)'
@@ -199,7 +231,12 @@ export default function EditExperienceForm({
               radius='sm'
               description='Ex: Equipment rental, Professional guide, Lunch'
               value={editedItem.includes?.join('\n') || ''}
-              onValueChange={value => handleInputChange('includes', value.split('\n').filter(line => line.trim()))}
+              onValueChange={value =>
+                handleInputChange(
+                  'includes',
+                  value.split('\n').filter(line => line.trim())
+                )
+              }
               minRows={3}
             />
             <Input
@@ -208,7 +245,15 @@ export default function EditExperienceForm({
               radius='sm'
               description='Ex: Sunscreen, Water Bottle, Hat'
               value={editedItem.whatToBring?.join(', ') || ''}
-              onValueChange={value => handleInputChange('whatToBring', value.split(',').map(item => item.trim()).filter(item => item))}
+              onValueChange={value =>
+                handleInputChange(
+                  'whatToBring',
+                  value
+                    .split(',')
+                    .map(item => item.trim())
+                    .filter(item => item)
+                )
+              }
             />
             <Input
               label='Requirements (comma-separated)'
@@ -216,7 +261,15 @@ export default function EditExperienceForm({
               radius='sm'
               description='Ex: No pets, Must be 18+, Ability to swim'
               value={editedItem.requirements?.join(', ') || ''}
-              onValueChange={value => handleInputChange('requirements', value.split(',').map(req => req.trim()).filter(req => req))}
+              onValueChange={value =>
+                handleInputChange(
+                  'requirements',
+                  value
+                    .split(',')
+                    .map(req => req.trim())
+                    .filter(req => req)
+                )
+              }
             />
             <Textarea
               label='Available Times (one per line)'
@@ -224,7 +277,12 @@ export default function EditExperienceForm({
               radius='sm'
               description='Ex: Weekends, Weekdays, Mornings'
               value={editedItem.available?.join('\n') || ''}
-              onValueChange={value => handleInputChange('available', value.split('\n').filter(line => line.trim()))}
+              onValueChange={value =>
+                handleInputChange(
+                  'available',
+                  value.split('\n').filter(line => line.trim())
+                )
+              }
               minRows={2}
             />
           </Container>
@@ -233,7 +291,8 @@ export default function EditExperienceForm({
         <AccordionItem
           key={keys[4]}
           aria-label='Booking & Policies'
-          title='Booking & Policies'>
+          title='Booking & Policies'
+        >
           <Container>
             <Input
               label='Call to Action Text'
@@ -247,7 +306,9 @@ export default function EditExperienceForm({
               labelPlacement='inside'
               radius='sm'
               value={editedItem.cancellationPolicy || ''}
-              onValueChange={value => handleInputChange('cancellationPolicy', value)}
+              onValueChange={value =>
+                handleInputChange('cancellationPolicy', value)
+              }
             />
             <NumberInput
               label='Max Participants'
@@ -255,7 +316,9 @@ export default function EditExperienceForm({
               min={1}
               radius='sm'
               value={editedItem.maxParticipants || 1}
-              onValueChange={value => handleInputChange('maxParticipants', value)}
+              onValueChange={value =>
+                handleInputChange('maxParticipants', value)
+              }
             />
             <NumberInput
               label='Minimum Age'
@@ -268,7 +331,8 @@ export default function EditExperienceForm({
             <div className='md:col-span-2'>
               <Checkbox
                 isSelected={editedItem.isPopular || false}
-                onValueChange={value => handleInputChange('isPopular', value)}>
+                onValueChange={value => handleInputChange('isPopular', value)}
+              >
                 Mark as popular
               </Checkbox>
             </div>
@@ -281,10 +345,7 @@ export default function EditExperienceForm({
         <Button color='danger' variant='light' onPress={onCancel}>
           Cancel
         </Button>
-        <Button 
-          color='primary' 
-          onPress={handleSave}
-          isLoading={isLoading}>
+        <Button color='primary' onPress={handleSave} isLoading={isLoading}>
           {isLoading ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>

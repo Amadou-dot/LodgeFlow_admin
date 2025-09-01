@@ -23,7 +23,8 @@ export default function AddGuestModal({ onGuestAdded }: AddGuestModalProps) {
         color='primary'
         startContent={<PlusIcon />}
         onPress={onOpen}
-        className='w-full sm:w-auto'>
+        className='w-full sm:w-auto'
+      >
         Add New Guest
       </Button>
 

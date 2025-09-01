@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import connectDB from "../../../../lib/mongodb";
-import { Cabin } from "../../../../models";
+import { NextRequest, NextResponse } from 'next/server';
+import connectDB from '../../../../lib/mongodb';
+import { Cabin } from '../../../../models';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -16,9 +16,9 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          error: "Cabin not found",
+          error: 'Cabin not found',
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -27,20 +27,20 @@ export async function GET(
       data: cabin,
     });
   } catch (error) {
-    console.error("Error fetching cabin:", error);
+    console.error('Error fetching cabin:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to fetch cabin",
+        error: 'Failed to fetch cabin',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -54,23 +54,24 @@ export async function PUT(
       return NextResponse.json(
         {
           success: false,
-          error: "Cabin not found",
+          error: 'Cabin not found',
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     // Validate discount vs price
     const newPrice = body.price !== undefined ? body.price : currentCabin.price;
-    const newDiscount = body.discount !== undefined ? body.discount : currentCabin.discount;
-    
+    const newDiscount =
+      body.discount !== undefined ? body.discount : currentCabin.discount;
+
     if (newDiscount >= newPrice) {
       return NextResponse.json(
         {
           success: false,
-          error: "Discount cannot be greater than or equal to the price",
+          error: 'Discount cannot be greater than or equal to the price',
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -83,9 +84,9 @@ export async function PUT(
       return NextResponse.json(
         {
           success: false,
-          error: "Cabin not found",
+          error: 'Cabin not found',
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -94,32 +95,32 @@ export async function PUT(
       data: cabin,
     });
   } catch (error: any) {
-    console.error("Error updating cabin:", error);
+    console.error('Error updating cabin:', error);
 
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       return NextResponse.json(
         {
           success: false,
-          error: "Validation failed",
+          error: 'Validation failed',
           details: error.errors,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to update cabin",
+        error: 'Failed to update cabin',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -131,24 +132,24 @@ export async function DELETE(
       return NextResponse.json(
         {
           success: false,
-          error: "Cabin not found",
+          error: 'Cabin not found',
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: "Cabin deleted successfully",
+      message: 'Cabin deleted successfully',
     });
   } catch (error) {
-    console.error("Error deleting cabin:", error);
+    console.error('Error deleting cabin:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to delete cabin",
+        error: 'Failed to delete cabin',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

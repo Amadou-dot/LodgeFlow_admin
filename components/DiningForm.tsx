@@ -178,7 +178,8 @@ export const DiningForm = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className='space-y-6 max-h-[80vh] overflow-y-auto'>
+      className='space-y-6 max-h-[80vh] overflow-y-auto'
+    >
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <Input
           label='Name'
@@ -231,7 +232,8 @@ export const DiningForm = ({
               type: selected as 'menu' | 'experience',
             });
           }}
-          isRequired>
+          isRequired
+        >
           <SelectItem key='menu'>Regular Menu</SelectItem>
           <SelectItem key='experience'>Dining Experience</SelectItem>
         </Select>
@@ -244,7 +246,8 @@ export const DiningForm = ({
             const selected = Array.from(keys)[0] as string;
             setFormData({ ...formData, mealType: selected as any });
           }}
-          isRequired>
+          isRequired
+        >
           <SelectItem key='breakfast'>Breakfast</SelectItem>
           <SelectItem key='lunch'>Lunch</SelectItem>
           <SelectItem key='dinner'>Dinner</SelectItem>
@@ -261,7 +264,8 @@ export const DiningForm = ({
             const selected = Array.from(keys)[0] as string;
             setFormData({ ...formData, category: selected as any });
           }}
-          isRequired>
+          isRequired
+        >
           <SelectItem key='regular'>Regular Food</SelectItem>
           <SelectItem key='craft-beer'>Craft Beer</SelectItem>
           <SelectItem key='wine'>Wine</SelectItem>
@@ -424,7 +428,8 @@ export const DiningForm = ({
             <Chip
               key={ingredient}
               onClose={() => removeIngredient(ingredient)}
-              variant='flat'>
+              variant='flat'
+            >
               {ingredient}
             </Chip>
           ))}
@@ -437,7 +442,8 @@ export const DiningForm = ({
             isSelected={formData.isPopular}
             onValueChange={checked =>
               setFormData({ ...formData, isPopular: checked })
-            }>
+            }
+          >
             Popular Item
           </Switch>
 
@@ -445,7 +451,8 @@ export const DiningForm = ({
             isSelected={formData.isAvailable}
             onValueChange={checked =>
               setFormData({ ...formData, isAvailable: checked })
-            }>
+            }
+          >
             Available
           </Switch>
         </div>
@@ -456,14 +463,16 @@ export const DiningForm = ({
           type='button'
           variant='bordered'
           onPress={onCancel}
-          className='flex-1'>
+          className='flex-1'
+        >
           Cancel
         </Button>
         <Button
           type='submit'
           color='primary'
           isLoading={isLoading}
-          className='flex-1'>
+          className='flex-1'
+        >
           {dining?._id ? 'Update' : 'Create'} Dining Item
         </Button>
       </div>

@@ -39,7 +39,8 @@ export const Navbar = () => {
       isBordered
       maxWidth='2xl'
       isMenuOpen={isOpen}
-      onMenuOpenChange={setIsOpen}>
+      onMenuOpenChange={setIsOpen}
+    >
       <NavbarContent>
         <NavbarMenuToggle className='md:hidden' />
       </NavbarContent>
@@ -58,7 +59,8 @@ export const Navbar = () => {
             <DropdownItem
               key='profile'
               className='h-14'
-              textValue='Signed in as zoey@example.com'>
+              textValue='Signed in as zoey@example.com'
+            >
               <p className='font-semibold'>Signed in as</p>
               <p className='font-semibold'>zoey@example.com</p>
             </DropdownItem>
@@ -72,7 +74,8 @@ export const Navbar = () => {
               key='logout'
               className='text-danger'
               color='danger'
-              textValue='Log Out'>
+              textValue='Log Out'
+            >
               Log Out
             </DropdownItem>
           </DropdownMenu>
@@ -92,7 +95,8 @@ export const Navbar = () => {
                   isLinkActive && 'font-bold rounded-lg bg-primary'
                 )}
                 href={item.href}
-                size='lg'>
+                size='lg'
+              >
                 {item.name}
               </Link>
             </NavbarMenuItem>

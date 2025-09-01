@@ -1,9 +1,9 @@
-import { faker } from "@faker-js/faker";
-import { NextResponse } from "next/server";
+import { faker } from '@faker-js/faker';
+import { NextResponse } from 'next/server';
 
 export interface Activity {
   id: number;
-  status: "arriving" | "departing";
+  status: 'arriving' | 'departing';
   name: string;
   stayDuration: number;
 }
@@ -17,9 +17,9 @@ export async function GET() {
     for (let i = 0; i < activityCount; i++) {
       activities.push({
         id: i,
-        status: faker.helpers.arrayElement(["arriving", "departing"]) as
-          | "arriving"
-          | "departing",
+        status: faker.helpers.arrayElement(['arriving', 'departing']) as
+          | 'arriving'
+          | 'departing',
         name: faker.person.fullName(),
         stayDuration: faker.number.int({ min: 1, max: 14 }),
       });
@@ -28,8 +28,8 @@ export async function GET() {
     return NextResponse.json(activities);
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch activities" },
-      { status: 500 },
+      { error: 'Failed to fetch activities' },
+      { status: 500 }
     );
   }
 }

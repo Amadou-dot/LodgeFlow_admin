@@ -90,7 +90,8 @@ export default function GuestDetailPage() {
           <Button
             className='mt-2'
             variant='light'
-            onPress={() => router.back()}>
+            onPress={() => router.back()}
+          >
             Go Back
           </Button>
         </div>
@@ -106,7 +107,8 @@ export default function GuestDetailPage() {
           <Button
             className='mt-2'
             variant='light'
-            onPress={() => router.back()}>
+            onPress={() => router.back()}
+          >
             Go Back
           </Button>
         </div>
@@ -162,7 +164,8 @@ export default function GuestDetailPage() {
                   className='mt-2 w-fit'
                   color={loyalty.color}
                   size='sm'
-                  variant='flat'>
+                  variant='flat'
+                >
                   {loyalty.tier} Member
                 </Chip>
               </div>
@@ -248,7 +251,8 @@ export default function GuestDetailPage() {
                           key={index}
                           color='warning'
                           size='sm'
-                          variant='flat'>
+                          variant='flat'
+                        >
                           {restriction}
                         </Chip>
                       )
@@ -259,7 +263,8 @@ export default function GuestDetailPage() {
                           key={index}
                           color='primary'
                           size='sm'
-                          variant='flat'>
+                          variant='flat'
+                        >
                           {need.replace('-', ' ')}
                         </Chip>
                       )
@@ -355,7 +360,8 @@ export default function GuestDetailPage() {
                           <Chip
                             color={getStatusColor(booking.status) as any}
                             size='sm'
-                            variant='flat'>
+                            variant='flat'
+                          >
                             {booking.status}
                           </Chip>
                         </TableCell>

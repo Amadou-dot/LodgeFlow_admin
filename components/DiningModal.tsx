@@ -21,20 +21,22 @@ export const DiningModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      size="5xl"
-      scrollBehavior="inside"
+      size='5xl'
+      scrollBehavior='inside'
       classNames={{
-        base: "max-h-[90vh]",
-        body: "p-6",
+        base: 'max-h-[90vh]',
+        body: 'p-6',
       }}
     >
       <ModalContent>
-        <ModalHeader className="flex flex-col gap-1 px-6 pt-6 pb-2">
-          <h2 className="text-2xl font-bold">
+        <ModalHeader className='flex flex-col gap-1 px-6 pt-6 pb-2'>
+          <h2 className='text-2xl font-bold'>
             {dining?._id ? 'Edit Dining Item' : 'Add New Dining Item'}
           </h2>
-          <p className="text-sm text-default-600">
-            {dining?._id ? 'Update the dining item details below.' : 'Create a new dining menu item or experience.'}
+          <p className='text-sm text-default-600'>
+            {dining?._id
+              ? 'Update the dining item details below.'
+              : 'Create a new dining menu item or experience.'}
           </p>
         </ModalHeader>
         <ModalBody>

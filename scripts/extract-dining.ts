@@ -13,10 +13,14 @@ async function extractDiningData() {
     console.log('✅ Database connected');
 
     console.log('📊 Fetching dining data...');
-    const diningItems = await Dining.find({}).select('name description type mealType price servingTime maxPeople minPeople category subCategory image gallery ingredients allergens dietary beverages includes duration location specialRequirements isPopular isAvailable seasonality tags rating reviewCount').lean();
+    const diningItems = await Dining.find({})
+      .select(
+        'name description type mealType price servingTime maxPeople minPeople category subCategory image gallery ingredients allergens dietary beverages includes duration location specialRequirements isPopular isAvailable seasonality tags rating reviewCount'
+      )
+      .lean();
 
     console.log(`🍽️ Found ${diningItems.length} dining items`);
-    
+
     // Format the data for use in seed file
     const formattedData = diningItems.map(item => ({
       name: item.name,
@@ -38,7 +42,9 @@ async function extractDiningData() {
       ...(item.includes && { includes: item.includes }),
       ...(item.duration && { duration: item.duration }),
       ...(item.location && { location: item.location }),
-      ...(item.specialRequirements && { specialRequirements: item.specialRequirements }),
+      ...(item.specialRequirements && {
+        specialRequirements: item.specialRequirements,
+      }),
       isPopular: item.isPopular,
       isAvailable: item.isAvailable,
       ...(item.seasonality && { seasonality: item.seasonality }),
@@ -49,7 +55,7 @@ async function extractDiningData() {
 
     console.log('📝 Dining data extracted:');
     console.log(JSON.stringify(formattedData, null, 2));
-    
+
     return formattedData;
   } catch (error) {
     console.error('❌ Error extracting dining data:', error);

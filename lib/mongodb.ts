@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 if (!process.env.MONGODB_URI) {
-  console.warn("MONGODB_URI environment variable not found, will use fallback");
+  console.warn('MONGODB_URI environment variable not found, will use fallback');
 }
 
 interface GlobalMongoose {
@@ -26,10 +26,11 @@ async function connectDB() {
 
   if (!cached!.promise) {
     // Get the MongoDB URI at runtime, not at module load time
-    const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/lodgeflow";
-    
+    const MONGODB_URI =
+      process.env.MONGODB_URI || 'mongodb://localhost:27017/lodgeflow';
+
     if (!process.env.MONGODB_URI) {
-      throw new Error("Please define the MONGODB_URI environment variable");
+      throw new Error('Please define the MONGODB_URI environment variable');
     }
 
     const opts = {

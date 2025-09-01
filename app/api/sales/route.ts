@@ -1,5 +1,5 @@
-import { faker } from "@faker-js/faker";
-import { NextResponse } from "next/server";
+import { faker } from '@faker-js/faker';
+import { NextResponse } from 'next/server';
 
 export interface SalesData {
   date: string;
@@ -24,11 +24,11 @@ export async function GET() {
       const variance = isWeekend ? 400 : 300;
 
       data.push({
-        date: date.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
+        date: date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
         }),
-        fullDate: date.toISOString().split("T")[0],
+        fullDate: date.toISOString().split('T')[0],
         sales: faker.number.int({
           min: baseAmount - variance,
           max: baseAmount + variance,
@@ -40,8 +40,8 @@ export async function GET() {
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch sales data" },
-      { status: 500 },
+      { error: 'Failed to fetch sales data' },
+      { status: 500 }
     );
   }
 }

@@ -78,9 +78,10 @@ export const Sidebar = () => {
       <nav className='flex-1 px-4 py-4'>
         <ul className='space-y-2'>
           {sidebarItems.map(item => {
-            const isActive = item.href === '/' 
-              ? pathname === '/' 
-              : pathname.startsWith(item.href);
+            const isActive =
+              item.href === '/'
+                ? pathname === '/'
+                : pathname.startsWith(item.href);
 
             return (
               <li key={item.href}>
@@ -91,7 +92,8 @@ export const Sidebar = () => {
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : 'text-foreground hover:bg-default-100'
-                  )}>
+                  )}
+                >
                   <span className='text-lg'>{item.icon}</span>
                   <span className='font-medium'>{item.label}</span>
                 </Link>

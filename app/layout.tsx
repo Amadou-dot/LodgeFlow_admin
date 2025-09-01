@@ -39,7 +39,8 @@ export default function RootLayout({
         className={clsx(
           'min-h-screen text-foreground bg-background font-sans antialiased',
           fontSans.variable
-        )}>
+        )}
+      >
         <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
           <div className='flex h-screen'>
             <Sidebar />

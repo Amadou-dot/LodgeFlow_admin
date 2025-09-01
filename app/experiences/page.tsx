@@ -76,7 +76,7 @@ export default function ExperiencesPage() {
           ? formData.whatToBring.split(',').map((item: string) => item.trim())
           : [],
         cancellationPolicy: formData.cancellationPolicy,
-        seasonality: Array.isArray(formData.seasonalAvailability) 
+        seasonality: Array.isArray(formData.seasonalAvailability)
           ? formData.seasonalAvailability.join(', ')
           : formData.seasonalAvailability || '',
         tags: formData.tags
@@ -92,7 +92,6 @@ export default function ExperiencesPage() {
         description: 'Your new experience has been created successfully.',
         color: 'success',
       });
-
     } catch (error) {
       console.error('Error creating experience:', error);
       addToast({
@@ -136,7 +135,8 @@ export default function ExperiencesPage() {
           color='primary'
           startContent={<PlusIcon size={18} />}
           onPress={onOpen}
-          className='w-full sm:w-auto'>
+          className='w-full sm:w-auto'
+        >
           Add New Experience
         </Button>
       </div>
@@ -160,7 +160,8 @@ export default function ExperiencesPage() {
                 <Button
                   color='primary'
                   onPress={handleCreateExperience}
-                  startContent={<PlusIcon size={18} />}>
+                  startContent={<PlusIcon size={18} />}
+                >
                   Create Your First Experience
                 </Button>
               </CardBody>
@@ -170,7 +171,8 @@ export default function ExperiencesPage() {
               {/* Results Count */}
               <div className='mb-6'>
                 <p className='text-sm text-default-600'>
-                  {experiences.length} experience{experiences.length !== 1 ? 's' : ''} found
+                  {experiences.length} experience
+                  {experiences.length !== 1 ? 's' : ''} found
                 </p>
               </div>
 

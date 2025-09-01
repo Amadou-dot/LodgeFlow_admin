@@ -69,113 +69,142 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
   };
 
   return (
-    <Card className="w-full max-w-[400px] shadow-md hover:shadow-lg transition-shadow">
-      <CardBody className="p-0">
-        <div className="relative">
+    <Card className='w-full max-w-[400px] shadow-md hover:shadow-lg transition-shadow'>
+      <CardBody className='p-0'>
+        <div className='relative'>
           <Image
             src={dining.image}
             alt={dining.name}
-            className="w-full h-48 object-cover"
+            className='w-full h-48 object-cover'
             width={400}
             height={192}
           />
-          <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
+          <div className='absolute top-2 left-2 flex gap-1 flex-wrap'>
             <Chip
               color={getMealTypeColor(dining.mealType)}
-              variant="solid"
-              size="sm"
-              className="text-white"
+              variant='solid'
+              size='sm'
+              className='text-white'
             >
               {dining.mealType}
             </Chip>
             {dining.type === 'experience' && (
-              <Chip color="default" variant="solid" size="sm" className="text-white bg-black/50">
+              <Chip
+                color='default'
+                variant='solid'
+                size='sm'
+                className='text-white bg-black/50'
+              >
                 Experience
               </Chip>
             )}
             {dining.isPopular && (
-              <Chip color="danger" variant="solid" size="sm" className="text-white">
+              <Chip
+                color='danger'
+                variant='solid'
+                size='sm'
+                className='text-white'
+              >
                 Popular
               </Chip>
             )}
           </div>
           {!dining.isAvailable && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <Chip color="default" variant="solid" size="lg" className="text-white">
+            <div className='absolute inset-0 bg-black/50 flex items-center justify-center'>
+              <Chip
+                color='default'
+                variant='solid'
+                size='lg'
+                className='text-white'
+              >
                 Unavailable
               </Chip>
             </div>
           )}
         </div>
-        
-        <div className="p-4">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-semibold line-clamp-2">{dining.name}</h3>
-            <span className="text-lg font-bold text-primary ml-2">${dining.price}</span>
-          </div>
-          
-          <p className="text-sm text-default-600 line-clamp-2 mb-3">{dining.description}</p>
-          
-          <div className="flex items-center gap-2 mb-2">
-            <svg className="w-4 h-4 text-default-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12,6 12,12 16,14"></polyline>
-            </svg>
-            <span className="text-sm text-default-600">
-              {formatTime(dining.servingTime.start)} - {formatTime(dining.servingTime.end)}
+
+        <div className='p-4'>
+          <div className='flex justify-between items-start mb-2'>
+            <h3 className='text-lg font-semibold line-clamp-2'>
+              {dining.name}
+            </h3>
+            <span className='text-lg font-bold text-primary ml-2'>
+              ${dining.price}
             </span>
           </div>
-          
-          <div className="flex gap-2 mb-3 flex-wrap">
+
+          <p className='text-sm text-default-600 line-clamp-2 mb-3'>
+            {dining.description}
+          </p>
+
+          <div className='flex items-center gap-2 mb-2'>
+            <svg
+              className='w-4 h-4 text-default-500'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'
+            >
+              <circle cx='12' cy='12' r='10'></circle>
+              <polyline points='12,6 12,12 16,14'></polyline>
+            </svg>
+            <span className='text-sm text-default-600'>
+              {formatTime(dining.servingTime.start)} -{' '}
+              {formatTime(dining.servingTime.end)}
+            </span>
+          </div>
+
+          <div className='flex gap-2 mb-3 flex-wrap'>
             <Chip
               color={getCategoryColor(dining.category)}
-              variant="flat"
-              size="sm"
+              variant='flat'
+              size='sm'
             >
               {dining.category.replace('-', ' ')}
             </Chip>
             {dining.subCategory && (
-              <Chip color="default" variant="flat" size="sm">
+              <Chip color='default' variant='flat' size='sm'>
                 {dining.subCategory}
               </Chip>
             )}
           </div>
-          
-          <div className="flex justify-between items-center text-sm text-default-600">
+
+          <div className='flex justify-between items-center text-sm text-default-600'>
             <span>
-              {dining.minPeople === dining.maxPeople 
+              {dining.minPeople === dining.maxPeople
                 ? `${dining.maxPeople} person${dining.maxPeople > 1 ? 's' : ''}`
-                : `${dining.minPeople}-${dining.maxPeople} people`
-              }
+                : `${dining.minPeople}-${dining.maxPeople} people`}
             </span>
-            {dining.duration && (
-              <span>{dining.duration}</span>
-            )}
+            {dining.duration && <span>{dining.duration}</span>}
           </div>
-          
+
           {dining.beverages && dining.beverages.length > 0 && (
-            <div className="mt-3">
-              <p className="text-sm font-medium mb-1">Includes beverages:</p>
-              <div className="flex gap-1 flex-wrap">
+            <div className='mt-3'>
+              <p className='text-sm font-medium mb-1'>Includes beverages:</p>
+              <div className='flex gap-1 flex-wrap'>
                 {dining.beverages.slice(0, 3).map((beverage, index) => (
-                  <Chip key={index} color="default" variant="bordered" size="sm">
+                  <Chip
+                    key={index}
+                    color='default'
+                    variant='bordered'
+                    size='sm'
+                  >
                     {beverage.name}
                   </Chip>
                 ))}
                 {dining.beverages.length > 3 && (
-                  <Chip color="default" variant="bordered" size="sm">
+                  <Chip color='default' variant='bordered' size='sm'>
                     +{dining.beverages.length - 3} more
                   </Chip>
                 )}
               </div>
             </div>
           )}
-          
+
           {dining.dietary && dining.dietary.length > 0 && (
-            <div className="mt-2">
-              <div className="flex gap-1 flex-wrap">
-                {dining.dietary.map((diet) => (
-                  <Chip key={diet} color="success" variant="dot" size="sm">
+            <div className='mt-2'>
+              <div className='flex gap-1 flex-wrap'>
+                {dining.dietary.map(diet => (
+                  <Chip key={diet} color='success' variant='dot' size='sm'>
                     {diet}
                   </Chip>
                 ))}
@@ -184,30 +213,30 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
           )}
         </div>
       </CardBody>
-      
-      <CardFooter className="pt-0 px-4 pb-4">
-        <div className="flex gap-2 w-full">
+
+      <CardFooter className='pt-0 px-4 pb-4'>
+        <div className='flex gap-2 w-full'>
           <Button
-            variant="bordered"
-            color="primary"
+            variant='bordered'
+            color='primary'
             startContent={<EditIcon />}
             onPress={handleEdit}
-            className="flex-1"
-            size="sm"
+            className='flex-1'
+            size='sm'
           >
             Edit
           </Button>
           {onDelete && (
             <DeletionModal
               resourceId={dining._id}
-              resourceName="Dining Item"
+              resourceName='Dining Item'
               itemName={dining.name}
               onDelete={handleDelete}
               buttonProps={{
-                variant: "bordered",
-                color: "danger",
-                size: "sm",
-                className: "flex-1"
+                variant: 'bordered',
+                color: 'danger',
+                size: 'sm',
+                className: 'flex-1',
               }}
             />
           )}

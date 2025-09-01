@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
-import { Select, SelectItem } from "@heroui/select";
-import { Switch } from "@heroui/switch";
-import { Divider } from "@heroui/divider";
-import { Chip } from "@heroui/chip";
-import type { AppSettings } from "@/types";
-import { useUpdateSettings, useResetSettings } from "@/hooks/useSettings";
-import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useState, useEffect } from 'react';
+import { Card, CardBody, CardHeader } from '@heroui/card';
+import { Button } from '@heroui/button';
+import { Input } from '@heroui/input';
+import { Select, SelectItem } from '@heroui/select';
+import { Switch } from '@heroui/switch';
+import { Divider } from '@heroui/divider';
+import { Chip } from '@heroui/chip';
+import type { AppSettings } from '@/types';
+import { useUpdateSettings, useResetSettings } from '@/hooks/useSettings';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 
 interface SettingsFormProps {
   settings: AppSettings;
@@ -34,7 +34,7 @@ export default function SettingsForm({
 
   useEffect(() => {
     // Check if there are any changes
-    const isChanged = Object.keys(formData).some((key) => {
+    const isChanged = Object.keys(formData).some(key => {
       const currentValue = formData[key as keyof AppSettings];
       const originalValue = settings[key as keyof AppSettings];
       return currentValue !== originalValue;
@@ -43,7 +43,7 @@ export default function SettingsForm({
   }, [formData, settings]);
 
   const handleInputChange = (field: keyof AppSettings, value: any) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [field]: value,
     }));
@@ -55,26 +55,27 @@ export default function SettingsForm({
       onSettingsUpdate();
       setHasChanges(false);
     } catch (error) {
-      console.error("Error updating settings:", error);
+      console.error('Error updating settings:', error);
     }
   };
 
   const handleReset = async () => {
     showConfirm({
-      title: "Reset Settings",
-      message: "Are you sure you want to reset all settings to default values? This action cannot be undone.",
-      confirmText: "Reset",
-      confirmColor: "danger",
+      title: 'Reset Settings',
+      message:
+        'Are you sure you want to reset all settings to default values? This action cannot be undone.',
+      confirmText: 'Reset',
+      confirmColor: 'danger',
       onConfirm: async () => {
         try {
           await resetSettings.mutateAsync();
           onSettingsUpdate();
           setHasChanges(false);
         } catch (error) {
-          console.error("Error resetting settings:", error);
+          console.error('Error resetting settings:', error);
         }
       },
-      isLoading: resetSettings.isPending
+      isLoading: resetSettings.isPending,
     });
   };
 
@@ -84,77 +85,77 @@ export default function SettingsForm({
   };
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Booking Settings */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Booking Settings</h3>
-            <Chip size="sm" color="primary" variant="flat">
+          <div className='flex items-center gap-2'>
+            <h3 className='text-lg font-semibold'>Booking Settings</h3>
+            <Chip size='sm' color='primary' variant='flat'>
               Core
             </Chip>
           </div>
         </CardHeader>
-        <CardBody className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardBody className='space-y-4'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <Input
-              label="Minimum Booking Length"
-              type="number"
-              value={formData.minBookingLength?.toString() || ""}
-              onChange={(e) =>
+              label='Minimum Booking Length'
+              type='number'
+              value={formData.minBookingLength?.toString() || ''}
+              onChange={e =>
                 handleInputChange(
-                  "minBookingLength",
-                  parseInt(e.target.value) || 1,
+                  'minBookingLength',
+                  parseInt(e.target.value) || 1
                 )
               }
-              endContent="nights"
-              min="1"
-              max="30"
+              endContent='nights'
+              min='1'
+              max='30'
             />
             <Input
-              label="Maximum Booking Length"
-              type="number"
-              value={formData.maxBookingLength?.toString() || ""}
-              onChange={(e) =>
+              label='Maximum Booking Length'
+              type='number'
+              value={formData.maxBookingLength?.toString() || ''}
+              onChange={e =>
                 handleInputChange(
-                  "maxBookingLength",
-                  parseInt(e.target.value) || 1,
+                  'maxBookingLength',
+                  parseInt(e.target.value) || 1
                 )
               }
-              endContent="nights"
-              min="1"
-              max="365"
+              endContent='nights'
+              min='1'
+              max='365'
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <Input
-              label="Maximum Guests Per Booking"
-              type="number"
-              value={formData.maxGuestsPerBooking?.toString() || ""}
-              onChange={(e) =>
+              label='Maximum Guests Per Booking'
+              type='number'
+              value={formData.maxGuestsPerBooking?.toString() || ''}
+              onChange={e =>
                 handleInputChange(
-                  "maxGuestsPerBooking",
-                  parseInt(e.target.value) || 1,
+                  'maxGuestsPerBooking',
+                  parseInt(e.target.value) || 1
                 )
               }
-              endContent="guests"
-              min="1"
-              max="20"
+              endContent='guests'
+              min='1'
+              max='20'
             />
             <Select
-              label="Cancellation Policy"
+              label='Cancellation Policy'
               selectedKeys={
                 formData.cancellationPolicy ? [formData.cancellationPolicy] : []
               }
               onSelectionChange={(keys: any) => {
                 const value = Array.from(keys)[0] as string;
-                handleInputChange("cancellationPolicy", value);
+                handleInputChange('cancellationPolicy', value);
               }}
             >
-              <SelectItem key="flexible">Flexible</SelectItem>
-              <SelectItem key="moderate">Moderate</SelectItem>
-              <SelectItem key="strict">Strict</SelectItem>
+              <SelectItem key='flexible'>Flexible</SelectItem>
+              <SelectItem key='moderate'>Moderate</SelectItem>
+              <SelectItem key='strict'>Strict</SelectItem>
             </Select>
           </div>
         </CardBody>
@@ -163,57 +164,55 @@ export default function SettingsForm({
       {/* Check-in/Check-out Settings */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Check-in & Check-out</h3>
-            <Chip size="sm" color="secondary" variant="flat">
+          <div className='flex items-center gap-2'>
+            <h3 className='text-lg font-semibold'>Check-in & Check-out</h3>
+            <Chip size='sm' color='secondary' variant='flat'>
               Operations
             </Chip>
           </div>
         </CardHeader>
-        <CardBody className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardBody className='space-y-4'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <Input
-              label="Check-in Time"
-              type="time"
-              value={formData.checkInTime || ""}
-              onChange={(e) => handleInputChange("checkInTime", e.target.value)}
+              label='Check-in Time'
+              type='time'
+              value={formData.checkInTime || ''}
+              onChange={e => handleInputChange('checkInTime', e.target.value)}
             />
             <Input
-              label="Check-out Time"
-              type="time"
-              value={formData.checkOutTime || ""}
-              onChange={(e) =>
-                handleInputChange("checkOutTime", e.target.value)
-              }
+              label='Check-out Time'
+              type='time'
+              value={formData.checkOutTime || ''}
+              onChange={e => handleInputChange('checkOutTime', e.target.value)}
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <Input
-              label="Early Check-in Fee"
-              type="number"
-              value={formData.earlyCheckInFee?.toString() || ""}
-              onChange={(e) =>
+              label='Early Check-in Fee'
+              type='number'
+              value={formData.earlyCheckInFee?.toString() || ''}
+              onChange={e =>
                 handleInputChange(
-                  "earlyCheckInFee",
-                  parseInt(e.target.value) || 0,
+                  'earlyCheckInFee',
+                  parseInt(e.target.value) || 0
                 )
               }
-              startContent="$"
-              min="0"
+              startContent='$'
+              min='0'
             />
             <Input
-              label="Late Check-out Fee"
-              type="number"
-              value={formData.lateCheckOutFee?.toString() || ""}
-              onChange={(e) =>
+              label='Late Check-out Fee'
+              type='number'
+              value={formData.lateCheckOutFee?.toString() || ''}
+              onChange={e =>
                 handleInputChange(
-                  "lateCheckOutFee",
-                  parseInt(e.target.value) || 0,
+                  'lateCheckOutFee',
+                  parseInt(e.target.value) || 0
                 )
               }
-              startContent="$"
-              min="0"
+              startContent='$'
+              min='0'
             />
           </div>
         </CardBody>
@@ -222,74 +221,74 @@ export default function SettingsForm({
       {/* Pricing & Deposits */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Pricing & Deposits</h3>
-            <Chip size="sm" color="success" variant="flat">
+          <div className='flex items-center gap-2'>
+            <h3 className='text-lg font-semibold'>Pricing & Deposits</h3>
+            <Chip size='sm' color='success' variant='flat'>
               Financial
             </Chip>
           </div>
         </CardHeader>
-        <CardBody className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardBody className='space-y-4'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <Input
-              label="Breakfast Price"
-              type="number"
-              value={formData.breakfastPrice?.toString() || ""}
-              onChange={(e) =>
+              label='Breakfast Price'
+              type='number'
+              value={formData.breakfastPrice?.toString() || ''}
+              onChange={e =>
                 handleInputChange(
-                  "breakfastPrice",
-                  parseInt(e.target.value) || 0,
+                  'breakfastPrice',
+                  parseInt(e.target.value) || 0
                 )
               }
-              startContent="$"
-              endContent="per person"
-              min="0"
+              startContent='$'
+              endContent='per person'
+              min='0'
             />
             <Input
-              label="Pet Fee"
-              type="number"
-              value={formData.petFee?.toString() || ""}
-              onChange={(e) =>
-                handleInputChange("petFee", parseInt(e.target.value) || 0)
+              label='Pet Fee'
+              type='number'
+              value={formData.petFee?.toString() || ''}
+              onChange={e =>
+                handleInputChange('petFee', parseInt(e.target.value) || 0)
               }
-              startContent="$"
-              endContent="per night"
-              min="0"
+              startContent='$'
+              endContent='per night'
+              min='0'
             />
           </div>
 
           <Divider />
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+          <div className='space-y-4'>
+            <div className='flex items-center justify-between'>
               <div>
-                <p className="font-medium">Require Deposit</p>
-                <p className="text-sm text-default-600">
+                <p className='font-medium'>Require Deposit</p>
+                <p className='text-sm text-default-600'>
                   Require guests to pay a deposit when booking
                 </p>
               </div>
               <Switch
                 isSelected={formData.requireDeposit || false}
-                onValueChange={(value) =>
-                  handleInputChange("requireDeposit", value)
+                onValueChange={value =>
+                  handleInputChange('requireDeposit', value)
                 }
               />
             </div>
 
             {formData.requireDeposit && (
               <Input
-                label="Deposit Percentage"
-                type="number"
-                value={formData.depositPercentage?.toString() || ""}
-                onChange={(e) =>
+                label='Deposit Percentage'
+                type='number'
+                value={formData.depositPercentage?.toString() || ''}
+                onChange={e =>
                   handleInputChange(
-                    "depositPercentage",
-                    parseInt(e.target.value) || 0,
+                    'depositPercentage',
+                    parseInt(e.target.value) || 0
                   )
                 }
-                endContent="%"
-                min="0"
-                max="100"
+                endContent='%'
+                min='0'
+                max='100'
               />
             )}
           </div>
@@ -299,85 +298,85 @@ export default function SettingsForm({
       {/* Amenities & Policies */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Amenities & Policies</h3>
-            <Chip size="sm" color="warning" variant="flat">
+          <div className='flex items-center gap-2'>
+            <h3 className='text-lg font-semibold'>Amenities & Policies</h3>
+            <Chip size='sm' color='warning' variant='flat'>
               Policies
             </Chip>
           </div>
         </CardHeader>
-        <CardBody className="space-y-4">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+        <CardBody className='space-y-4'>
+          <div className='space-y-4'>
+            <div className='flex items-center justify-between'>
               <div>
-                <p className="font-medium">WiFi Included</p>
-                <p className="text-sm text-default-600">
+                <p className='font-medium'>WiFi Included</p>
+                <p className='text-sm text-default-600'>
                   Free WiFi for all guests
                 </p>
               </div>
               <Switch
                 isSelected={formData.wifiIncluded || false}
-                onValueChange={(value) =>
-                  handleInputChange("wifiIncluded", value)
+                onValueChange={value =>
+                  handleInputChange('wifiIncluded', value)
                 }
               />
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className='flex items-center justify-between'>
               <div>
-                <p className="font-medium">Parking Included</p>
-                <p className="text-sm text-default-600">
+                <p className='font-medium'>Parking Included</p>
+                <p className='text-sm text-default-600'>
                   Free parking for guests
                 </p>
               </div>
               <Switch
                 isSelected={formData.parkingIncluded || false}
-                onValueChange={(value) =>
-                  handleInputChange("parkingIncluded", value)
+                onValueChange={value =>
+                  handleInputChange('parkingIncluded', value)
                 }
               />
             </div>
 
             {!formData.parkingIncluded && (
               <Input
-                label="Parking Fee"
-                type="number"
-                value={formData.parkingFee?.toString() || ""}
-                onChange={(e) =>
-                  handleInputChange("parkingFee", parseInt(e.target.value) || 0)
+                label='Parking Fee'
+                type='number'
+                value={formData.parkingFee?.toString() || ''}
+                onChange={e =>
+                  handleInputChange('parkingFee', parseInt(e.target.value) || 0)
                 }
-                startContent="$"
-                endContent="per night"
-                min="0"
+                startContent='$'
+                endContent='per night'
+                min='0'
               />
             )}
 
             <Divider />
 
-            <div className="flex items-center justify-between">
+            <div className='flex items-center justify-between'>
               <div>
-                <p className="font-medium">Allow Pets</p>
-                <p className="text-sm text-default-600">
+                <p className='font-medium'>Allow Pets</p>
+                <p className='text-sm text-default-600'>
                   Pets are welcome (fee may apply)
                 </p>
               </div>
               <Switch
                 isSelected={formData.allowPets || false}
-                onValueChange={(value) => handleInputChange("allowPets", value)}
+                onValueChange={value => handleInputChange('allowPets', value)}
               />
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className='flex items-center justify-between'>
               <div>
-                <p className="font-medium">Smoking Allowed</p>
-                <p className="text-sm text-default-600">
+                <p className='font-medium'>Smoking Allowed</p>
+                <p className='text-sm text-default-600'>
                   Allow smoking in designated areas
                 </p>
               </div>
               <Switch
                 isSelected={formData.smokingAllowed || false}
-                onValueChange={(value) =>
-                  handleInputChange("smokingAllowed", value)
+                onValueChange={value =>
+                  handleInputChange('smokingAllowed', value)
                 }
               />
             </div>
@@ -388,10 +387,10 @@ export default function SettingsForm({
       {/* Action Buttons */}
       <Card>
         <CardBody>
-          <div className="flex flex-col sm:flex-row gap-3 justify-between">
-            <div className="flex gap-3">
+          <div className='flex flex-col sm:flex-row gap-3 justify-between'>
+            <div className='flex gap-3'>
               <Button
-                color="primary"
+                color='primary'
                 onPress={handleSave}
                 isLoading={updateSettings.isPending}
                 isDisabled={!hasChanges}
@@ -400,8 +399,8 @@ export default function SettingsForm({
               </Button>
               {hasChanges && (
                 <Button
-                  color="default"
-                  variant="bordered"
+                  color='default'
+                  variant='bordered'
                   onPress={handleDiscard}
                 >
                   Discard Changes
@@ -410,8 +409,8 @@ export default function SettingsForm({
             </div>
 
             <Button
-              color="danger"
-              variant="bordered"
+              color='danger'
+              variant='bordered'
               onPress={handleReset}
               isLoading={resetSettings.isPending}
             >
@@ -420,7 +419,7 @@ export default function SettingsForm({
           </div>
 
           {hasChanges && (
-            <p className="text-sm text-warning mt-3">
+            <p className='text-sm text-warning mt-3'>
               You have unsaved changes. Don&apos;t forget to save your settings.
             </p>
           )}

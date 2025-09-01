@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import connectDB from "../../../lib/mongodb";
-import { Booking, Cabin, Customer } from "../../../models";
+import { NextResponse } from 'next/server';
+import connectDB from '../../../lib/mongodb';
+import { Booking, Cabin, Customer } from '../../../models';
 
 export async function GET() {
   try {
@@ -26,7 +26,7 @@ export async function GET() {
       // Total bookings in last 30 days
       Booking.countDocuments({
         createdAt: { $gte: thirtyDaysAgo },
-        status: { $ne: "cancelled" },
+        status: { $ne: 'cancelled' },
       }),
 
       // Total revenue in last 30 days
@@ -34,14 +34,14 @@ export async function GET() {
         {
           $match: {
             createdAt: { $gte: thirtyDaysAgo },
-            status: { $ne: "cancelled" },
+            status: { $ne: 'cancelled' },
             isPaid: true,
           },
         },
         {
           $group: {
             _id: null,
-            total: { $sum: "$totalPrice" },
+            total: { $sum: '$totalPrice' },
           },
         },
       ]),
@@ -56,8 +56,8 @@ export async function GET() {
       Booking.find({
         createdAt: { $gte: sevenDaysAgo },
       })
-        .populate("cabin", "name")
-        .populate("customer", "name")
+        .populate('cabin', 'name')
+        .populate('customer', 'name')
         .sort({ createdAt: -1 })
         .limit(10),
 
@@ -67,15 +67,15 @@ export async function GET() {
           $gte: new Date(
             today.getFullYear(),
             today.getMonth(),
-            today.getDate(),
+            today.getDate()
           ),
           $lt: new Date(
             today.getFullYear(),
             today.getMonth(),
-            today.getDate() + 1,
+            today.getDate() + 1
           ),
         },
-        status: "confirmed",
+        status: 'confirmed',
       }),
 
       // Check-outs today
@@ -84,15 +84,15 @@ export async function GET() {
           $gte: new Date(
             today.getFullYear(),
             today.getMonth(),
-            today.getDate(),
+            today.getDate()
           ),
           $lt: new Date(
             today.getFullYear(),
             today.getMonth(),
-            today.getDate() + 1,
+            today.getDate() + 1
           ),
         },
-        status: "checked-in",
+        status: 'checked-in',
       }),
 
       // Occupancy data for last 7 days
@@ -101,30 +101,30 @@ export async function GET() {
           $match: {
             checkInDate: { $lte: today },
             checkOutDate: { $gt: sevenDaysAgo },
-            status: { $in: ["confirmed", "checked-in", "checked-out"] },
+            status: { $in: ['confirmed', 'checked-in', 'checked-out'] },
           },
         },
         {
           $lookup: {
-            from: "cabins",
-            localField: "cabin",
-            foreignField: "_id",
-            as: "cabinData",
+            from: 'cabins',
+            localField: 'cabin',
+            foreignField: '_id',
+            as: 'cabinData',
           },
         },
         {
-          $unwind: "$cabinData",
+          $unwind: '$cabinData',
         },
         {
           $group: {
             _id: {
               $dateToString: {
-                format: "%Y-%m-%d",
-                date: "$checkInDate",
+                format: '%Y-%m-%d',
+                date: '$checkInDate',
               },
             },
-            totalGuests: { $sum: "$numGuests" },
-            totalCapacity: { $sum: "$cabinData.capacity" },
+            totalGuests: { $sum: '$numGuests' },
+            totalCapacity: { $sum: '$cabinData.capacity' },
           },
         },
         {
@@ -137,22 +137,22 @@ export async function GET() {
         {
           $match: {
             createdAt: { $gte: thirtyDaysAgo },
-            status: { $ne: "cancelled" },
+            status: { $ne: 'cancelled' },
             isPaid: true,
           },
         },
         {
           $group: {
             _id: {
-              week: { $week: "$createdAt" },
-              year: { $year: "$createdAt" },
+              week: { $week: '$createdAt' },
+              year: { $year: '$createdAt' },
             },
-            totalRevenue: { $sum: "$totalPrice" },
+            totalRevenue: { $sum: '$totalPrice' },
             bookingCount: { $sum: 1 },
           },
         },
         {
-          $sort: { "_id.year": 1, "_id.week": 1 },
+          $sort: { '_id.year': 1, '_id.week': 1 },
         },
       ]),
     ]);
@@ -162,7 +162,7 @@ export async function GET() {
       {
         $group: {
           _id: null,
-          totalCapacity: { $sum: "$capacity" },
+          totalCapacity: { $sum: '$capacity' },
         },
       },
     ]);
@@ -172,13 +172,13 @@ export async function GET() {
         $match: {
           checkInDate: { $lte: today },
           checkOutDate: { $gt: today },
-          status: { $in: ["confirmed", "checked-in"] },
+          status: { $in: ['confirmed', 'checked-in'] },
         },
       },
       {
         $group: {
           _id: null,
-          occupiedCapacity: { $sum: "$numGuests" },
+          occupiedCapacity: { $sum: '$numGuests' },
         },
       },
     ]);
@@ -201,10 +201,10 @@ export async function GET() {
         checkInsToday,
         checkOutsToday,
       },
-      recentActivity: recentBookings.map((booking) => ({
+      recentActivity: recentBookings.map(booking => ({
         id: booking._id,
-        customerName: booking.customer?.name || "Unknown",
-        cabinName: booking.cabin?.name || "Unknown",
+        customerName: booking.customer?.name || 'Unknown',
+        cabinName: booking.cabin?.name || 'Unknown',
         checkInDate: booking.checkInDate,
         checkOutDate: booking.checkOutDate,
         totalPrice: booking.totalPrice,
@@ -212,7 +212,7 @@ export async function GET() {
         createdAt: booking.createdAt,
       })),
       charts: {
-        occupancy: occupancyData.map((item) => ({
+        occupancy: occupancyData.map(item => ({
           date: item._id,
           occupancyRate:
             item.totalCapacity > 0
@@ -221,7 +221,7 @@ export async function GET() {
           totalGuests: item.totalGuests,
           totalCapacity: item.totalCapacity,
         })),
-        revenue: revenueData.map((item) => ({
+        revenue: revenueData.map(item => ({
           week: `Week ${item._id.week}`,
           revenue: item.totalRevenue,
           bookings: item.bookingCount,
@@ -234,13 +234,13 @@ export async function GET() {
       data: stats,
     });
   } catch (error) {
-    console.error("Error fetching dashboard stats:", error);
+    console.error('Error fetching dashboard stats:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to fetch dashboard statistics",
+        error: 'Failed to fetch dashboard statistics',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

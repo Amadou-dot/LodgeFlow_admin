@@ -32,7 +32,8 @@ export default function TodayActivity() {
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className='bg-default-100 p-3 rounded-lg animate-pulse'>
+                className='bg-default-100 p-3 rounded-lg animate-pulse'
+              >
                 <div className='h-4 bg-default-200 rounded'></div>
               </div>
             ))}
