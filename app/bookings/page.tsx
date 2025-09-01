@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
-import { PlusIcon } from "@/components/icons";
 import BookingsTable from "@/components/BookingsTable";
+import AddBookingModal from "@/components/AddBookingModal";
 import BookingsFilters, {
   type BookingsFilters as BookingsFiltersType,
 } from "@/components/BookingsFilters";
@@ -120,13 +119,7 @@ export default function BookingsPage() {
             Manage cabin reservations and guest check-ins
           </p>
         </div>
-        <Button
-          color="primary"
-          startContent={<PlusIcon size={18} />}
-          className="w-full sm:w-auto"
-        >
-          New Booking
-        </Button>
+        <AddBookingModal onBookingAdded={() => mutate()} />
       </div>
 
       {/* Filters */}
