@@ -14,18 +14,19 @@ import {
   TableHeader,
   TableRow,
 } from '@heroui/table';
-import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
+import AddBookingModal from '@/components/AddBookingModal';
 import DeletionModal from '@/components/DeletionModal';
-import { ArrowLeftIcon, EditIcon } from '@/components/icons';
+import EditGuestModal from '@/components/EditGuestModal';
+import { ArrowLeftIcon } from '@/components/icons';
 import { useCustomer, useDeleteCustomer } from '@/hooks/useCustomers';
 
 export default function GuestDetailPage() {
   const router = useRouter();
   const params = useParams();
   const customerId = params.id as string;
-  const { data: customer, isLoading, error } = useCustomer(customerId);
+  const { data: customer, isLoading, error, mutate } = useCustomer(customerId);
   const deleteCustomerMutation = useDeleteCustomer();
   const getLoyaltyTier = (totalSpent: number) => {
     if (totalSpent >= 10000)
@@ -129,13 +130,10 @@ export default function GuestDetailPage() {
           </div>
         </div>
         <div className='flex gap-2'>
-          <Button
-            className='w-full sm:w-auto'
-            color='primary'
-            startContent={<EditIcon />}
-            variant='bordered'>
-            Edit Guest
-          </Button>
+          <EditGuestModal
+            guestData={customer}
+            onGuestUpdated={() => mutate()}
+          />
           <DeletionModal
             resourceId={customer._id}
             resourceName='Customer'
@@ -313,8 +311,9 @@ export default function GuestDetailPage() {
 
           {/* Recent Bookings */}
           <Card>
-            <CardHeader>
+            <CardHeader className='flex justify-between items-center'>
               <h3 className='text-lg font-semibold'>Recent Bookings</h3>
+              <AddBookingModal onBookingAdded={() => mutate()} />
             </CardHeader>
             <CardBody>
               {customer.recentBookings && customer.recentBookings.length > 0 ? (
@@ -370,13 +369,7 @@ export default function GuestDetailPage() {
               ) : (
                 <div className='text-center py-8'>
                   <p className='text-default-600'>No bookings found</p>
-                  <Button
-                    as={Link}
-                    className='mt-4'
-                    color='primary'
-                    href='/bookings'>
-                    Create New Booking
-                  </Button>
+                  {/* <AddBookingModal onBookingAdded={() => mutate()} /> */}
                 </div>
               )}
             </CardBody>

@@ -1,15 +1,17 @@
 'use client';
 
-import { useCreateCustomer } from '@/hooks/useCustomers';
+import { useCreateCustomer, useUpdateCustomer } from '@/hooks/useCustomers';
 import { Button } from '@heroui/button';
 import { Form } from '@heroui/form';
 import { Input, Textarea } from '@heroui/input';
 import { Select, SelectItem } from '@heroui/select';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface AddGuestFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  initialData?: any;
+  isEditing?: boolean;
 }
 
 interface FormData {
@@ -98,11 +100,48 @@ const relationships = [
 export default function AddGuestForm({
   onSuccess,
   onCancel,
+  initialData,
+  isEditing = false,
 }: AddGuestFormProps) {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createCustomerMutation = useCreateCustomer();
+  const updateCustomerMutation = useUpdateCustomer();
+
+  // Update form data when initialData changes (for editing mode)
+  useEffect(() => {
+    if (isEditing && initialData) {
+      setFormData({
+        name: initialData.name || '',
+        email: initialData.email || '',
+        phone: initialData.phone || '',
+        nationality: initialData.nationality || '',
+        nationalId: initialData.nationalId || '',
+        address: {
+          street: initialData.address?.street || '',
+          city: initialData.address?.city || '',
+          state: initialData.address?.state || '',
+          country: initialData.address?.country || '',
+          zipCode: initialData.address?.zipCode || '',
+        },
+        emergencyContact: {
+          name: initialData.emergencyContact?.name || '',
+          phone: initialData.emergencyContact?.phone || '',
+          relationship: initialData.emergencyContact?.relationship || '',
+        },
+        preferences: {
+          smokingPreference: initialData.preferences?.smokingPreference || 'no-preference',
+          dietaryRestrictions: Array.isArray(initialData.preferences?.dietaryRestrictions) 
+            ? initialData.preferences.dietaryRestrictions.join(', ') 
+            : initialData.preferences?.dietaryRestrictions || '',
+          accessibilityNeeds: Array.isArray(initialData.preferences?.accessibilityNeeds)
+            ? initialData.preferences.accessibilityNeeds.join(', ')
+            : initialData.preferences?.accessibilityNeeds || '',
+        },
+      });
+    }
+  }, [isEditing, initialData]);
 
   const handleInputChange = (field: string, value: string) => {
     const keys = field.split('.');
@@ -126,6 +165,9 @@ export default function AddGuestForm({
     // Clear mutation error when user starts typing
     if (createCustomerMutation.error) {
       createCustomerMutation.reset();
+    }
+    if (updateCustomerMutation.error) {
+      updateCustomerMutation.reset();
     }
   };
 
@@ -173,14 +215,22 @@ export default function AddGuestForm({
         },
       };
 
-      await createCustomerMutation.mutateAsync(submitData);
+      if (isEditing && initialData) {
+        // Include the ID for updating
+        const updateData = { ...submitData, _id: initialData._id };
+        await updateCustomerMutation.mutateAsync(updateData);
+      } else {
+        await createCustomerMutation.mutateAsync(submitData);
+      }
 
-      // Reset form on success
-      setFormData(initialFormData);
+      // Reset form on success (only for create mode)
+      if (!isEditing) {
+        setFormData(initialFormData);
+      }
       setErrors({});
       onSuccess?.();
     } catch (error: any) {
-      console.error('Error creating guest:', error);
+      console.error(`Error ${isEditing ? 'updating' : 'creating'} guest:`, error);
       setErrors({ general: error.message });
     }
   };
@@ -196,16 +246,16 @@ export default function AddGuestForm({
       className='w-full space-y-6'
       validationBehavior='native'>
       <div className='flex flex-col my-4'>
-        <h2 className='text-xl font-bold'>Add New Guest</h2>
+        <h2 className='text-xl font-bold'>{isEditing ? 'Edit Guest' : 'Add New Guest'}</h2>
         <p className='text-small text-default-600'>
-          Fill in the guest information below
+          {isEditing ? 'Update the guest information below' : 'Fill in the guest information below'}
         </p>
       </div>
 
-      {(errors.general || createCustomerMutation.error) && (
+      {(errors.general || createCustomerMutation.error || updateCustomerMutation.error) && (
         <div className='bg-danger-50 border border-danger-200 p-3 rounded-lg'>
           <p className='text-danger-600 text-sm'>
-            {errors.general || createCustomerMutation.error?.message}
+            {errors.general || createCustomerMutation.error?.message || updateCustomerMutation.error?.message}
           </p>
         </div>
       )}
@@ -397,15 +447,17 @@ export default function AddGuestForm({
           <Button
             variant='bordered'
             onPress={onCancel}
-            isDisabled={createCustomerMutation.isPending}>
+            isDisabled={createCustomerMutation.isPending || updateCustomerMutation.isPending}>
             Cancel
           </Button>
         )}
         <Button
           color='primary'
           type='submit'
-          isLoading={createCustomerMutation.isPending}>
-          {createCustomerMutation.isPending ? 'Creating...' : 'Create Guest'}
+          isLoading={createCustomerMutation.isPending || updateCustomerMutation.isPending}>
+          {(createCustomerMutation.isPending || updateCustomerMutation.isPending) 
+            ? (isEditing ? 'Updating...' : 'Creating...') 
+            : (isEditing ? 'Update Guest' : 'Create Guest')}
         </Button>
       </div>
     </Form>

@@ -60,7 +60,7 @@ export const useCustomers = (filters: CustomersFilters = {}) => {
 
 // Fetch single customer
 export const useCustomer = (id: string) => {
-  const { data, error, isLoading } = useSWR<any>(
+  const { data, error, isLoading, mutate } = useSWR<any>(
     id ? `/api/customers/${id}` : null,
     (url: string) =>
       fetch(url)
@@ -85,6 +85,7 @@ export const useCustomer = (id: string) => {
     data,
     error,
     isLoading,
+    mutate,
   };
 };
 
