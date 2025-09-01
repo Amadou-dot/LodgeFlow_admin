@@ -1,14 +1,9 @@
-"use client";
+'use client';
 
-import {
-  Modal,
-  ModalContent,
-  ModalBody,
-  useDisclosure,
-} from "@heroui/modal";
-import { Button } from "@heroui/button";
-import { PlusIcon } from "@/components/icons";
-import AddGuestForm from "./AddGuestForm";
+import { Modal, ModalContent, ModalBody, useDisclosure } from '@heroui/modal';
+import { Button } from '@heroui/button';
+import { PlusIcon } from '@/components/icons';
+import AddGuestForm from './AddGuestForm';
 
 interface AddGuestModalProps {
   onGuestAdded?: () => void;
@@ -25,35 +20,24 @@ export default function AddGuestModal({ onGuestAdded }: AddGuestModalProps) {
   return (
     <>
       <Button
-        color="primary"
+        color='primary'
         startContent={<PlusIcon />}
         onPress={onOpen}
-        className="w-full sm:w-auto"
-      >
+        className='w-full sm:w-auto'>
         Add New Guest
       </Button>
-      
-      <Modal 
-        isOpen={isOpen} 
+
+      <Modal
+        isOpen={isOpen}
         onOpenChange={onOpenChange}
-        size="3xl"
-        scrollBehavior="inside"
-        classNames={{
-          body: "py-6",
-          backdrop: "bg-[#292f46]/50 backdrop-opacity-40",
-          base: "border-[#292f46] bg-[#19172c] dark:bg-[#19172c] text-[#a8b0d3]",
-          header: "border-b-[1px] border-[#292f46]",
-          footer: "border-t-[1px] border-[#292f46]",
-          closeButton: "hover:bg-white/5 active:bg-white/10",
-        }}
+        size='3xl'
+        scrollBehavior='inside'
+        // backdrop="opaque"
       >
         <ModalContent>
-          {(onClose) => (
+          {onClose => (
             <ModalBody>
-              <AddGuestForm 
-                onSuccess={handleSuccess}
-                onCancel={onClose}
-              />
+              <AddGuestForm onSuccess={handleSuccess} onCancel={onClose} />
             </ModalBody>
           )}
         </ModalContent>
