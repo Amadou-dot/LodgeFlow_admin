@@ -7,6 +7,7 @@ export interface ICustomer extends Document {
   phone?: string;
   nationality: string;
   nationalId: string;
+  profileImage?: string;
   address?: {
     street?: string;
     city?: string;
@@ -57,7 +58,7 @@ const CustomerSchema: Schema = new Schema(
       trim: true,
       validate: {
         validator: function (v: string) {
-          return !v || /^[\+]?[1-9][\d]{0,15}$/.test(v);
+          return !v || /^[+]?[1-9][\d]{0,15}$/.test(v);
         },
         message: 'Please provide a valid phone number',
       },
@@ -78,6 +79,17 @@ const CustomerSchema: Schema = new Schema(
         message: 'National ID must be 5-20 alphanumeric characters',
       },
     },
+    profileImage: {
+      type: String,
+      trim: true,
+      validate: {
+        validator: function (v: string) {
+          // Allow URLs to common image services and traditional image URLs
+          return !v || /^https?:\/\/.+/.test(v);
+        },
+        message: 'Profile image must be a valid URL',
+      },
+    },
     address: {
       street: { type: String, trim: true },
       city: { type: String, trim: true },
@@ -96,7 +108,7 @@ const CustomerSchema: Schema = new Schema(
         trim: true,
         validate: {
           validator: function (v: string) {
-            return !v || /^[\+]?[1-9][\d]{0,15}$/.test(v);
+            return !v || /^[+]?[1-9][\d]{0,15}$/.test(v);
           },
           message: 'Please provide a valid emergency contact phone number',
         },

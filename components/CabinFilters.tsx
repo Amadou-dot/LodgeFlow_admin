@@ -12,7 +12,7 @@ interface CabinFiltersProps {
   totalCount?: number;
 }
 
-export default function CabinFilters({
+export default function CabinFiltersComponent({
   filters,
   onFiltersChange,
   onReset,

@@ -1,13 +1,8 @@
 'use client';
 
-import useSWR from 'swr';
+import type { Booking, BookingsFilters, PopulatedBooking } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type {
-  Booking,
-  PopulatedBooking,
-  BookingsFilters,
-  PaginationMeta,
-} from '@/types';
+import useSWR from 'swr';
 
 interface BookingsResponse {
   bookings: PopulatedBooking[];
@@ -70,6 +65,35 @@ export const useBookings = (filters: BookingsFilters = {}) => {
   };
 };
 
+// Fetch a single booking by ID
+export const useBooking = (id: string) => {
+  const { data, error, isLoading, mutate } = useSWR<PopulatedBooking>(
+    id ? `/api/bookings/${id}` : null,
+    async (url: string) => {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch booking');
+      }
+      const result = await response.json();
+      if (result.success) {
+        return result.data as PopulatedBooking;
+      }
+      throw new Error(result.error || 'Failed to fetch booking');
+    },
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+    }
+  );
+
+  return {
+    data,
+    error,
+    isLoading,
+    mutate,
+  };
+};
 // Create a new booking
 export const useCreateBooking = () => {
   const queryClient = useQueryClient();

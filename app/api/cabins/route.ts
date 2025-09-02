@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'asc';
 
     // Build query
-    let query: any = {};
+    const query: any = {};
 
     // Apply search
     if (search) {

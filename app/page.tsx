@@ -14,10 +14,10 @@ export default function Dashboard() {
         <DurationChart />
       </div>
       <AreaChart />
-      <p className='text-xs md:text-sm text-muted-foreground mt-4'>
+      {/* <p className='text-xs md:text-sm text-muted-foreground mt-4'>
         Note: All data is generated for demo purposes and will update on each
         render.
-      </p>
+      </p> */}
     </section>
   );
 }

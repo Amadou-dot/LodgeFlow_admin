@@ -4,7 +4,7 @@ import { Button } from '@heroui/button';
 import { Select, SelectItem } from '@heroui/select';
 import StandardFilters, { FilterOption } from './StandardFilters';
 
-export interface BookingsFilters {
+export interface BookingsFiltersData {
   status?: string;
   search?: string;
   sortBy?: string;
@@ -12,8 +12,8 @@ export interface BookingsFilters {
 }
 
 interface BookingsFiltersProps {
-  filters: BookingsFilters;
-  onFiltersChange: (filters: BookingsFilters) => void;
+  filters: BookingsFiltersData;
+  onFiltersChange: (filters: BookingsFiltersData) => void;
   onReset: () => void;
   totalCount?: number;
 }

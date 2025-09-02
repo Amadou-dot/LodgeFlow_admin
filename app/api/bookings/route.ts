@@ -1,5 +1,5 @@
+import connectDB from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '../../../lib/mongodb';
 import { Booking } from '../../../models';
 
 export async function GET(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'desc';
 
     // Build query
-    let query: any = {};
+    const query: any = {};
     if (status && status !== 'all') {
       query.status = status;
     }

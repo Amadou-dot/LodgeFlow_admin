@@ -1,21 +1,13 @@
 'use client';
 
-import { Card, CardBody } from '@heroui/card';
+import type { Customer } from '@/types';
 import { Avatar } from '@heroui/avatar';
+import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import { Pagination } from '@heroui/pagination';
 import Link from 'next/link';
 
-interface Customer {
-  _id: string;
-  name: string;
-  email: string;
-  nationality: string;
-  totalBookings?: number;
-  totalSpent?: number;
-}
-
-interface Pagination {
+interface PaginationData {
   currentPage: number;
   totalPages: number;
   totalItems: number;
@@ -26,7 +18,7 @@ interface Pagination {
 
 interface GuestGridProps {
   customers: Customer[];
-  pagination?: Pagination;
+  pagination?: PaginationData;
   isLoading: boolean;
   currentPage: number;
   onPageChange: (page: number) => void;
@@ -107,6 +99,7 @@ export default function GuestGrid({
                   <div className='flex items-start gap-3'>
                     <Avatar
                       name={getInitials(customer.name)}
+                      src={customer.profileImage}
                       className='flex-shrink-0'
                       color='primary'
                     />

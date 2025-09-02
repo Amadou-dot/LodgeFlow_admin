@@ -1,33 +1,31 @@
 'use client';
 
-import { useMemo } from 'react';
-import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-} from '@heroui/table';
-import { Chip } from '@heroui/chip';
-import { User } from '@heroui/user';
-import { Card, CardBody } from '@heroui/card';
-import { Divider } from '@heroui/divider';
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from '@heroui/dropdown';
-import { Button } from '@heroui/button';
-import { Pagination } from '@heroui/pagination';
-import { Spinner } from '@heroui/spinner';
 import type { PopulatedBooking } from '@/types';
 import {
   formatBookingDates,
   getStatusColor,
   getStatusLabel,
 } from '@/utils/bookingUtils';
+import { Button } from '@heroui/button';
+import { Card, CardBody } from '@heroui/card';
+import { Chip } from '@heroui/chip';
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+} from '@heroui/dropdown';
+import { Pagination } from '@heroui/pagination';
+import { Spinner } from '@heroui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+} from '@heroui/table';
+import { User } from '@heroui/user';
 
 interface BookingsTableProps {
   bookings: PopulatedBooking[];
@@ -271,7 +269,7 @@ export default function BookingsTable({
           </div>
         );
 
-      case 'guest':
+      case 'guest': {
         const guest = booking.guest || booking.customer;
         return (
           <User
@@ -289,8 +287,9 @@ export default function BookingsTable({
             }}
           />
         );
+      }
 
-      case 'dates':
+      case 'dates': {
         const checkInDate =
           booking.checkInDate instanceof Date
             ? booking.checkInDate.toISOString()
@@ -323,8 +322,9 @@ export default function BookingsTable({
             </div>
           </div>
         );
+      }
 
-      case 'status':
+      case 'status': {
         return (
           <Chip
             color={getStatusColor(booking.status) as any}
@@ -334,8 +334,9 @@ export default function BookingsTable({
             {getStatusLabel(booking.status)}
           </Chip>
         );
+      }
 
-      case 'amount':
+      case 'amount': {
         return (
           <div className='text-right min-w-0'>
             <div className='font-semibold text-foreground truncate'>
@@ -347,9 +348,11 @@ export default function BookingsTable({
             </div>
           </div>
         );
+      }
 
-      case 'actions':
+      case 'actions': {
         return renderActionsMenu(booking);
+      }
 
       default:
         return null;

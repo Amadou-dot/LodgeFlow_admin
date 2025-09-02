@@ -10,6 +10,8 @@ export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
 };
 
+export type IdParam = { params: Promise<{ id: string }> };
+
 // Re-export model types for easier importing
 export type Cabin = ICabin;
 export type Customer = ICustomer;

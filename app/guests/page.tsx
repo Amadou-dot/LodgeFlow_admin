@@ -1,16 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { useCustomers } from '@/hooks/useCustomers';
 import GuestGrid from '@/components/GuestGrid';
-import AddGuestModal from '@/components/AddGuestModal';
+import { PlusIcon } from '@/components/icons';
 import StandardFilters, { FilterOption } from '@/components/StandardFilters';
+import { useCustomers } from '@/hooks/useCustomers';
+import { Button } from '@heroui/button';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function GuestsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const router = useRouter();
 
   const {
     data: customers,
@@ -25,6 +28,19 @@ export default function GuestsPage() {
     sortBy,
     sortOrder,
   });
+
+  // Check for success message in URL (when coming back from new guest page)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('created') === 'true') {
+      // You could show a toast notification here
+      console.log('Guest created successfully!');
+      // Remove the query parameter from URL
+      window.history.replaceState({}, '', '/guests');
+      // Refresh the guests data
+      mutate();
+    }
+  }, [mutate]);
 
   const sortOptions: FilterOption[] = [
     { key: 'name', label: 'Name', value: 'name' },
@@ -47,10 +63,6 @@ export default function GuestsPage() {
     setCurrentPage(1);
   };
 
-  const handleGuestAdded = () => {
-    mutate(); // Refresh the guest list after adding a new guest
-  };
-
   if (error) {
     return (
       <div className='container mx-auto p-4 md:p-6'>
@@ -71,7 +83,14 @@ export default function GuestsPage() {
             Manage your hotel guests and their information
           </p>
         </div>
-        <AddGuestModal onGuestAdded={handleGuestAdded} />
+        <Button
+          color='primary'
+          startContent={<PlusIcon />}
+          onPress={() => router.push('/guests/new')}
+          className='w-full sm:w-auto'
+        >
+          Add New Guest
+        </Button>
       </div>
 
       {/* Search and Filters */}

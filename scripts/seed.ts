@@ -6,16 +6,16 @@ import type {
   IBooking,
   ICabin,
   ICustomer,
-  IExperience,
   IDining,
+  IExperience,
 } from '../models';
 import {
   Booking,
   Cabin,
   Customer,
+  Dining,
   Experience,
   Settings,
-  Dining,
 } from '../models';
 
 // Load environment variables from .env.local
@@ -1106,12 +1106,17 @@ async function seedDatabase() {
         return `${firstDigit}${remainingDigits}`;
       };
 
+      // Generate profile image URL using UI Avatars service
+      const customerName = faker.person.fullName();
+      const profileImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(customerName)}&size=150&background=random&color=fff&bold=true`;
+
       const customer = await Customer.create({
-        name: faker.person.fullName(),
+        name: customerName,
         email: faker.internet.email(),
         phone: generatePhoneNumber(),
         nationality: faker.location.country(),
         nationalId: faker.string.alphanumeric(10).toUpperCase(),
+        profileImage: profileImage,
         address: {
           street: faker.location.streetAddress(),
           city: faker.location.city(),

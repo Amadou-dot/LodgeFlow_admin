@@ -1,24 +1,27 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardBody } from '@heroui/card';
-import BookingsTable from '@/components/BookingsTable';
-import AddBookingModal from '@/components/AddBookingModal';
 import BookingsFilters, {
-  type BookingsFilters as BookingsFiltersType,
+  type BookingsFiltersData as BookingsFiltersType,
 } from '@/components/BookingsFilters';
+import BookingsTable from '@/components/BookingsTable';
+import { PlusIcon } from '@/components/icons';
 import {
   useBookings,
-  useUpdateBooking,
   useDeleteBooking,
+  useUpdateBooking,
 } from '@/hooks/useBookings';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import type { PopulatedBooking } from '@/types';
+import { Button } from '@heroui/button';
+import { Card, CardBody } from '@heroui/card';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function BookingsPage() {
   const [filters, setFilters] = useState<BookingsFiltersType>({});
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+  const router = useRouter();
 
   const {
     data: bookingsData,
@@ -34,6 +37,19 @@ export default function BookingsPage() {
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
   const { showConfirm, ConfirmDialog } = useConfirmDialog();
+
+  // Check for success message in URL (when coming back from new booking page)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('created') === 'true') {
+      // You could show a toast notification here
+      console.log('Booking created successfully!');
+      // Remove the query parameter from URL
+      window.history.replaceState({}, '', '/bookings');
+      // Refresh the bookings data
+      mutate();
+    }
+  }, [mutate]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -65,15 +81,13 @@ export default function BookingsPage() {
     }
   };
 
-  const handleViewDetails = (booking: PopulatedBooking) => {
-    // TODO: Implement booking details modal
-    console.log('View details for booking:', booking._id);
-  };
+  // const handleViewDetails = (booking: PopulatedBooking) => {
+  //   router.push(`/bookings/${booking._id}`);
+  // };
 
-  const handleEdit = (booking: PopulatedBooking) => {
-    // TODO: Implement booking edit modal
-    console.log('Edit booking:', booking._id);
-  };
+  // const handleEdit = (booking: PopulatedBooking) => {
+  //   router.push(`/bookings/${booking._id}/edit`);
+  // };
 
   const handleDelete = async (booking: PopulatedBooking) => {
     const guest = booking.guest || booking.customer;
@@ -119,7 +133,14 @@ export default function BookingsPage() {
             Manage cabin reservations and guest check-ins
           </p>
         </div>
-        <AddBookingModal onBookingAdded={() => mutate()} />
+        <Button
+          color='primary'
+          startContent={<PlusIcon />}
+          onPress={() => router.push('/bookings/new')}
+          className='w-full sm:w-auto'
+        >
+          New Booking
+        </Button>
       </div>
 
       {/* Filters */}
@@ -145,8 +166,8 @@ export default function BookingsPage() {
           totalPages={bookingsData?.pagination.totalPages || 1}
           onPageChange={handlePageChange}
           onStatusChange={handleStatusChange}
-          onViewDetails={handleViewDetails}
-          onEdit={handleEdit}
+          onViewDetails={booking => router.push(`/bookings/${booking._id}`)}
+          onEdit={booking => router.push(`/bookings/${booking._id}/edit`)}
           onDelete={handleDelete}
         />
       </div>

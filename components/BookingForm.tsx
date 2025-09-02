@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCreateBooking } from '@/hooks/useBookings';
+import { useCabins } from '@/hooks/useCabins';
+import { useSettings } from '@/hooks/useSettings';
+import type { Customer } from '@/types';
+import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
+import { Avatar } from '@heroui/avatar';
 import { Button } from '@heroui/button';
+import { Card, CardBody, CardHeader } from '@heroui/card';
+import { Divider } from '@heroui/divider';
 import { Input } from '@heroui/input';
 import { Select, SelectItem } from '@heroui/select';
 import { Switch } from '@heroui/switch';
-import { Card, CardBody, CardHeader } from '@heroui/card';
-import { Divider } from '@heroui/divider';
-import { useCreateBooking } from '@/hooks/useBookings';
-import { useCabins } from '@/hooks/useCabins';
-import { useCustomers } from '@/hooks/useCustomers';
-import { useSettings } from '@/hooks/useSettings';
-import type { Cabin, Customer } from '@/types';
+import { useInfiniteScroll } from '@heroui/use-infinite-scroll';
+import { useEffect, useState } from 'react';
 
 interface BookingFormData {
   cabin: string;
@@ -34,6 +36,67 @@ interface BookingFormData {
 interface BookingFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+}
+
+// Custom hook for infinite scrolling customers
+function useInfiniteCustomers() {
+  const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const limit = 20; // Items per page
+
+  const loadCustomers = async (currentPage: number) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `/api/customers?page=${currentPage}&limit=${limit}`
+      );
+      const result = await response.json();
+
+      if (result.success) {
+        const newCustomers = result.data || [];
+        setHasMore(result.pagination?.hasNextPage || false);
+
+        if (currentPage === 1) {
+          setAllCustomers(newCustomers);
+        } else {
+          // Ensure no duplicates when infinite scrolling
+          setAllCustomers(prev => {
+            const existingIds = new Set(
+              prev.map((customer: Customer) => customer._id)
+            );
+            const uniqueNewCustomers = newCustomers.filter(
+              (customer: Customer) => !existingIds.has(customer._id)
+            );
+            return [...prev, ...uniqueNewCustomers];
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading customers:', error);
+      setHasMore(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCustomers(1);
+  }, []);
+
+  const onLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadCustomers(nextPage);
+  };
+
+  return {
+    customers: allCustomers,
+    hasMore,
+    isLoading,
+    onLoadMore,
+  };
 }
 
 export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
@@ -70,8 +133,22 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
 
   const createBooking = useCreateBooking();
   const { data: cabins } = useCabins();
-  const { data: customers } = useCustomers({ limit: 100 }); // Get more customers for selection
+  const {
+    customers,
+    hasMore,
+    isLoading: customersLoading,
+    onLoadMore,
+  } = useInfiniteCustomers();
   const { data: settings } = useSettings();
+
+  // Infinite scroll setup for customers
+  const [isCustomerOpen, setIsCustomerOpen] = useState(false);
+  const [, scrollerRef] = useInfiniteScroll({
+    hasMore,
+    isEnabled: isCustomerOpen,
+    shouldUseLoader: false,
+    onLoadMore,
+  });
 
   const selectedCabin = cabins?.find(cabin => cabin._id === formData.cabin);
 
@@ -282,41 +359,107 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
         </CardHeader>
         <CardBody className='space-y-4'>
           {/* Cabin Selection */}
-          <Select
+          <Autocomplete
             label='Select Cabin'
-            placeholder='Choose a cabin'
-            selectedKeys={formData.cabin ? [formData.cabin] : []}
-            onSelectionChange={keys =>
-              handleInputChange('cabin', Array.from(keys)[0] as string)
-            }
+            placeholder='Search and choose a cabin'
+            selectedKey={formData.cabin || ''}
+            onSelectionChange={key => handleInputChange('cabin', key as string)}
             isRequired
+            defaultItems={cabins || []}
+            variant='bordered'
+            classNames={{
+              listbox: 'max-h-[200px]',
+              listboxWrapper: 'max-h-[200px]',
+            }}
           >
-            {(cabins || []).map(cabin => (
-              <SelectItem key={cabin._id}>
-                {cabin.name} - {formatCurrency(cabin.price)}/night (Capacity:{' '}
-                {cabin.capacity})
-                {cabin.discount > 0 &&
-                  ` - ${formatCurrency(cabin.discount)} discount`}
-              </SelectItem>
-            ))}
-          </Select>
+            {cabin => (
+              <AutocompleteItem
+                key={cabin._id}
+                textValue={cabin.name}
+                classNames={{
+                  base: 'py-2',
+                  title: 'text-small font-medium',
+                  description: 'text-tiny text-default-400',
+                }}
+              >
+                <div className='flex gap-3 items-center py-1'>
+                  <Avatar
+                    alt={cabin.name}
+                    className='shrink-0'
+                    size='sm'
+                    src={cabin.image}
+                    name={cabin.name.substring(0, 2).toUpperCase()}
+                  />
+                  <div className='flex flex-col gap-0.5 min-w-0 flex-1'>
+                    <span className='text-small font-medium truncate'>
+                      {cabin.name}
+                    </span>
+                    <span className='text-tiny text-default-400 truncate'>
+                      {formatCurrency(cabin.price)}/night • Capacity:{' '}
+                      {cabin.capacity}
+                      {cabin.discount > 0 &&
+                        ` • ${formatCurrency(cabin.discount)} discount`}
+                    </span>
+                  </div>
+                </div>
+              </AutocompleteItem>
+            )}
+          </Autocomplete>
 
           {/* Customer Selection */}
-          <Select
+          <Autocomplete
+            isVirtualized={false}
             label='Select Customer'
-            placeholder='Choose a customer'
-            selectedKeys={formData.customer ? [formData.customer] : []}
-            onSelectionChange={keys =>
-              handleInputChange('customer', Array.from(keys)[0] as string)
+            placeholder='Search and choose a customer'
+            selectedKey={formData.customer || ''}
+            onSelectionChange={key =>
+              handleInputChange('customer', key as string)
             }
             isRequired
+            defaultItems={customers || []}
+            variant='bordered'
+            isLoading={customersLoading}
+            scrollRef={scrollerRef}
+            onOpenChange={setIsCustomerOpen}
+            classNames={{
+              listbox: 'max-h-[200px]',
+              listboxWrapper: 'max-h-[200px]',
+            }}
           >
-            {(customers || []).map(customer => (
-              <SelectItem key={customer._id}>
-                {customer.name} - {customer.email}
-              </SelectItem>
-            ))}
-          </Select>
+            {customer => (
+              <AutocompleteItem
+                key={customer._id}
+                textValue={customer.name}
+                classNames={{
+                  base: 'py-2',
+                  title: 'text-small font-medium',
+                  description: 'text-tiny text-default-400',
+                }}
+              >
+                <div className='flex gap-3 items-center py-1'>
+                  <Avatar
+                    alt={customer.name}
+                    className='shrink-0'
+                    size='sm'
+                    src={customer.profileImage}
+                    name={customer.name
+                      .split(' ')
+                      .map((n: string) => n[0])
+                      .join('')
+                      .substring(0, 2)}
+                  />
+                  <div className='flex flex-col gap-0.5 min-w-0 flex-1'>
+                    <span className='text-small font-medium truncate'>
+                      {customer.name}
+                    </span>
+                    <span className='text-tiny text-default-400 truncate'>
+                      {customer.email}
+                    </span>
+                  </div>
+                </div>
+              </AutocompleteItem>
+            )}
+          </Autocomplete>
 
           {/* Date Selection */}
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -428,7 +571,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
               onChange={e => setSpecialRequestInput(e.target.value)}
               className='flex-1'
             />
-            <Button onClick={addSpecialRequest} variant='bordered'>
+            <Button onPress={addSpecialRequest} variant='bordered'>
               Add
             </Button>
           </div>
@@ -445,7 +588,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
                     size='sm'
                     color='danger'
                     variant='light'
-                    onClick={() => removeSpecialRequest(index)}
+                    onPress={() => removeSpecialRequest(index)}
                   >
                     Remove
                   </Button>
@@ -477,7 +620,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
             selectedKeys={
               formData.paymentMethod ? [formData.paymentMethod] : []
             }
-            onSelectionChange={keys =>
+            onSelectionChange={(keys: any) =>
               handleInputChange('paymentMethod', Array.from(keys)[0] as string)
             }
           >
@@ -585,7 +728,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
       {/* Form Actions */}
       <div className='flex gap-4 justify-end'>
         {onCancel && (
-          <Button variant='bordered' onClick={onCancel}>
+          <Button variant='bordered' onPress={onCancel}>
             Cancel
           </Button>
         )}

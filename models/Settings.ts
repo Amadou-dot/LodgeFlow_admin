@@ -204,7 +204,7 @@ const SettingsSchema: Schema = new Schema(
         trim: true,
         validate: {
           validator: function (v: string) {
-            return !v || /^[\+]?[1-9][\d]{0,15}$/.test(v);
+            return !v || /^[+]?[1-9][\d]{0,15}$/.test(v);
           },
           message: 'Please provide a valid phone number',
         },
