@@ -16,11 +16,12 @@ export function useOverview() {
 
       // Transform the data to match the expected format
       const { overview } = result.data;
+
       return {
         bookings: overview.totalBookings,
         revenue: overview.totalRevenue,
         customers: overview.totalCustomers,
-        cancellations: 0, // We'll calculate this from bookings if needed
+        cancellations: overview.totalCancellations || 0,
       };
     },
   });
@@ -77,12 +78,12 @@ export function useSalesData() {
   });
 }
 
-// Duration distribution hook - we'll need to create this from booking data
+// Duration distribution hook - uses actual booking data
 export function useDurationData() {
   return useQuery({
     queryKey: ['durations'],
     queryFn: async () => {
-      const response = await fetch('/api/bookings?limit=100'); // Get more bookings for duration analysis
+      const response = await fetch('/api/dashboard');
       if (!response.ok) {
         throw new Error('Failed to fetch duration data');
       }
@@ -91,29 +92,81 @@ export function useDurationData() {
         throw new Error(result.error || 'Failed to fetch duration data');
       }
 
-      // Analyze booking durations
-      const bookings = result.data;
+      // Get booking data from recent activity and analyze durations
+      const recentActivity = result.data.recentActivity;
       const durationCounts: { [key: string]: number } = {};
 
-      bookings.forEach((booking: any) => {
-        const nights = booking.numNights;
+      // Also fetch more complete booking data for better duration analysis
+      const bookingsResponse = await fetch('/api/bookings?limit=100');
+      let allBookings = [];
+
+      if (bookingsResponse.ok) {
+        const bookingsResult = await bookingsResponse.json();
+        if (bookingsResult.success) {
+          allBookings = bookingsResult.data;
+        }
+      }
+
+      // Use all bookings if available, otherwise fall back to recent activity
+      const bookingsToAnalyze =
+        allBookings.length > 0 ? allBookings : recentActivity;
+
+      bookingsToAnalyze.forEach((booking: any) => {
+        let nights;
+
+        // Calculate nights from dates if numNights is not available
+        if (booking.numNights) {
+          nights = booking.numNights;
+        } else if (booking.checkInDate && booking.checkOutDate) {
+          const checkIn = new Date(booking.checkInDate);
+          const checkOut = new Date(booking.checkOutDate);
+          nights = Math.ceil(
+            (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
+          );
+        } else {
+          return; // Skip if we can't determine duration
+        }
+
         let category;
-        if (nights <= 2) category = '1-2 nights';
-        else if (nights <= 4) category = '3-4 nights';
-        else if (nights <= 7) category = '5-7 nights';
-        else if (nights <= 14) category = '8-14 nights';
-        else category = '15+ nights';
+        if (nights <= 2) {
+          category = '1-2 nights';
+        } else if (nights <= 4) {
+          category = '3-4 nights';
+        } else if (nights <= 7) {
+          category = '5-7 nights';
+        } else if (nights <= 14) {
+          category = '8-14 nights';
+        } else {
+          category = '15+ nights';
+        }
 
         durationCounts[category] = (durationCounts[category] || 0) + 1;
       });
 
-      // Convert to chart format
-      const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-      return Object.entries(durationCounts).map(([name, value], index) => ({
-        name,
-        value,
-        color: colors[index % colors.length],
-      }));
+      // Convert to chart format with colors
+      const colors = [
+        '#3b82f6', // blue
+        '#10b981', // emerald
+        '#f59e0b', // amber
+        '#ef4444', // red
+        '#8b5cf6', // violet
+      ];
+
+      const categories = [
+        '1-2 nights',
+        '3-4 nights',
+        '5-7 nights',
+        '8-14 nights',
+        '15+ nights',
+      ];
+
+      return categories
+        .map((category, index) => ({
+          name: category,
+          value: durationCounts[category] || 0,
+          color: colors[index],
+        }))
+        .filter(item => item.value > 0); // Only include categories with data
     },
   });
 }

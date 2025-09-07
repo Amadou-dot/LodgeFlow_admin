@@ -1,5 +1,6 @@
-import { faker } from '@faker-js/faker';
 import { NextResponse } from 'next/server';
+import connectDB from '../../../lib/mongodb';
+import { Booking } from '../../../models';
 
 export interface SalesData {
   date: string;
@@ -10,30 +11,60 @@ export interface SalesData {
 
 export async function GET() {
   try {
-    // Generate fake sales data for the last 30 days
-    const data: SalesData[] = [];
+    await connectDB();
+
+    // Get current date and calculate periods
     const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Aggregate sales data by day for the last 30 days
+    const salesData = await Booking.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: thirtyDaysAgo },
+          status: { $ne: 'cancelled' },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$createdAt',
+            },
+          },
+          totalSales: {
+            $sum: {
+              $cond: [{ $eq: ['$isPaid', true] }, '$totalPrice', 0],
+            },
+          },
+          bookingCount: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    // Create a complete array for the last 30 days (including days with no data)
+    const data: SalesData[] = [];
 
     for (let i = 29; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
 
-      // Generate more realistic sales patterns (higher on weekends, lower on weekdays)
-      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-      const baseAmount = isWeekend ? 800 : 500;
-      const variance = isWeekend ? 400 : 300;
+      // Find data for this date
+      const dayData = salesData.find(item => item._id === dateString);
 
       data.push({
         date: date.toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
         }),
-        fullDate: date.toISOString().split('T')[0],
-        sales: faker.number.int({
-          min: baseAmount - variance,
-          max: baseAmount + variance,
-        }),
-        bookings: faker.number.int({ min: 5, max: isWeekend ? 25 : 15 }),
+        fullDate: dateString,
+        sales: dayData?.totalSales || 0,
+        bookings: dayData?.bookingCount || 0,
       });
     }
 

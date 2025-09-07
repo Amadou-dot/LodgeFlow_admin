@@ -17,6 +17,7 @@ export async function GET() {
       totalRevenue,
       totalCabins,
       totalCustomers,
+      totalCancellations,
       recentBookings,
       checkInsToday,
       checkOutsToday,
@@ -51,6 +52,12 @@ export async function GET() {
 
       // Total customers
       Customer.countDocuments(),
+
+      // Total cancellations in last 30 days
+      Booking.countDocuments({
+        createdAt: { $gte: thirtyDaysAgo },
+        status: 'cancelled',
+      }),
 
       // Recent bookings (last 7 days)
       Booking.find({
@@ -197,6 +204,7 @@ export async function GET() {
         totalRevenue: totalRevenue[0]?.total || 0,
         totalCabins,
         totalCustomers,
+        totalCancellations,
         occupancyRate: Math.round(occupancyRate * 100) / 100,
         checkInsToday,
         checkOutsToday,
@@ -234,7 +242,6 @@ export async function GET() {
       data: stats,
     });
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
     return NextResponse.json(
       {
         success: false,
