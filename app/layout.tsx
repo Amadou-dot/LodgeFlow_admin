@@ -4,8 +4,7 @@ import { Metadata, Viewport } from 'next';
 
 import { Providers } from './providers';
 
-import { Navbar } from '@/components/navbar';
-import { Sidebar } from '@/components/sidebar';
+import { DynamicClerkProvider } from '@/components/DynamicClerkProvider';
 import { fontSans } from '@/config/fonts';
 import { siteConfig } from '@/config/site';
 
@@ -42,15 +41,7 @@ export default function RootLayout({
         )}
       >
         <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
-          <div className='flex h-screen'>
-            <Sidebar />
-            <div className='flex flex-col flex-1 overflow-hidden'>
-              <Navbar />
-              <main className='flex-1 overflow-auto'>
-                <div className=' mx-auto  pt-6 px-6 h-full'>{children}</div>
-              </main>
-            </div>
-          </div>
+          <DynamicClerkProvider>{children}</DynamicClerkProvider>
         </Providers>
       </body>
     </html>

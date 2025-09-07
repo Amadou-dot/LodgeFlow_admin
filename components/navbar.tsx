@@ -1,5 +1,12 @@
 'use client';
 
+import {
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs';
 import { Link } from '@heroui/link';
 import {
   Navbar as HeroUINavbar,
@@ -10,13 +17,7 @@ import {
 } from '@heroui/navbar';
 
 import { ThemeSwitch } from '@/components/theme-switch';
-import { Avatar } from '@heroui/avatar';
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-} from '@heroui/dropdown';
+import { Button } from '@heroui/button';
 import clsx from 'clsx';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -48,38 +49,20 @@ export const Navbar = () => {
       <NavbarContent as='div' justify='end'>
         <ThemeSwitch />
 
-        <Dropdown>
-          <DropdownTrigger>
-            <Avatar
-              src='https://i.pravatar.cc/150?u=a042581f4e29026704d'
-              className='cursor-pointer'
-            />
-          </DropdownTrigger>
-          <DropdownMenu aria-label='Profile Actions' variant='flat'>
-            <DropdownItem
-              key='profile'
-              className='h-14'
-              textValue='Signed in as zoey@example.com'
-            >
-              <p className='font-semibold'>Signed in as</p>
-              <p className='font-semibold'>zoey@example.com</p>
-            </DropdownItem>
-            <DropdownItem key='settings' textValue='My Settings'>
-              My Settings
-            </DropdownItem>
-            <DropdownItem key='help_and_feedback' textValue='Help & Feedback'>
-              Help & Feedback
-            </DropdownItem>
-            <DropdownItem
-              key='logout'
-              className='text-danger'
-              color='danger'
-              textValue='Log Out'
-            >
-              Log Out
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+        <SignedOut>
+          <SignInButton>
+            <Button color='primary' variant='ghost'>
+              Sign In
+            </Button>
+          </SignInButton>
+          <SignUpButton>
+            <Button color='primary'>Sign Up</Button>
+          </SignUpButton>
+        </SignedOut>
+
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
       </NavbarContent>
 
       <NavbarMenu>

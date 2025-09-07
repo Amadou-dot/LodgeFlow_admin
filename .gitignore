@@ -46,3 +46,6 @@ bun.lockb
 .env.*
 *.code
 *.code-workspace
+
+# clerk configuration (can include secrets)
+/.clerk/
