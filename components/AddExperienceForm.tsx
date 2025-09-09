@@ -6,17 +6,8 @@ import { Input, Textarea } from '@heroui/input';
 import { NumberInput } from '@heroui/number-input';
 import { Select, SelectItem } from '@heroui/select';
 import { useState } from 'react';
-
-interface ContainerProps {
-  children: React.ReactNode;
-}
-interface FormProps {
-  formData: Record<string, any>;
-  setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>;
-}
-const Container = ({ children }: ContainerProps) => {
-  return <div className='grid md:grid-cols-2 w-full gap-6'>{children}</div>;
-};
+import type { FormProps } from './AddExperienceForm/types';
+import Container from './EditExperienceForm/Container';
 
 export default function AddExperienceForm({
   formData,
@@ -37,7 +28,7 @@ export default function AddExperienceForm({
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(formData);
+    // Form submission logic would go here
   };
 
   return (
