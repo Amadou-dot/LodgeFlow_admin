@@ -4,16 +4,19 @@ import { useCreateBooking } from '@/hooks/useBookings';
 import { useCabins } from '@/hooks/useCabins';
 import { useSettings } from '@/hooks/useSettings';
 import type { Customer } from '@/types';
-import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
-import { Avatar } from '@heroui/avatar';
-import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
-import { Divider } from '@heroui/divider';
-import { Input } from '@heroui/input';
-import { Select, SelectItem } from '@heroui/select';
-import { Switch } from '@heroui/switch';
 import { useInfiniteScroll } from '@heroui/use-infinite-scroll';
 import { useEffect, useState } from 'react';
+import {
+  BookingDatesGuests,
+  BookingExtras,
+  CabinSelection,
+  CustomerSelection,
+  FormActions,
+  PaymentInformation,
+  PriceBreakdown,
+  SpecialRequests,
+} from './BookingForm/index';
 
 interface BookingFormData {
   cabin: string;
@@ -74,6 +77,7 @@ function useInfiniteCustomers() {
         }
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error loading customers:', error);
       setHasMore(false);
     } finally {
@@ -339,6 +343,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
       await createBooking.mutateAsync(bookingData as any);
       onSuccess?.();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error creating booking:', error);
       alert('Failed to create booking. Please try again.');
     }
@@ -353,393 +358,89 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className='space-y-6'>
+      {/* Cabin Selection */}
+      <Card>
+        <CardHeader>
+          <h3 className='text-lg font-semibold'>Cabin Selection</h3>
+        </CardHeader>
+        <CardBody>
+          <CabinSelection
+            formData={formData}
+            onInputChange={handleInputChange}
+            cabins={cabins || []}
+            formatCurrency={formatCurrency}
+          />
+        </CardBody>
+      </Card>
+
+      {/* Customer Selection */}
+      <Card>
+        <CardHeader>
+          <h3 className='text-lg font-semibold'>Customer Selection</h3>
+        </CardHeader>
+        <CardBody>
+          <CustomerSelection
+            formData={formData}
+            onInputChange={handleInputChange}
+            customers={customers}
+            customersLoading={customersLoading}
+            scrollerRef={scrollerRef}
+            onOpenChange={setIsCustomerOpen}
+          />
+        </CardBody>
+      </Card>
+
+      {/* Booking Dates & Guests */}
       <Card>
         <CardHeader>
           <h3 className='text-lg font-semibold'>Booking Details</h3>
         </CardHeader>
         <CardBody className='space-y-4'>
-          {/* Cabin Selection */}
-          <Autocomplete
-            label='Select Cabin'
-            placeholder='Search and choose a cabin'
-            selectedKey={formData.cabin || ''}
-            onSelectionChange={key => handleInputChange('cabin', key as string)}
-            isRequired
-            defaultItems={cabins || []}
-            variant='bordered'
-            classNames={{
-              listbox: 'max-h-[200px]',
-              listboxWrapper: 'max-h-[200px]',
-            }}
-          >
-            {cabin => (
-              <AutocompleteItem
-                key={cabin._id}
-                textValue={cabin.name}
-                classNames={{
-                  base: 'py-2',
-                  title: 'text-small font-medium',
-                  description: 'text-tiny text-default-400',
-                }}
-              >
-                <div className='flex gap-3 items-center py-1'>
-                  <Avatar
-                    alt={cabin.name}
-                    className='shrink-0'
-                    size='sm'
-                    src={cabin.image}
-                    name={cabin.name.substring(0, 2).toUpperCase()}
-                  />
-                  <div className='flex flex-col gap-0.5 min-w-0 flex-1'>
-                    <span className='text-small font-medium truncate'>
-                      {cabin.name}
-                    </span>
-                    <span className='text-tiny text-default-400 truncate'>
-                      {formatCurrency(cabin.price)}/night • Capacity:{' '}
-                      {cabin.capacity}
-                      {cabin.discount > 0 &&
-                        ` • ${formatCurrency(cabin.discount)} discount`}
-                    </span>
-                  </div>
-                </div>
-              </AutocompleteItem>
-            )}
-          </Autocomplete>
-
-          {/* Customer Selection */}
-          <Autocomplete
-            isVirtualized={false}
-            label='Select Customer'
-            placeholder='Search and choose a customer'
-            selectedKey={formData.customer || ''}
-            onSelectionChange={key =>
-              handleInputChange('customer', key as string)
-            }
-            isRequired
-            defaultItems={customers || []}
-            variant='bordered'
-            isLoading={customersLoading}
-            scrollRef={scrollerRef}
-            onOpenChange={setIsCustomerOpen}
-            classNames={{
-              listbox: 'max-h-[200px]',
-              listboxWrapper: 'max-h-[200px]',
-            }}
-          >
-            {customer => (
-              <AutocompleteItem
-                key={customer._id}
-                textValue={customer.name}
-                classNames={{
-                  base: 'py-2',
-                  title: 'text-small font-medium',
-                  description: 'text-tiny text-default-400',
-                }}
-              >
-                <div className='flex gap-3 items-center py-1'>
-                  <Avatar
-                    alt={customer.name}
-                    className='shrink-0'
-                    size='sm'
-                    src={customer.profileImage}
-                    name={customer.name
-                      .split(' ')
-                      .map((n: string) => n[0])
-                      .join('')
-                      .substring(0, 2)}
-                  />
-                  <div className='flex flex-col gap-0.5 min-w-0 flex-1'>
-                    <span className='text-small font-medium truncate'>
-                      {customer.name}
-                    </span>
-                    <span className='text-tiny text-default-400 truncate'>
-                      {customer.email}
-                    </span>
-                  </div>
-                </div>
-              </AutocompleteItem>
-            )}
-          </Autocomplete>
-
-          {/* Date Selection */}
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <Input
-              type='date'
-              label='Check-in Date'
-              value={formData.checkInDate}
-              onChange={e => handleInputChange('checkInDate', e.target.value)}
-              isRequired
-            />
-            <Input
-              type='date'
-              label='Check-out Date'
-              value={formData.checkOutDate}
-              onChange={e => handleInputChange('checkOutDate', e.target.value)}
-              isRequired
-            />
-          </div>
-
-          {/* Number of Guests */}
-          <Input
-            type='number'
-            label='Number of Guests'
-            value={formData.numGuests.toString()}
-            onChange={e =>
-              handleInputChange('numGuests', parseInt(e.target.value) || 1)
-            }
-            min={1}
-            max={selectedCabin?.capacity || 10}
-            isRequired
+          <BookingDatesGuests
+            formData={formData}
+            onInputChange={handleInputChange}
+            selectedCabin={selectedCabin}
+            numNights={numNights}
           />
-
-          {numNights > 0 && (
-            <div className='text-sm text-default-600'>
-              Duration: {numNights} night{numNights !== 1 ? 's' : ''}
-            </div>
-          )}
         </CardBody>
       </Card>
 
       {/* Extras */}
-      <Card>
-        <CardHeader>
-          <h3 className='text-lg font-semibold'>Extras & Services</h3>
-        </CardHeader>
-        <CardBody className='space-y-4'>
-          <div className='space-y-4'>
-            <Switch
-              isSelected={formData.hasBreakfast}
-              onValueChange={checked =>
-                handleInputChange('hasBreakfast', checked)
-              }
-            >
-              Include Breakfast ({formatCurrency(settings?.breakfastPrice || 0)}
-              /person/night)
-            </Switch>
-
-            {settings?.allowPets && (
-              <Switch
-                isSelected={formData.hasPets}
-                onValueChange={checked => handleInputChange('hasPets', checked)}
-              >
-                Pets ({formatCurrency(settings.petFee)}/night)
-              </Switch>
-            )}
-
-            {!settings?.parkingIncluded && (
-              <Switch
-                isSelected={formData.hasParking}
-                onValueChange={checked =>
-                  handleInputChange('hasParking', checked)
-                }
-              >
-                Parking ({formatCurrency(settings?.parkingFee || 0)}/night)
-              </Switch>
-            )}
-
-            <Switch
-              isSelected={formData.hasEarlyCheckIn}
-              onValueChange={checked =>
-                handleInputChange('hasEarlyCheckIn', checked)
-              }
-            >
-              Early Check-in ({formatCurrency(settings?.earlyCheckInFee || 0)})
-            </Switch>
-
-            <Switch
-              isSelected={formData.hasLateCheckOut}
-              onValueChange={checked =>
-                handleInputChange('hasLateCheckOut', checked)
-              }
-            >
-              Late Check-out ({formatCurrency(settings?.lateCheckOutFee || 0)})
-            </Switch>
-          </div>
-        </CardBody>
-      </Card>
+      <BookingExtras
+        formData={formData}
+        onInputChange={handleInputChange}
+        settings={settings}
+        priceBreakdown={priceBreakdown}
+        formatCurrency={formatCurrency}
+      />
 
       {/* Special Requests */}
-      <Card>
-        <CardHeader>
-          <h3 className='text-lg font-semibold'>Special Requests</h3>
-        </CardHeader>
-        <CardBody className='space-y-4'>
-          <div className='flex gap-2'>
-            <Input
-              placeholder='Add a special request'
-              value={specialRequestInput}
-              onChange={e => setSpecialRequestInput(e.target.value)}
-              className='flex-1'
-            />
-            <Button onPress={addSpecialRequest} variant='bordered'>
-              Add
-            </Button>
-          </div>
-
-          {formData.specialRequests.length > 0 && (
-            <div className='space-y-2'>
-              {formData.specialRequests.map((request, index) => (
-                <div
-                  key={index}
-                  className='flex items-center justify-between bg-default-100 p-2 rounded'
-                >
-                  <span>{request}</span>
-                  <Button
-                    size='sm'
-                    color='danger'
-                    variant='light'
-                    onPress={() => removeSpecialRequest(index)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <Input
-            label='Observations'
-            placeholder='Any additional notes or observations for staff'
-            value={formData.observations}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              handleInputChange('observations', e.target.value)
-            }
-          />
-        </CardBody>
-      </Card>
+      <SpecialRequests
+        formData={formData}
+        onInputChange={handleInputChange}
+        specialRequestInput={specialRequestInput}
+        onSpecialRequestInputChange={setSpecialRequestInput}
+        onAddSpecialRequest={addSpecialRequest}
+        onRemoveSpecialRequest={removeSpecialRequest}
+      />
 
       {/* Payment */}
-      <Card>
-        <CardHeader>
-          <h3 className='text-lg font-semibold'>Payment Information</h3>
-        </CardHeader>
-        <CardBody className='space-y-4'>
-          <Select
-            label='Payment Method'
-            placeholder='Select payment method'
-            selectedKeys={
-              formData.paymentMethod ? [formData.paymentMethod] : []
-            }
-            onSelectionChange={(keys: any) =>
-              handleInputChange('paymentMethod', Array.from(keys)[0] as string)
-            }
-          >
-            <SelectItem key='cash'>Cash</SelectItem>
-            <SelectItem key='card'>Card</SelectItem>
-            <SelectItem key='bank-transfer'>Bank Transfer</SelectItem>
-            <SelectItem key='online'>Online</SelectItem>
-          </Select>
-
-          <Switch
-            isSelected={formData.isPaid}
-            onValueChange={checked => handleInputChange('isPaid', checked)}
-          >
-            Mark as Paid
-          </Switch>
-
-          {settings?.requireDeposit && (
-            <Switch
-              isSelected={formData.depositPaid}
-              onValueChange={checked =>
-                handleInputChange('depositPaid', checked)
-              }
-            >
-              Deposit Paid ({formatCurrency(priceBreakdown.depositAmount)})
-            </Switch>
-          )}
-        </CardBody>
-      </Card>
+      <PaymentInformation
+        formData={formData}
+        onInputChange={handleInputChange}
+        settings={settings}
+        priceBreakdown={priceBreakdown}
+      />
 
       {/* Price Breakdown */}
-      {priceBreakdown.totalPrice > 0 && (
-        <Card>
-          <CardHeader>
-            <h3 className='text-lg font-semibold'>Price Breakdown</h3>
-          </CardHeader>
-          <CardBody>
-            <div className='space-y-2'>
-              <div className='flex justify-between'>
-                <span>Cabin ({numNights} nights)</span>
-                <span>{formatCurrency(priceBreakdown.cabinPrice)}</span>
-              </div>
-
-              {priceBreakdown.breakfastPrice > 0 && (
-                <div className='flex justify-between text-sm'>
-                  <span>Breakfast</span>
-                  <span>{formatCurrency(priceBreakdown.breakfastPrice)}</span>
-                </div>
-              )}
-
-              {priceBreakdown.petFee > 0 && (
-                <div className='flex justify-between text-sm'>
-                  <span>Pet Fee</span>
-                  <span>{formatCurrency(priceBreakdown.petFee)}</span>
-                </div>
-              )}
-
-              {priceBreakdown.parkingFee > 0 && (
-                <div className='flex justify-between text-sm'>
-                  <span>Parking</span>
-                  <span>{formatCurrency(priceBreakdown.parkingFee)}</span>
-                </div>
-              )}
-
-              {priceBreakdown.earlyCheckInFee > 0 && (
-                <div className='flex justify-between text-sm'>
-                  <span>Early Check-in</span>
-                  <span>{formatCurrency(priceBreakdown.earlyCheckInFee)}</span>
-                </div>
-              )}
-
-              {priceBreakdown.lateCheckOutFee > 0 && (
-                <div className='flex justify-between text-sm'>
-                  <span>Late Check-out</span>
-                  <span>{formatCurrency(priceBreakdown.lateCheckOutFee)}</span>
-                </div>
-              )}
-
-              <Divider />
-              <div className='flex justify-between font-semibold'>
-                <span>Total</span>
-                <span>{formatCurrency(priceBreakdown.totalPrice)}</span>
-              </div>
-
-              {settings?.requireDeposit && (
-                <>
-                  <div className='flex justify-between text-sm'>
-                    <span>Deposit ({settings.depositPercentage}%)</span>
-                    <span>{formatCurrency(priceBreakdown.depositAmount)}</span>
-                  </div>
-                  <div className='flex justify-between text-sm'>
-                    <span>Remaining</span>
-                    <span>
-                      {formatCurrency(
-                        priceBreakdown.totalPrice - priceBreakdown.depositAmount
-                      )}
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardBody>
-        </Card>
-      )}
+      <PriceBreakdown
+        priceBreakdown={priceBreakdown}
+        numNights={numNights}
+        settings={settings}
+      />
 
       {/* Form Actions */}
-      <div className='flex gap-4 justify-end'>
-        {onCancel && (
-          <Button variant='bordered' onPress={onCancel}>
-            Cancel
-          </Button>
-        )}
-        <Button
-          type='submit'
-          color='primary'
-          isLoading={createBooking.isPending}
-        >
-          Create Booking
-        </Button>
-      </div>
+      <FormActions onCancel={onCancel} isLoading={createBooking.isPending} />
     </form>
   );
 }
