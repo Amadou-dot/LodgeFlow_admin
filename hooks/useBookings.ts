@@ -114,6 +114,8 @@ export const useCreateBooking = () => {
     onSuccess: () => {
       // Invalidate React Query cache and revalidate SWR
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['overview'] });
       // Note: SWR will be revalidated automatically on focus or manually via mutate
     },
   });
@@ -141,6 +143,8 @@ export const useUpdateBooking = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['overview'] });
     },
   });
 };
@@ -161,6 +165,103 @@ export const useDeleteBooking = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['overview'] });
+    },
+  });
+};
+
+// Check in a booking
+export const useCheckInBooking = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (bookingId: string): Promise<PopulatedBooking> => {
+      const response = await fetch('/api/bookings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          _id: bookingId,
+          status: 'checked-in',
+          checkInTime: new Date(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to check in booking');
+      }
+
+      const result = await response.json();
+      return result.success ? result.data : result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['overview'] });
+    },
+  });
+};
+
+// Check out a booking
+export const useCheckOutBooking = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (bookingId: string): Promise<PopulatedBooking> => {
+      const response = await fetch('/api/bookings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          _id: bookingId,
+          status: 'checked-out',
+          checkOutTime: new Date(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to check out booking');
+      }
+
+      const result = await response.json();
+      return result.success ? result.data : result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['overview'] });
+    },
+  });
+};
+
+// Confirm a booking
+export const useConfirmBooking = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (bookingId: string): Promise<PopulatedBooking> => {
+      const response = await fetch('/api/bookings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          _id: bookingId,
+          status: 'confirmed',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to confirm booking');
+      }
+
+      const result = await response.json();
+      return result.success ? result.data : result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['overview'] });
     },
   });
 };

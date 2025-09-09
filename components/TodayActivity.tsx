@@ -50,6 +50,7 @@ export default function TodayActivity() {
           activities.map((activity: any) => (
             <ActivityCard
               key={activity.id}
+              bookingId={activity.id}
               status={activity.status}
               name={activity.name}
               stayDuration={activity.stayDuration}

@@ -7,10 +7,30 @@ interface Props {
     | 'cancelled';
   name: string;
   stayDuration: string;
+  bookingId: string;
 }
+import {
+  useCheckInBooking,
+  useCheckOutBooking,
+  useConfirmBooking,
+} from '@/hooks/useBookings';
 import { Button } from '@heroui/button';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-export default function ActivityCard({ status, name, stayDuration }: Props) {
+export default function ActivityCard({
+  status,
+  name,
+  stayDuration,
+  bookingId,
+}: Props) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const checkInMutation = useCheckInBooking();
+  const checkOutMutation = useCheckOutBooking();
+  const confirmMutation = useConfirmBooking();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
@@ -43,6 +63,37 @@ export default function ActivityCard({ status, name, stayDuration }: Props) {
 
   const action = getActionButton(status);
 
+  // Handle button actions
+  const handleAction = async () => {
+    setIsLoading(true);
+
+    try {
+      switch (status) {
+        case 'unconfirmed':
+          await confirmMutation.mutateAsync(bookingId);
+          break;
+        case 'confirmed':
+          await checkInMutation.mutateAsync(bookingId);
+          break;
+        case 'checked-in':
+          await checkOutMutation.mutateAsync(bookingId);
+          break;
+        default:
+          // For 'checked-out', 'cancelled', or any other status, just view the booking
+          router.push(`/bookings/${bookingId}`);
+          return;
+      }
+    } catch (error) {
+      // Handle error silently or with toast notification
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleView = () => {
+    router.push(`/bookings/${bookingId}`);
+  };
+
   return (
     <div className='bg-content1 rounded-lg border border-divider p-3'>
       {/* Desktop Layout */}
@@ -52,7 +103,14 @@ export default function ActivityCard({ status, name, stayDuration }: Props) {
           {status}
         </p>
         <p className='w-20 text-center'>{stayDuration}</p>
-        <Button color={action.color} size='sm' className='w-24 min-w-24'>
+        <Button
+          color={action.color}
+          size='sm'
+          className='w-24 min-w-24'
+          onPress={handleAction}
+          isLoading={isLoading}
+          isDisabled={isLoading}
+        >
           {action.text}
         </Button>
       </div>
@@ -70,7 +128,14 @@ export default function ActivityCard({ status, name, stayDuration }: Props) {
             </div>
           </div>
         </div>
-        <Button color={action.color} size='sm' className='w-full'>
+        <Button
+          color={action.color}
+          size='sm'
+          className='w-full'
+          onPress={handleAction}
+          isLoading={isLoading}
+          isDisabled={isLoading}
+        >
           {action.text}
         </Button>
       </div>
