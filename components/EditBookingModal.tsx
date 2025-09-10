@@ -71,7 +71,7 @@ export default function EditBookingModal({
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button color='primary' onPress={onClose}>
+            <Button variant='light' onPress={onClose}>
               Close
             </Button>
           </ModalFooter>

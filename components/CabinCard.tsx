@@ -5,6 +5,7 @@ import { Button } from '@heroui/button';
 import { Card, CardBody, CardFooter } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import Image from 'next/image';
+import DeletionModal from './DeletionModal';
 
 interface CabinCardProps {
   cabin: Cabin;
@@ -92,19 +93,23 @@ export default function CabinCard({
         <div className='flex gap-2 w-full'>
           <Button
             color='primary'
+            variant='solid'
             className='flex-2'
             onPress={() => onEdit(cabin)}
           >
             Edit
           </Button>
-          <Button
-            color='danger'
-            variant='light'
-            className='flex-1'
-            onPress={() => onDelete(cabin)}
-          >
-            Delete
-          </Button>
+          <DeletionModal
+            resourceId={cabin.id}
+            resourceName='Cabin'
+            itemName={cabin.name}
+            onDelete={async () => onDelete(cabin)}
+            buttonProps={{
+              color: 'danger',
+              variant: 'light',
+              className: 'flex-1',
+            }}
+          />
         </div>
       </CardFooter>
     </Card>

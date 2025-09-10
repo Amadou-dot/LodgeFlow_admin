@@ -56,7 +56,9 @@ export const Navbar = () => {
             </Button>
           </SignInButton>
           <SignUpButton>
-            <Button color='primary'>Sign Up</Button>
+            <Button color='primary' variant='solid'>
+              Sign Up
+            </Button>
           </SignUpButton>
         </SignedOut>
 

@@ -13,7 +13,12 @@ export default function FormActions({ onCancel, isLoading }: FormActionsProps) {
           Cancel
         </Button>
       )}
-      <Button type='submit' color='primary' isLoading={isLoading}>
+      <Button
+        type='submit'
+        color='primary'
+        variant='solid'
+        isLoading={isLoading}
+      >
         Create Booking
       </Button>
     </div>

@@ -1,21 +1,16 @@
 import {
-  useUpdateExperience,
   useDeleteExperience,
+  useUpdateExperience,
 } from '@/hooks/useExperiences';
 import { Experience } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Chip } from '@heroui/chip';
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from '@heroui/modal';
+import { Modal, ModalBody, ModalContent, ModalHeader } from '@heroui/modal';
 import { addToast } from '@heroui/toast';
-import { useState } from 'react';
 import Image from 'next/image';
+import { useState } from 'react';
+import DeletionModal from './DeletionModal';
 import EditExperienceForm from './EditExperienceForm';
 
 interface ExperienceGridProps {
@@ -46,9 +41,7 @@ export function ExperienceGrid({
 
 function ExperienceCard({ item }: { item: Experience }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const { updateExperience } = useUpdateExperience();
   const { deleteExperience } = useDeleteExperience();
 
@@ -81,29 +74,6 @@ function ExperienceCard({ item }: { item: Experience }) {
 
   const handleCancel = () => {
     setIsModalOpen(false);
-  };
-
-  const handleDelete = async () => {
-    if (!item._id) return;
-
-    setIsDeleting(true);
-    try {
-      await deleteExperience(item._id);
-      setIsDeleteModalOpen(false);
-      addToast({
-        title: 'Experience Deleted',
-        description: 'The experience has been successfully deleted.',
-        color: 'success',
-      });
-    } catch (error) {
-      addToast({
-        title: 'Error deleting experience',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        color: 'danger',
-      });
-    } finally {
-      setIsDeleting(false);
-    }
   };
 
   return (
@@ -210,19 +180,23 @@ function ExperienceCard({ item }: { item: Experience }) {
           <div className='flex gap-2'>
             <Button
               color='primary'
+              variant='solid'
               className='flex-2'
               onPress={() => setIsModalOpen(true)}
             >
               Edit
             </Button>
-            <Button
-              color='danger'
-              variant='light'
-              className='flex-1'
-              onPress={() => setIsDeleteModalOpen(true)}
-            >
-              Delete
-            </Button>
+            <DeletionModal
+              resourceId={item._id || ''}
+              resourceName='Experience'
+              itemName={item.name}
+              onDelete={() => deleteExperience(item._id || '')}
+              buttonProps={{
+                color: 'danger',
+                variant: 'light',
+                className: 'flex-1',
+              }}
+            />
           </div>
         </div>
 
@@ -247,44 +221,6 @@ function ExperienceCard({ item }: { item: Experience }) {
                     isLoading={isLoading}
                   />
                 </ModalBody>
-              </>
-            )}
-          </ModalContent>
-        </Modal>
-
-        {/* Delete Confirmation Modal */}
-        <Modal
-          isOpen={isDeleteModalOpen}
-          onOpenChange={setIsDeleteModalOpen}
-          size='md'
-        >
-          <ModalContent>
-            {onClose => (
-              <>
-                <ModalHeader className='flex flex-col gap-1'>
-                  Delete Experience
-                </ModalHeader>
-                <ModalBody>
-                  <p>
-                    Are you sure you want to delete <strong>{item.name}</strong>
-                    ?
-                  </p>
-                  <p className='text-danger text-sm'>
-                    This action cannot be undone.
-                  </p>
-                </ModalBody>
-                <ModalFooter>
-                  <Button variant='light' onPress={onClose}>
-                    Cancel
-                  </Button>
-                  <Button
-                    color='danger'
-                    onPress={handleDelete}
-                    isLoading={isDeleting}
-                  >
-                    {isDeleting ? 'Deleting...' : 'Delete'}
-                  </Button>
-                </ModalFooter>
               </>
             )}
           </ModalContent>

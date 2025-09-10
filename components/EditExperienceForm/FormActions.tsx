@@ -16,7 +16,12 @@ export default function FormActions({
       <Button color='danger' variant='light' onPress={onCancel}>
         Cancel
       </Button>
-      <Button color='primary' onPress={onSave} isLoading={isLoading}>
+      <Button
+        color='primary'
+        variant='solid'
+        onPress={onSave}
+        isLoading={isLoading}
+      >
         {isLoading ? 'Saving...' : 'Save Changes'}
       </Button>
     </div>

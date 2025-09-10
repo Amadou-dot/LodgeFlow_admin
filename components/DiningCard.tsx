@@ -1,11 +1,11 @@
+import { Dining } from '@/types';
+import { Button } from '@heroui/button';
 import { Card, CardBody, CardFooter } from '@heroui/card';
 import { Chip } from '@heroui/chip';
-import { Button } from '@heroui/button';
-import { Dining } from '@/types';
-import { useState } from 'react';
-import { EditIcon, TrashIcon } from './icons';
-import DeletionModal from './DeletionModal';
 import Image from 'next/image';
+import { useState } from 'react';
+import DeletionModal from './DeletionModal';
+import { EditIcon } from './icons';
 
 interface DiningCardProps {
   dining: Dining;
@@ -217,7 +217,7 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
       <CardFooter className='pt-0 px-4 pb-4'>
         <div className='flex gap-2 w-full'>
           <Button
-            variant='bordered'
+            variant='solid'
             color='primary'
             startContent={<EditIcon />}
             onPress={handleEdit}
@@ -233,7 +233,7 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
               itemName={dining.name}
               onDelete={handleDelete}
               buttonProps={{
-                variant: 'bordered',
+                variant: 'light',
                 color: 'danger',
                 size: 'sm',
                 className: 'flex-1',

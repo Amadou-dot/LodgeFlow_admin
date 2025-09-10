@@ -18,7 +18,12 @@ export default function FormActionsSection({
           Cancel
         </Button>
       )}
-      <Button color='primary' type='submit' isLoading={isLoading}>
+      <Button
+        color='primary'
+        variant='solid'
+        type='submit'
+        isLoading={isLoading}
+      >
         {isLoading
           ? isEditing
             ? 'Updating...'

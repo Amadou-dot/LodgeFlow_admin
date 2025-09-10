@@ -3,18 +3,12 @@
 import CabinCard from '@/components/CabinCard';
 import CabinFilters from '@/components/CabinFilters';
 import CabinModal from '@/components/CabinModal';
+import DeletionModal from '@/components/DeletionModal';
 import { PlusIcon } from '@/components/icons';
 import { useCabins, useDeleteCabin } from '@/hooks/useCabins';
 import type { Cabin, CabinFilters as CabinFiltersType } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from '@heroui/modal';
 import { Spinner } from '@heroui/spinner';
 import { useState } from 'react';
 
@@ -169,49 +163,16 @@ export default function CabinsPage() {
 
       {/* Delete Confirmation Modal */}
       {cabinToDelete && (
-        <Modal isOpen={true} onClose={() => setCabinToDelete(null)} size='md'>
-          <ModalContent>
-            {(onClose: () => void) => (
-              <>
-                <ModalHeader className='flex flex-col gap-1'>
-                  Delete Cabin
-                </ModalHeader>
-                <ModalBody>
-                  <p>
-                    Are you sure you want to delete cabin:{' '}
-                    <strong>{cabinToDelete.name}</strong>?
-                  </p>
-                  <p className='text-danger text-sm'>
-                    This action cannot be undone.
-                  </p>
-                  <p className='text-warning text-sm mt-2'>
-                    Note: Cabins with active bookings cannot be deleted.
-                  </p>
-                </ModalBody>
-                <ModalFooter>
-                  <Button variant='light' onPress={onClose}>
-                    Cancel
-                  </Button>
-                  <Button
-                    color='danger'
-                    onPress={async () => {
-                      try {
-                        await deleteCabin.mutateAsync(cabinToDelete.id);
-                        onClose();
-                        setCabinToDelete(null);
-                      } catch (error) {
-                        console.error('Error deleting cabin:', error);
-                      }
-                    }}
-                    isLoading={deleteCabin.isPending}
-                  >
-                    {deleteCabin.isPending ? 'Deleting...' : 'Delete'}
-                  </Button>
-                </ModalFooter>
-              </>
-            )}
-          </ModalContent>
-        </Modal>
+        <DeletionModal
+          resourceId={cabinToDelete.id}
+          resourceName='Cabin'
+          itemName={cabinToDelete.name}
+          note='Cabins with active bookings cannot be deleted.'
+          onDelete={deleteCabin}
+          onResourceDeleted={() => setCabinToDelete(null)}
+          isOpen={true}
+          onOpenChange={open => !open && setCabinToDelete(null)}
+        />
       )}
     </div>
   );
