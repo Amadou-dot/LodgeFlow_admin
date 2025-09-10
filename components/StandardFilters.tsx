@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { SearchIcon } from '@/components/icons';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
-import { SearchIcon } from '@/components/icons';
+import { useEffect, useState } from 'react';
 
 export interface FilterOption {
   key: string;
@@ -40,6 +40,11 @@ export default function StandardFilters({
 }: StandardFiltersProps) {
   const [localSearchValue, setLocalSearchValue] = useState(searchValue);
 
+  // Sync local search value when external value changes (e.g., from reset)
+  useEffect(() => {
+    setLocalSearchValue(searchValue);
+  }, [searchValue]);
+
   const handleSearchSubmit = () => {
     onSearchChange(localSearchValue);
   };
@@ -61,16 +66,26 @@ export default function StandardFilters({
       <div className='flex flex-col md:flex-row gap-4'>
         {/* Search Input */}
         <div className='flex-1'>
-          <Input
-            placeholder={searchPlaceholder}
-            startContent={<SearchIcon />}
-            value={localSearchValue}
-            onChange={e => setLocalSearchValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className='w-full'
-            isClearable
-            onClear={handleSearchClear}
-          />
+          <div className='flex gap-2'>
+            <Input
+              placeholder={searchPlaceholder}
+              startContent={<SearchIcon />}
+              value={localSearchValue}
+              onChange={e => setLocalSearchValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className='flex-1'
+              isClearable
+              onClear={handleSearchClear}
+            />
+            <Button
+              variant='solid'
+              color='primary'
+              onPress={handleSearchSubmit}
+              isDisabled={localSearchValue === searchValue}
+            >
+              Search
+            </Button>
+          </div>
         </div>
 
         {/* Sort Options */}
