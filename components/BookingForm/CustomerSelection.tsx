@@ -6,8 +6,8 @@ import { BookingFormFieldProps } from './types';
 interface CustomerSelectionProps extends BookingFormFieldProps {
   customers: Customer[];
   customersLoading: boolean;
-  scrollerRef: React.RefObject<HTMLElement>;
-  onOpenChange: (isOpen: boolean) => void;
+  scrollerRef?: React.RefObject<HTMLElement>;
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
 export default function CustomerSelection({
@@ -29,8 +29,8 @@ export default function CustomerSelection({
       defaultItems={customers || []}
       variant='bordered'
       isLoading={customersLoading}
-      scrollRef={scrollerRef}
-      onOpenChange={onOpenChange}
+      {...(scrollerRef && { scrollRef: scrollerRef })}
+      {...(onOpenChange && { onOpenChange })}
       classNames={{
         listbox: 'max-h-[200px]',
         listboxWrapper: 'max-h-[200px]',
