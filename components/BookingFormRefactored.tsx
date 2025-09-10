@@ -223,6 +223,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
       />
 
       <CustomerSelection
+        customersLoading={isLoading}
         formData={formData}
         onInputChange={handleInputChange}
         customers={customers}
