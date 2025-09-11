@@ -4,7 +4,7 @@ import { useCreateBooking } from '@/hooks/useBookings';
 import { useCabins } from '@/hooks/useCabins';
 import { useInfiniteCustomers } from '@/hooks/useInfiniteCustomers';
 import { useSettings } from '@/hooks/useSettings';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BookingDatesGuests,
   BookingExtras,
@@ -22,11 +22,40 @@ import {
 } from './BookingForm/types';
 
 export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
-  const { customers, hasMore, isLoading, onLoadMore } = useInfiniteCustomers();
+  const { customers, hasMore, isLoading, onLoadMore, searchCustomers } =
+    useInfiniteCustomers();
   const { data: cabins } = useCabins();
   const { data: settings, isLoading: settingsLoading } = useSettings();
   const createBooking = useCreateBooking();
   const [specialRequestInput, setSpecialRequestInput] = useState('');
+
+  // Debounced search for customers
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
+
+  const handleCustomerSearch = (searchValue: string) => {
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    // Set new timeout for debounced search
+    const timeout = setTimeout(() => {
+      searchCustomers(searchValue);
+    }, 300); // 300ms debounce
+
+    setSearchTimeout(timeout);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTimeout]);
 
   const [formData, setFormData] = useState<BookingFormData>({
     cabin: '',
@@ -228,6 +257,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
         onInputChange={handleInputChange}
         customers={customers}
         priceBreakdown={priceBreakdown}
+        onSearchChange={handleCustomerSearch}
       />
 
       <BookingDatesGuests

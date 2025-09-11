@@ -8,6 +8,7 @@ interface CustomerSelectionProps extends BookingFormFieldProps {
   customersLoading: boolean;
   scrollerRef?: React.RefObject<HTMLElement>;
   onOpenChange?: (isOpen: boolean) => void;
+  onSearchChange?: (search: string) => void;
 }
 
 export default function CustomerSelection({
@@ -17,6 +18,7 @@ export default function CustomerSelection({
   customersLoading,
   scrollerRef,
   onOpenChange,
+  onSearchChange,
 }: CustomerSelectionProps) {
   return (
     <Autocomplete
@@ -29,6 +31,8 @@ export default function CustomerSelection({
       defaultItems={customers || []}
       variant='bordered'
       isLoading={customersLoading}
+      onInputChange={onSearchChange}
+      allowsCustomValue={false}
       {...(scrollerRef && { scrollRef: scrollerRef })}
       {...(onOpenChange && { onOpenChange })}
       classNames={{

@@ -2,6 +2,7 @@
 
 import { useCreateBooking } from '@/hooks/useBookings';
 import { useCabins } from '@/hooks/useCabins';
+import { useInfiniteCustomers } from '@/hooks/useInfiniteCustomers';
 import { useSettings } from '@/hooks/useSettings';
 import type { Customer } from '@/types';
 import { Card, CardBody, CardHeader } from '@heroui/card';
@@ -39,68 +40,6 @@ interface BookingFormData {
 interface BookingFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-}
-
-// Custom hook for infinite scrolling customers
-function useInfiniteCustomers() {
-  const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const limit = 20; // Items per page
-
-  const loadCustomers = async (currentPage: number) => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(
-        `/api/customers?page=${currentPage}&limit=${limit}`
-      );
-      const result = await response.json();
-
-      if (result.success) {
-        const newCustomers = result.data || [];
-        setHasMore(result.pagination?.hasNextPage || false);
-
-        if (currentPage === 1) {
-          setAllCustomers(newCustomers);
-        } else {
-          // Ensure no duplicates when infinite scrolling
-          setAllCustomers(prev => {
-            const existingIds = new Set(
-              prev.map((customer: Customer) => customer._id)
-            );
-            const uniqueNewCustomers = newCustomers.filter(
-              (customer: Customer) => !existingIds.has(customer._id)
-            );
-            return [...prev, ...uniqueNewCustomers];
-          });
-        }
-      }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error loading customers:', error);
-      setHasMore(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadCustomers(1);
-  }, []);
-
-  const onLoadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    loadCustomers(nextPage);
-  };
-
-  return {
-    customers: allCustomers,
-    hasMore,
-    isLoading,
-    onLoadMore,
-  };
 }
 
 export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
@@ -142,6 +81,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
     hasMore,
     isLoading: customersLoading,
     onLoadMore,
+    searchCustomers,
   } = useInfiniteCustomers();
   const { data: settings } = useSettings();
 
@@ -153,6 +93,34 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
     shouldUseLoader: false,
     onLoadMore,
   });
+
+  // Debounced search for customers
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
+
+  const handleCustomerSearch = (searchValue: string) => {
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    // Set new timeout for debounced search
+    const timeout = setTimeout(() => {
+      searchCustomers(searchValue);
+    }, 300); // 300ms debounce
+
+    setSearchTimeout(timeout);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTimeout]);
 
   const selectedCabin = cabins?.find(cabin => cabin._id === formData.cabin);
 
@@ -386,6 +354,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
             customersLoading={customersLoading}
             scrollerRef={scrollerRef}
             onOpenChange={setIsCustomerOpen}
+            onSearchChange={handleCustomerSearch}
           />
         </CardBody>
       </Card>
