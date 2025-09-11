@@ -1,6 +1,42 @@
 import connectDB from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
-import { Booking } from '../../../models';
+import { Booking, Customer } from '../../../models';
+
+// Helper function to update customer statistics
+async function updateCustomerStats(customerId: string) {
+  try {
+    // Get all bookings for this customer
+    const customerBookings = await Booking.find({ customer: customerId });
+
+    // Calculate statistics
+    const totalBookings = customerBookings.length;
+    const totalSpent = customerBookings.reduce(
+      (sum, booking) => sum + (booking.totalPrice || 0),
+      0
+    );
+    const completedBookings = customerBookings.filter(
+      booking => booking.status === 'checked-out'
+    ).length;
+
+    // Find the most recent booking
+    const sortedBookings = customerBookings.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    const lastBookingDate =
+      sortedBookings.length > 0 ? sortedBookings[0].createdAt : null;
+
+    // Update customer record
+    await Customer.findByIdAndUpdate(customerId, {
+      totalBookings,
+      totalSpent,
+      lastBookingDate,
+    });
+  } catch (error) {
+    // Silently handle errors to not break booking operations
+    // Error logging could be added here if needed
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -93,7 +129,6 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Error fetching bookings:', error);
     return NextResponse.json(
       {
         success: false,
@@ -111,6 +146,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const booking = await Booking.create(body);
 
+    // Update customer statistics after creating booking
+    await updateCustomerStats(booking.customer);
+
     // Populate the response
     const populatedBooking = await Booking.findById(booking._id)
       .populate('cabin', 'name image capacity price discount')
@@ -124,8 +162,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('Error creating booking:', error);
-
     // Handle validation errors
     if (error.name === 'ValidationError') {
       return NextResponse.json(
@@ -193,13 +229,14 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Update customer statistics after updating booking
+    await updateCustomerStats(booking.customer._id || booking.customer);
+
     return NextResponse.json({
       success: true,
       data: booking,
     });
   } catch (error: any) {
-    console.error('Error updating booking:', error);
-
     if (error.name === 'ValidationError') {
       return NextResponse.json(
         {
@@ -248,7 +285,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const booking = await Booking.findByIdAndDelete(id);
+    // Get the booking before deleting to access customer ID
+    const booking = await Booking.findById(id);
 
     if (!booking) {
       return NextResponse.json(
@@ -260,12 +298,19 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    const customerId = booking.customer;
+
+    // Delete the booking
+    await Booking.findByIdAndDelete(id);
+
+    // Update customer statistics after deleting booking
+    await updateCustomerStats(customerId);
+
     return NextResponse.json({
       success: true,
       message: 'Booking deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting booking:', error);
     return NextResponse.json(
       {
         success: false,
