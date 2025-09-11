@@ -21,6 +21,11 @@ import DeletionModal from '@/components/DeletionModal';
 import EditGuestModal from '@/components/EditGuestModal';
 import { ArrowLeftIcon } from '@/components/icons';
 import { useCustomer, useDeleteCustomer } from '@/hooks/useCustomers';
+import {
+  getInitials,
+  getLoyaltyTier,
+  getStatusColor,
+} from '@/utils/utilityFunctions';
 
 export default function GuestDetailPage() {
   const router = useRouter();
@@ -28,41 +33,6 @@ export default function GuestDetailPage() {
   const customerId = params.id as string;
   const { data: customer, isLoading, error, mutate } = useCustomer(customerId);
   const deleteCustomerMutation = useDeleteCustomer();
-  const getLoyaltyTier = (totalSpent: number) => {
-    if (totalSpent >= 10000)
-      return { tier: 'Diamond', color: 'secondary' as const };
-    if (totalSpent >= 5000) return { tier: 'Gold', color: 'warning' as const };
-    if (totalSpent >= 2000)
-      return { tier: 'Silver', color: 'default' as const };
-
-    return { tier: 'Bronze', color: 'primary' as const };
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'success';
-      case 'unconfirmed':
-        return 'warning';
-      case 'checked-in':
-        return 'primary';
-      case 'checked-out':
-        return 'default';
-      case 'cancelled':
-        return 'danger';
-      default:
-        return 'default';
-    }
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

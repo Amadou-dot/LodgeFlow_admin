@@ -1,11 +1,9 @@
 'use client';
 
 import type { Customer } from '@/types';
-import { Avatar } from '@heroui/avatar';
 import { Card, CardBody } from '@heroui/card';
-import { Chip } from '@heroui/chip';
 import { Pagination } from '@heroui/pagination';
-import Link from 'next/link';
+import GuestCard from './GuestCard';
 
 interface PaginationData {
   currentPage: number;
@@ -31,24 +29,6 @@ export default function GuestGrid({
   currentPage,
   onPageChange,
 }: GuestGridProps) {
-  const getLoyaltyTier = (totalSpent: number) => {
-    if (totalSpent >= 10000)
-      return { tier: 'Diamond', color: 'secondary' as const };
-    if (totalSpent >= 5000) return { tier: 'Gold', color: 'warning' as const };
-    if (totalSpent >= 2000)
-      return { tier: 'Silver', color: 'default' as const };
-    return { tier: 'Bronze', color: 'primary' as const };
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   // Loading State
   if (isLoading) {
     return (
@@ -90,63 +70,7 @@ export default function GuestGrid({
       {/* Guests Grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6'>
         {customers.map(customer => {
-          const loyalty = getLoyaltyTier(customer.totalSpent || 0);
-
-          return (
-            <Link key={customer._id} href={`/guests/${customer._id}`}>
-              <Card className='hover:shadow-lg transition-all duration-200 cursor-pointer h-full'>
-                <CardBody className='p-4'>
-                  <div className='flex items-start gap-3'>
-                    <Avatar
-                      name={getInitials(customer.name)}
-                      src={customer.profileImage}
-                      className='flex-shrink-0'
-                      color='primary'
-                    />
-                    <div className='flex-1 min-w-0'>
-                      <h3 className='font-semibold text-sm truncate'>
-                        {customer.name}
-                      </h3>
-                      <p className='text-xs text-default-600 truncate'>
-                        {customer.email}
-                      </p>
-                      <p className='text-xs text-default-500 mt-1'>
-                        {customer.nationality}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className='mt-4 space-y-2'>
-                    <div className='flex justify-between items-center'>
-                      <span className='text-xs text-default-600'>
-                        Bookings:
-                      </span>
-                      <span className='text-xs font-medium'>
-                        {customer.totalBookings || 0}
-                      </span>
-                    </div>
-                    <div className='flex justify-between items-center'>
-                      <span className='text-xs text-default-600'>Spent:</span>
-                      <span className='text-xs font-medium'>
-                        ${(customer.totalSpent || 0).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className='flex justify-between items-center'>
-                      <span className='text-xs text-default-600'>Status:</span>
-                      <Chip
-                        size='sm'
-                        color={loyalty.color}
-                        variant='flat'
-                        className='text-xs'
-                      >
-                        {loyalty.tier}
-                      </Chip>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-            </Link>
-          );
+          return <GuestCard key={customer._id} customer={customer} />;
         })}
       </div>
 
