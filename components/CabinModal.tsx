@@ -1,19 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCreateCabin, useUpdateCabin } from '@/hooks/useCabins';
+import type { Cabin } from '@/types';
+import { isImageUrl } from '@/utils/utilityFunctions';
+import { Button } from '@heroui/button';
+import { Chip } from '@heroui/chip';
+import { Input, Textarea } from '@heroui/input';
 import {
   Modal,
-  ModalContent,
-  ModalHeader,
   ModalBody,
+  ModalContent,
   ModalFooter,
+  ModalHeader,
 } from '@heroui/modal';
-import { Button } from '@heroui/button';
-import { Input, Textarea } from '@heroui/input';
-import { Chip } from '@heroui/chip';
+import { addToast } from '@heroui/toast';
 import Image from 'next/image';
-import type { Cabin } from '@/types';
-import { useCreateCabin, useUpdateCabin } from '@/hooks/useCabins';
+import { useEffect, useState } from 'react';
 
 interface CabinModalProps {
   isOpen: boolean;
@@ -31,19 +33,20 @@ export default function CabinModal({
   const [formData, setFormData] = useState({
     name: '',
     image: '',
-    capacity: 2,
-    price: 150,
+    capacity: 0,
+    price: 0,
     discount: 0,
     description: '',
     amenities: [] as string[],
   });
 
   const [newAmenity, setNewAmenity] = useState('');
+  const [isValidImage, setIsValidImage] = useState(false);
   const createCabin = useCreateCabin();
   const updateCabin = useUpdateCabin();
 
   useEffect(() => {
-    if (cabin && (mode === 'edit' || mode === 'view')) {
+    if (cabin && mode === 'edit') {
       setFormData({
         name: cabin.name,
         image: cabin.image,
@@ -56,16 +59,33 @@ export default function CabinModal({
     } else if (mode === 'create') {
       setFormData({
         name: '',
-        image:
-          'https://images.unsplash.com/photo-1586375300773-8384e3e4916f?w=400&h=300&auto=format&fit=crop',
-        capacity: 2,
-        price: 150,
+        image: '',
+        capacity: 0,
+        price: 0,
         discount: 0,
         description: '',
         amenities: [],
       });
     }
   }, [cabin, mode, isOpen]);
+
+  // Validate image URL whenever it changes
+  useEffect(() => {
+    const validateImage = async () => {
+      if (formData.image.trim()) {
+        try {
+          const isValid = await isImageUrl(formData.image);
+          setIsValidImage(isValid);
+        } catch {
+          setIsValidImage(false);
+        }
+      } else {
+        setIsValidImage(false);
+      }
+    };
+
+    validateImage();
+  }, [formData.image]);
 
   const handleSubmit = async () => {
     try {
@@ -76,7 +96,11 @@ export default function CabinModal({
       }
       onClose();
     } catch (error) {
-      console.error('Error saving cabin:', error);
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        color: 'danger',
+      });
     }
   };
 
@@ -114,7 +138,7 @@ export default function CabinModal({
             {/* Image */}
             <div>
               <label className='text-sm font-medium'>Cabin Image</label>
-              {formData.image && (
+              {isValidImage && (
                 <div className='mt-2 mb-3'>
                   <Image
                     src={formData.image}
