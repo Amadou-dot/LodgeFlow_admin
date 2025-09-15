@@ -31,7 +31,11 @@ export default function SpecialRequests({
             onChange={e => onSpecialRequestInputChange(e.target.value)}
             className='flex-1'
           />
-          <Button onPress={onAddSpecialRequest} variant='bordered'>
+          <Button
+            onPress={onAddSpecialRequest}
+            variant='bordered'
+            type='button'
+          >
             Add
           </Button>
         </div>
@@ -49,6 +53,7 @@ export default function SpecialRequests({
                   color='danger'
                   variant='light'
                   onPress={() => onRemoveSpecialRequest(index)}
+                  type='button'
                 >
                   Remove
                 </Button>

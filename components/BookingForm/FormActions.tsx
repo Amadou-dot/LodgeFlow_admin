@@ -9,7 +9,7 @@ export default function FormActions({ onCancel, isLoading }: FormActionsProps) {
   return (
     <div className='flex gap-4 justify-end'>
       {onCancel && (
-        <Button variant='bordered' onPress={onCancel}>
+        <Button variant='bordered' onPress={onCancel} type='button'>
           Cancel
         </Button>
       )}

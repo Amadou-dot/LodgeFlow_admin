@@ -61,7 +61,9 @@ export default function BookingDatesGuests({
   const handleDateRangeChange = (value: RangeValue<CalendarDate> | null) => {
     if (value) {
       onInputChange('checkInDate', value.start.toString());
-      onInputChange('checkOutDate', value.end.toString());
+      if (value.end) {
+        onInputChange('checkOutDate', value.end.toString());
+      }
     } else {
       onInputChange('checkInDate', '');
       onInputChange('checkOutDate', '');
@@ -128,26 +130,34 @@ export default function BookingDatesGuests({
   return (
     <>
       {/* Date Range Selection */}
-      <DateRangePicker
-        label='Stay Duration'
-        value={dateRange}
-        onChange={handleDateRangeChange}
-        minValue={todayDate}
-        isRequired
-        showMonthAndYearPickers
-        visibleMonths={2}
-        calendarWidth={400}
-        description={
-          selectedCabin
-            ? 'Select your check-in and check-out dates. Unavailable dates are marked.'
-            : 'Please select a cabin first to see availability'
-        }
-        isDateUnavailable={selectedCabin ? isDateUnavailable : undefined}
-        validate={validateDateRange}
-        validationBehavior='native'
-        isDisabled={!selectedCabin}
-        errorMessage={error ? 'Failed to load availability data' : undefined}
-      />
+      <div 
+        onSubmit={(e) => e.preventDefault()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <DateRangePicker
+          label='Stay Duration'
+          value={dateRange}
+          onChange={handleDateRangeChange}
+          minValue={todayDate}
+          showMonthAndYearPickers
+          visibleMonths={2}
+          calendarWidth={400}
+          description={
+            selectedCabin
+              ? 'Select your check-in and check-out dates. Unavailable dates are marked.'
+              : 'Please select a cabin first to see availability'
+          }
+          isDateUnavailable={selectedCabin ? isDateUnavailable : undefined}
+          isDisabled={!selectedCabin}
+          errorMessage={error ? 'Failed to load availability data' : undefined}
+        />
+      </div>
 
       {/* Number of Guests */}
       <Input

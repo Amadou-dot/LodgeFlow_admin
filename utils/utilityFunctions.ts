@@ -31,3 +31,19 @@ export const getStatusColor = (status: string) => {
       return 'default';
   }
 };
+
+export const calcNumNights = (checkInDate: string, checkOutDate: string) => {
+  return checkInDate && checkOutDate
+    ? Math.ceil(
+        (new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+    : 0;
+};
+
+export const formatCurrency = (amount: number, currency: string) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency || 'USD',
+  }).format(amount);
+};

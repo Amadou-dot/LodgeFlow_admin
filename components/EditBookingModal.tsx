@@ -1,6 +1,8 @@
 'use client';
 
 import { EditIcon } from '@/components/icons';
+import { useBookingForm } from '@/hooks/useBookingForm';
+import { useUpdateBooking } from '@/hooks/useBookings';
 import type { PopulatedBooking } from '@/types';
 import { Button } from '@heroui/button';
 import {
@@ -11,6 +13,7 @@ import {
   ModalHeader,
   useDisclosure,
 } from '@heroui/modal';
+import BookingFormFields from './BookingFormFields';
 
 interface EditBookingModalProps {
   booking: PopulatedBooking;
@@ -24,10 +27,63 @@ export default function EditBookingModal({
   trigger,
 }: EditBookingModalProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const updateBooking = useUpdateBooking();
+
+  // Use the booking form hook with initial booking data
+  const bookingFormHook = useBookingForm(booking);
+  const { validateForm, buildBookingData } = bookingFormHook;
 
   const handleSuccess = () => {
     onClose();
     onBookingUpdated?.();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const errors = validateForm();
+    if (errors.length > 0) {
+      alert(errors.join('\n'));
+      return;
+    }
+
+    try {
+      const bookingData = {
+        ...buildBookingData(),
+        _id: booking._id,
+        status: booking.status, // Preserve existing status
+      };
+
+      await updateBooking.mutateAsync(bookingData as any);
+      handleSuccess();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error updating booking:', error);
+      alert('Failed to update booking. Please try again.');
+    }
+  };
+
+  const handleUpdateClick = async () => {
+    const errors = validateForm();
+    if (errors.length > 0) {
+      alert(errors.join('\n'));
+      return;
+    }
+
+    try {
+      const bookingData = {
+        ...buildBookingData(),
+        _id: booking._id,
+        status: booking.status, // Preserve existing status
+      };
+
+      await updateBooking.mutateAsync(bookingData as any);
+      handleSuccess();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error updating booking:', error);
+      alert('Failed to update booking. Please try again.');
+    }
   };
 
   const defaultTrigger = (
@@ -43,36 +99,80 @@ export default function EditBookingModal({
 
   return (
     <>
-      {trigger ? <div onClick={onOpen}>{trigger}</div> : defaultTrigger}
+      {trigger ? (
+        <span onClick={onOpen} style={{ cursor: 'pointer' }}>
+          {trigger}
+        </span>
+      ) : (
+        defaultTrigger
+      )}
 
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        size='2xl'
+        size='5xl'
         scrollBehavior='inside'
+        isDismissable={false}
         backdrop='opaque'
+        classNames={{
+          base: 'max-h-[90vh]',
+          body: 'p-0',
+        }}
       >
         <ModalContent>
-          <ModalHeader className='flex flex-col gap-1'>
+          <ModalHeader className='flex flex-col gap-1 px-6 py-4'>
             <h2 className='text-xl font-bold'>Edit Booking</h2>
             <p className='text-sm text-default-600'>
-              Booking editing functionality coming soon...
+              Update booking details for{' '}
+              {typeof booking.customer === 'string'
+                ? booking.customer
+                : booking.customer.name}
             </p>
           </ModalHeader>
-          <ModalBody>
-            <div className='text-center py-8'>
-              <p className='text-default-500 mb-4'>
-                The booking edit feature is currently under development.
-              </p>
-              <p className='text-sm text-default-400'>
-                For now, you can view and manage booking status through the
-                Quick Actions.
-              </p>
+
+          <ModalBody className='px-6'>
+            <div className='space-y-6'>
+              <BookingFormFields
+                formData={bookingFormHook.formData}
+                specialRequestInput={bookingFormHook.specialRequestInput}
+                priceBreakdown={bookingFormHook.priceBreakdown}
+                selectedCabin={bookingFormHook.selectedCabin}
+                numNights={bookingFormHook.numNights}
+                cabins={bookingFormHook.cabins}
+                customers={bookingFormHook.customers}
+                customersLoading={bookingFormHook.customersLoading}
+                settings={bookingFormHook.settings}
+                scrollerRef={bookingFormHook.scrollerRef}
+                isCustomerOpen={bookingFormHook.isCustomerOpen}
+                setIsCustomerOpen={bookingFormHook.setIsCustomerOpen}
+                handleInputChange={bookingFormHook.handleInputChange}
+                handleCustomerSearch={bookingFormHook.handleCustomerSearch}
+                addSpecialRequest={bookingFormHook.addSpecialRequest}
+                removeSpecialRequest={bookingFormHook.removeSpecialRequest}
+                setSpecialRequestInput={bookingFormHook.setSpecialRequestInput}
+                formatCurrency={bookingFormHook.formatCurrency}
+                showPayment={true}
+                showPricing={true}
+              />
             </div>
           </ModalBody>
-          <ModalFooter>
-            <Button variant='light' onPress={onClose}>
-              Close
+
+          <ModalFooter className='px-6 py-4'>
+            <Button
+              variant='light'
+              onPress={onClose}
+              isDisabled={updateBooking.isPending}
+              type='button'
+            >
+              Cancel
+            </Button>
+            <Button
+              color='primary'
+              onPress={handleUpdateClick}
+              isLoading={updateBooking.isPending}
+              type='button'
+            >
+              {updateBooking.isPending ? 'Updating...' : 'Update Booking'}
             </Button>
           </ModalFooter>
         </ModalContent>

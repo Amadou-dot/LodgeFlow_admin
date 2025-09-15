@@ -1,15 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { PlusIcon } from '@/components/icons';
+import { Button } from '@heroui/button';
 import {
   Modal,
+  ModalBody,
   ModalContent,
   ModalHeader,
-  ModalBody,
   useDisclosure,
 } from '@heroui/modal';
-import { Button } from '@heroui/button';
-import { PlusIcon } from '@/components/icons';
 import BookingForm from './BookingForm';
 
 interface AddBookingModalProps {
@@ -42,6 +41,7 @@ export default function AddBookingModal({
         onClose={onClose}
         size='5xl'
         scrollBehavior='inside'
+        isDismissable={false}
         backdrop='opaque'
       >
         <ModalContent>
