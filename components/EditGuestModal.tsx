@@ -1,8 +1,8 @@
 'use client';
 
-import { Modal, ModalContent, ModalBody, useDisclosure } from '@heroui/modal';
-import { Button } from '@heroui/button';
 import { EditIcon } from '@/components/icons';
+import { Button } from '@heroui/button';
+import { Modal, ModalBody, ModalContent, useDisclosure } from '@heroui/modal';
 import AddGuestForm from './AddGuestForm';
 
 interface EditGuestModalProps {
@@ -38,7 +38,7 @@ export default function EditGuestModal({
         onOpenChange={onOpenChange}
         size='3xl'
         scrollBehavior='inside'
-        backdrop='transparent'
+        backdrop='opaque'
       >
         <ModalContent>
           {onClose => (

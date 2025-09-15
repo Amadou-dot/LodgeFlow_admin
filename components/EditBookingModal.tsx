@@ -113,11 +113,8 @@ export default function EditBookingModal({
         size='5xl'
         scrollBehavior='inside'
         isDismissable={false}
+        shouldBlockScroll={false}
         backdrop='opaque'
-        classNames={{
-          base: 'max-h-[90vh]',
-          body: 'p-0',
-        }}
       >
         <ModalContent>
           <ModalHeader className='flex flex-col gap-1 px-6 py-4'>

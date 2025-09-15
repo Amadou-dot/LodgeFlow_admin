@@ -130,15 +130,15 @@ export default function BookingDatesGuests({
   return (
     <>
       {/* Date Range Selection */}
-      <div 
-        onSubmit={(e) => e.preventDefault()}
-        onKeyDown={(e) => {
+      <div
+        onSubmit={e => e.preventDefault()}
+        onKeyDown={e => {
           if (e.key === 'Enter') {
             e.preventDefault();
             e.stopPropagation();
           }
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <DateRangePicker
           label='Stay Duration'
