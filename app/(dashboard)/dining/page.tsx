@@ -1,21 +1,23 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from '@heroui/button';
-import { Spinner } from '@heroui/spinner';
-import { useDisclosure } from '@heroui/modal';
-import { DiningGrid } from '@/components/DiningGrid';
 import DiningFilters from '@/components/DiningFilters';
+import { DiningGrid } from '@/components/DiningGrid';
 import { DiningModal } from '@/components/DiningModal';
 import { PlusIcon } from '@/components/icons';
 import { useDining } from '@/hooks/useDining';
 import { Dining } from '@/types';
+import { Button } from '@heroui/button';
+import { useDisclosure } from '@heroui/modal';
+import { Spinner } from '@heroui/spinner';
+import { useState } from 'react';
 
 export default function DiningPage() {
   const [selectedDining, setSelectedDining] = useState<
     Partial<Dining> | undefined
   >();
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filters, setFilters] = useState<{
     type: 'menu' | 'experience' | '';
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'all-day' | '';
@@ -43,6 +45,8 @@ export default function DiningPage() {
     category: filters.category || undefined,
     isAvailable: filters.isAvailable ?? undefined,
     search: searchTerm || undefined,
+    sortBy,
+    sortOrder,
   };
 
   const { dining, loading, error, createDining, updateDining, deleteDining } =
@@ -85,12 +89,22 @@ export default function DiningPage() {
 
   const handleClearFilters = () => {
     setSearchTerm('');
+    setSortBy('name');
+    setSortOrder('asc');
     setFilters({
       type: '',
       mealType: '',
       category: '',
       isAvailable: null,
     });
+  };
+
+  const handleSortChange = (newSortBy: string) => {
+    setSortBy(newSortBy);
+  };
+
+  const handleSortOrderChange = (newSortOrder: 'asc' | 'desc') => {
+    setSortOrder(newSortOrder);
   };
 
   if (error) {
@@ -146,6 +160,10 @@ export default function DiningPage() {
           totalCount={dining?.length || 0}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortChange={handleSortChange}
+          onSortOrderChange={handleSortOrderChange}
         />
       </div>
 

@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
 import { Dining } from '@/types';
+import { useEffect, useState } from 'react';
 
 interface UseDiningOptions {
   type?: 'menu' | 'experience';
   mealType?: 'breakfast' | 'lunch' | 'dinner' | 'all-day';
   category?: 'regular' | 'craft-beer' | 'wine' | 'spirits' | 'non-alcoholic';
   isAvailable?: boolean;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 interface UseDiningReturn {
@@ -34,6 +37,9 @@ export const useDining = (options: UseDiningOptions = {}): UseDiningReturn => {
     if (params.category) searchParams.append('category', params.category);
     if (params.isAvailable !== undefined)
       searchParams.append('isAvailable', params.isAvailable.toString());
+    if (params.search) searchParams.append('search', params.search);
+    if (params.sortBy) searchParams.append('sortBy', params.sortBy);
+    if (params.sortOrder) searchParams.append('sortOrder', params.sortOrder);
 
     return searchParams.toString();
   };
@@ -149,7 +155,15 @@ export const useDining = (options: UseDiningOptions = {}): UseDiningReturn => {
 
   useEffect(() => {
     fetchDining();
-  }, [options.type, options.mealType, options.category, options.isAvailable]);
+  }, [
+    options.type,
+    options.mealType,
+    options.category,
+    options.isAvailable,
+    options.search,
+    options.sortBy,
+    options.sortOrder,
+  ]);
 
   return {
     dining,

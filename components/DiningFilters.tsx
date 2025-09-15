@@ -17,6 +17,10 @@ interface DiningFiltersProps {
   totalCount?: number;
   searchTerm?: string;
   onSearchChange?: (search: string) => void;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  onSortChange?: (sortBy: string) => void;
+  onSortOrderChange?: (sortOrder: 'asc' | 'desc') => void;
 }
 
 export default function DiningFilters({
@@ -32,6 +36,10 @@ export default function DiningFilters({
   totalCount,
   searchTerm = '',
   onSearchChange = () => {},
+  sortBy = 'name',
+  sortOrder = 'asc',
+  onSortChange = () => {},
+  onSortOrderChange = () => {},
 }: DiningFiltersProps) {
   const sortOptions: FilterOption[] = [
     { key: 'name', label: 'Name', value: 'name' },
@@ -132,10 +140,10 @@ export default function DiningFilters({
       searchValue={searchTerm}
       onSearchChange={onSearchChange}
       sortOptions={sortOptions}
-      currentSort='name'
-      onSortChange={() => {}} // Dining doesn't seem to have sorting implemented
-      sortOrder='asc'
-      onSortOrderChange={() => {}} // Dining doesn't seem to have sorting implemented
+      currentSort={sortBy}
+      onSortChange={onSortChange}
+      sortOrder={sortOrder}
+      onSortOrderChange={onSortOrderChange}
       additionalFilters={additionalFilters}
       totalCount={totalCount}
       itemName='item'
