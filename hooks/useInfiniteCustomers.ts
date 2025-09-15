@@ -59,23 +59,20 @@ export function useInfiniteCustomers() {
   };
 
   // Search customers with debouncing
-  const searchCustomers = useCallback(
-    async (search: string) => {
-      if (!search.trim()) {
-        setIsSearching(false);
-        setSearchResults([]);
-        setSearchTerm('');
-        return;
-      }
-
-      setIsSearching(true);
-      setSearchTerm(search);
-      setPage(1);
-      await loadCustomers(1, search);
+  const searchCustomers = useCallback(async (search: string) => {
+    if (!search.trim()) {
       setIsSearching(false);
-    },
-    []
-  );
+      setSearchResults([]);
+      setSearchTerm('');
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchTerm(search);
+    setPage(1);
+    await loadCustomers(1, search);
+    setIsSearching(false);
+  }, []);
 
   useEffect(() => {
     loadCustomers(1);
