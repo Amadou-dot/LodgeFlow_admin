@@ -35,6 +35,8 @@ export default function BookingSidebar({
         onCheckIn={onCheckIn}
         onCheckOut={onCheckOut}
         actionLoading={actionLoading}
+        firstName={booking.customer.name}
+        email={booking.customer.email}
       />
 
       <BookingHistoryCard

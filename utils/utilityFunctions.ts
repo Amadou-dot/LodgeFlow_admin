@@ -59,7 +59,10 @@ export async function isImageUrl(url: string | undefined): Promise<boolean> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
     try {
-      const res = await fetch(url, { method: 'HEAD', signal: controller.signal });
+      const res = await fetch(url, {
+        method: 'HEAD',
+        signal: controller.signal,
+      });
       clearTimeout(timeout);
       const contentType = res.headers.get('content-type') || '';
       return contentType.startsWith('image/');
@@ -71,3 +74,18 @@ export async function isImageUrl(url: string | undefined): Promise<boolean> {
     return false;
   }
 }
+
+export const validateEmail = (email: string) => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(String(email).toLowerCase());
+};
+
+export const validatePhoneNumber = (phone: string) => {
+  const re = /^\+?[1-9]\d{1,14}$/;
+  return re.test(String(phone).toLowerCase());
+};
+
+export const validateName = (name: string) => {
+  const re = /^[a-zA-Z\s'-]{2,50}$/;
+  return re.test(String(name));
+};

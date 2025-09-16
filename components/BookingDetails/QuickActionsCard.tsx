@@ -1,5 +1,7 @@
+import { useSendConfirmationEmail } from '@/hooks/useSendEmail';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
+import { addToast } from '@heroui/toast';
 
 interface QuickActionsCardProps {
   status: string;
@@ -7,6 +9,8 @@ interface QuickActionsCardProps {
   onCheckIn: () => void;
   onCheckOut: () => void;
   actionLoading: string | null;
+  firstName: string;
+  email: string;
 }
 
 export default function QuickActionsCard({
@@ -15,7 +19,26 @@ export default function QuickActionsCard({
   onCheckIn,
   onCheckOut,
   actionLoading,
+  firstName,
+  email,
 }: QuickActionsCardProps) {
+  const { sendConfirmationEmail } = useSendConfirmationEmail();
+
+  const handleSendConfirmation = async () => {
+    try {
+      await sendConfirmationEmail(firstName, email);
+      addToast({
+        color: 'success',
+        description: 'Confirmation email sent successfully',
+      });
+    } catch (error) {
+      addToast({
+        color: 'danger',
+        description: 'Failed to send confirmation email',
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -51,7 +74,7 @@ export default function QuickActionsCard({
             Record Payment
           </Button>
         )}
-        <Button variant='flat' fullWidth>
+        <Button variant='flat' fullWidth onPress={handleSendConfirmation}>
           Send Confirmation Email
         </Button>
         <Button variant='flat' fullWidth>
