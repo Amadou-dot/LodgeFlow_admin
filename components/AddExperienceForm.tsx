@@ -8,14 +8,13 @@ import { Select, SelectItem } from '@heroui/select';
 import { useState } from 'react';
 import type { FormProps } from './AddExperienceForm/types';
 import Container from './EditExperienceForm/Container';
-
 export default function AddExperienceForm({
   formData,
   setFormData,
 }: FormProps) {
   const keys = ['1', '2', '3', '4', '5'];
 
-  const [isExpanded, setIsExpanded] = useState<Set<string>>(new Set());
+  const [isExpanded, setIsExpanded] = useState<Set<string>>(new Set([keys[0]]));
   const expandAll = () => setIsExpanded(new Set(keys));
   const collapseAll = () => setIsExpanded(new Set());
 
