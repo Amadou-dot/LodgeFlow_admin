@@ -30,12 +30,6 @@ export default function CabinsPage() {
     setIsModalOpen(true);
   };
 
-  const handleViewCabin = (cabin: Cabin) => {
-    setSelectedCabin(cabin);
-    setModalMode('view');
-    setIsModalOpen(true);
-  };
-
   const handleEditCabin = (cabin: Cabin) => {
     setSelectedCabin(cabin);
     setModalMode('edit');
@@ -142,7 +136,6 @@ export default function CabinsPage() {
                   <CabinCard
                     key={cabin.id}
                     cabin={cabin}
-                    onView={() => handleViewCabin(cabin)}
                     onEdit={() => handleEditCabin(cabin)}
                     onDelete={() => handleDeleteCabin(cabin)}
                   />

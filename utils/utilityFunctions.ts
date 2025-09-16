@@ -47,3 +47,27 @@ export const formatCurrency = (amount: number, currency: string) => {
     currency: currency || 'USD',
   }).format(amount);
 };
+
+export async function isImageUrl(url: string | undefined): Promise<boolean> {
+  if (typeof url !== 'string') return false;
+
+  try {
+    // Quick sanity check: must be a valid URL
+    new URL(url);
+
+    // Try a HEAD request to check Content-Type with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
+    try {
+      const res = await fetch(url, { method: 'HEAD', signal: controller.signal });
+      clearTimeout(timeout);
+      const contentType = res.headers.get('content-type') || '';
+      return contentType.startsWith('image/');
+    } catch (err) {
+      // If fetch was aborted or failed, treat as not an image
+      return false;
+    }
+  } catch {
+    return false;
+  }
+}

@@ -10,16 +10,10 @@ import DeletionModal from './DeletionModal';
 interface CabinCardProps {
   cabin: Cabin;
   onEdit: (cabin: Cabin) => void;
-  onView: (cabin: Cabin) => void;
   onDelete: (cabin: Cabin) => void;
 }
 
-export default function CabinCard({
-  cabin,
-  onEdit,
-  onView,
-  onDelete,
-}: CabinCardProps) {
+export default function CabinCard({ cabin, onEdit, onDelete }: CabinCardProps) {
   const discountedPrice = cabin.price - cabin.discount;
 
   return (
