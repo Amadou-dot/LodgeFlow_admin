@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { connectDB, Dining } from '@/models';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,15 +10,48 @@ export async function GET(request: NextRequest) {
     const mealType = searchParams.get('mealType');
     const category = searchParams.get('category');
     const isAvailable = searchParams.get('isAvailable');
+    const search = searchParams.get('search');
+    const sortBy = searchParams.get('sortBy') || 'name';
+    const sortOrder = searchParams.get('sortOrder') || 'asc';
 
     // Build filter object
     const filter: any = {};
     if (type) filter.type = type;
     if (mealType) filter.mealType = mealType;
     if (category) filter.category = category;
-    if (isAvailable !== null) filter.isAvailable = isAvailable === 'true';
+    if (isAvailable !== null && isAvailable !== undefined)
+      filter.isAvailable = isAvailable === 'true';
 
-    const dining = await Dining.find(filter).sort({ createdAt: -1 });
+    // Add search functionality
+    if (search) {
+      // If we have other filters, we need to combine them with $and
+      const searchFilter = {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { type: { $regex: search, $options: 'i' } },
+          { category: { $regex: search, $options: 'i' } },
+          { mealType: { $regex: search, $options: 'i' } },
+        ],
+      };
+
+      // If we have existing filters, combine them
+      if (Object.keys(filter).length > 0) {
+        const existingFilters = { ...filter };
+        filter.$and = [existingFilters, searchFilter];
+        // Remove the individual filter properties since they're now in $and
+        Object.keys(existingFilters).forEach(key => delete filter[key]);
+      } else {
+        // If no other filters, just use the search filter
+        Object.assign(filter, searchFilter);
+      }
+    }
+
+    // Build sort object
+    const sort: any = {};
+    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    const dining = await Dining.find(filter).sort(sort);
 
     return NextResponse.json({
       success: true,
