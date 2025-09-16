@@ -12,13 +12,13 @@ interface GuestCardProps {
 export default function GuestCard({ customer }: GuestCardProps) {
   const loyalty = getLoyaltyTier(customer.totalSpent);
   return (
-    <Link key={customer._id} href={`/guests/${customer._id}`}>
+    <Link key={customer.id} href={`/guests/${customer.id}`}>
       <Card className='hover:shadow-lg transition-all duration-200 cursor-pointer h-full'>
         <CardBody className='p-4'>
           <div className='flex items-start gap-3'>
             <Avatar
               name={getInitials(customer.name)}
-              src={customer.profileImage}
+              src={customer.image_url}
               className='flex-shrink-0'
               color='primary'
             />
@@ -30,7 +30,7 @@ export default function GuestCard({ customer }: GuestCardProps) {
                 {customer.email}
               </p>
               <p className='text-xs text-default-500 mt-1'>
-                {customer.nationality}
+                {customer.nationality || 'Not specified'}
               </p>
             </div>
           </div>

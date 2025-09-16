@@ -70,7 +70,7 @@ export default function GuestGrid({
       {/* Guests Grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6'>
         {customers.map(customer => {
-          return <GuestCard key={customer._id} customer={customer} />;
+          return <GuestCard key={customer.id} customer={customer} />;
         })}
       </div>
 

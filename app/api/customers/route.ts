@@ -1,52 +1,59 @@
+import { requireAuth } from '@/lib/auth';
+import { getClerkUsers, searchClerkUsers } from '@/lib/clerk-users';
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '../../../lib/mongodb';
-import { Customer } from '../../../models';
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
+    await requireAuth();
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search');
-    const sortBy = searchParams.get('sortBy') || 'name';
-    const sortOrder = searchParams.get('sortOrder') || 'asc';
-
-    // Build query for search
-    let query = {};
-    if (search) {
-      query = {
-        $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-          { nationality: { $regex: search, $options: 'i' } },
-          { nationalId: { $regex: search, $options: 'i' } },
-        ],
-      };
-    }
-
-    // Build sort object
-    const sort: any = {};
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    const sortBy = searchParams.get('sortBy') || 'created_at';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
 
     // Calculate pagination
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
-    // Get customers
-    const customers = await Customer.find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .select('-__v'); // Exclude version field
+    // Map sortBy to valid Clerk fields
+    let clerkSortBy = 'created_at';
+    switch (sortBy) {
+      case 'name':
+        clerkSortBy = 'first_name';
+        break;
+      case 'email':
+        clerkSortBy = 'email_address';
+        break;
+      case 'created_at':
+      case 'updated_at':
+      case 'last_sign_in_at':
+      case 'last_active_at':
+        clerkSortBy = sortBy;
+        break;
+      default:
+        clerkSortBy = 'created_at';
+    }
 
-    // Get total count for pagination
-    const totalCustomers = await Customer.countDocuments(query);
+    const orderBy = `${sortOrder === 'desc' ? '-' : ''}${clerkSortBy}`;
+
+    let response;
+    if (search) {
+      response = await searchClerkUsers(search, limit, offset);
+    } else {
+      response = await getClerkUsers({
+        limit,
+        offset,
+        orderBy,
+      });
+    }
+
+    const totalCustomers = response.totalCount;
     const totalPages = Math.ceil(totalCustomers / limit);
 
     return NextResponse.json({
       success: true,
-      data: customers,
+      data: response.data,
       pagination: {
         currentPage: page,
         totalPages,
@@ -57,62 +64,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching customers:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch customers',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    await connectDB();
-
-    const body = await request.json();
-    const customer = await Customer.create(body);
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: customer,
-      },
-      { status: 201 }
-    );
-  } catch (error: any) {
-    console.error('Error creating customer:', error);
-
-    // Handle validation errors
-    if (error.name === 'ValidationError') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Validation failed',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Handle duplicate email errors
-    if (error.code === 11000) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Email already exists',
-        },
-        { status: 409 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to create customer',
-      },
+      { success: false, error: 'Failed to fetch customers' },
       { status: 500 }
     );
   }

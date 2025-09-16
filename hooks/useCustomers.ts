@@ -1,8 +1,8 @@
 'use client';
 
-import useSWR from 'swr';
-import { useMutation } from '@tanstack/react-query';
 import type { Customer, CustomersFilters, PaginationMeta } from '@/types';
+import { useMutation } from '@tanstack/react-query';
+import useSWR from 'swr';
 
 interface CustomersResponse {
   customers: Customer[];
@@ -116,7 +116,7 @@ export const useCreateCustomer = () => {
 export const useUpdateCustomer = () => {
   return useMutation({
     mutationFn: async (customer: any) => {
-      const response = await fetch(`/api/customers/${customer._id}`, {
+      const response = await fetch(`/api/customers/${customer.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

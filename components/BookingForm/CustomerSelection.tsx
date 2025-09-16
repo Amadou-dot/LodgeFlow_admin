@@ -42,7 +42,7 @@ export default function CustomerSelection({
     >
       {customer => (
         <AutocompleteItem
-          key={customer._id}
+          key={customer.id}
           textValue={customer.name}
           classNames={{
             base: 'py-2',
@@ -55,7 +55,7 @@ export default function CustomerSelection({
               alt={customer.name}
               className='shrink-0'
               size='sm'
-              src={customer.profileImage}
+              src={customer.image_url}
               name={customer.name
                 .split(' ')
                 .map((n: string) => n[0])
