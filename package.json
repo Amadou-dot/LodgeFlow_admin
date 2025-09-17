@@ -55,6 +55,7 @@
     "@react-aria/i18n": "^3.12.12",
     "@react-aria/ssr": "3.9.10",
     "@react-aria/visually-hidden": "3.8.26",
+    "@react-email/render": "^1.2.3",
     "@tanstack/react-query": "^5.85.3",
     "@tanstack/react-query-devtools": "^5.85.3",
     "clsx": "2.1.1",
@@ -69,6 +70,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "recharts": "^3.1.2",
+    "resend": "^6.1.0",
     "swr": "^2.3.6"
   },
   "devDependencies": {

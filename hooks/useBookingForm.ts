@@ -44,7 +44,7 @@ const getInitialFormData = (booking?: PopulatedBooking): BookingFormData => {
       customer:
         typeof booking.customer === 'string'
           ? booking.customer
-          : booking.customer._id,
+          : booking.customer.id,
       checkInDate:
         booking.checkInDate instanceof Date
           ? booking.checkInDate.toISOString().split('T')[0]

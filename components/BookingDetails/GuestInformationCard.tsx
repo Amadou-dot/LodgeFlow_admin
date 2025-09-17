@@ -26,7 +26,7 @@ export default function GuestInformationCard({
               name={customer.name || 'Unknown Guest'}
               description={customer.email || 'No email provided'}
               avatarProps={{
-                src: customer.profileImage,
+                src: customer.image_url,
                 name: customer.name
                   ? customer.name
                       .split(' ')

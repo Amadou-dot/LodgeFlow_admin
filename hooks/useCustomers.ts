@@ -1,8 +1,8 @@
 'use client';
 
-import useSWR from 'swr';
-import { useMutation } from '@tanstack/react-query';
 import type { Customer, CustomersFilters, PaginationMeta } from '@/types';
+import { useMutation } from '@tanstack/react-query';
+import useSWR from 'swr';
 
 interface CustomersResponse {
   customers: Customer[];
@@ -116,7 +116,7 @@ export const useCreateCustomer = () => {
 export const useUpdateCustomer = () => {
   return useMutation({
     mutationFn: async (customer: any) => {
-      const response = await fetch(`/api/customers/${customer._id}`, {
+      const response = await fetch(`/api/customers/${customer.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -146,6 +146,44 @@ export const useDeleteCustomer = () => {
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to delete customer');
+      }
+
+      const result = await response.json();
+      return result.success ? result : result;
+    },
+  });
+};
+
+// Lock customer
+export const useLockCustomer = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/customers/${id}/lock`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to lock customer');
+      }
+
+      const result = await response.json();
+      return result.success ? result : result;
+    },
+  });
+};
+
+// Unlock customer
+export const useUnlockCustomer = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/customers/${id}/lock`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to unlock customer');
       }
 
       const result = await response.json();

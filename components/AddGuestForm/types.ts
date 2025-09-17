@@ -1,7 +1,9 @@
 export interface FormData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
+  password: string; // Added for Clerk user creation
   nationality: string;
   nationalId: string;
   address: {
@@ -12,7 +14,8 @@ export interface FormData {
     zipCode: string;
   };
   emergencyContact: {
-    name: string;
+    firstName: string;
+    lastName: string;
     phone: string;
     relationship: string;
   };
@@ -24,9 +27,11 @@ export interface FormData {
 }
 
 export const initialFormData: FormData = {
-  name: '',
+  firstName: '',
+  lastName: '',
   email: '',
   phone: '',
+  password: '', // Added for Clerk user creation
   nationality: '',
   nationalId: '',
   address: {
@@ -37,7 +42,8 @@ export const initialFormData: FormData = {
     zipCode: '',
   },
   emergencyContact: {
-    name: '',
+    firstName: '',
+    lastName: '',
     phone: '',
     relationship: '',
   },

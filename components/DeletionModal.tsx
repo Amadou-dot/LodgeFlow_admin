@@ -9,8 +9,8 @@ import {
 } from '@heroui/modal';
 import { addToast } from '@heroui/toast';
 import { UseMutationResult } from '@tanstack/react-query';
-import { TrashIcon } from './icons';
 import { ReactNode } from 'react';
+import { TrashIcon } from './icons';
 
 interface ModalProps {
   resourceId: string;
@@ -69,11 +69,13 @@ export default function DeletionModal({
 
   const handleDelete = async () => {
     if (!resourceId) {
-      console.error('No resource ID provided');
+      addToast({
+        title: 'Error',
+        description: 'Resource ID is missing',
+        color: 'danger',
+      });
       return;
     }
-
-    console.log('Attempting to delete resource:', resourceId);
 
     try {
       let result;
@@ -84,7 +86,6 @@ export default function DeletionModal({
         // Handle React Query mutation
         result = await onDelete.mutateAsync(resourceId);
       }
-      console.log('Delete successful:', result);
 
       onOpenChange(false); // Close modal
       onResourceDeleted?.(); // Refresh resource list
@@ -94,7 +95,11 @@ export default function DeletionModal({
         color: 'success',
       });
     } catch (error: any) {
-      console.error('Delete error:', error);
+      addToast({
+        title: 'Error',
+        description: 'Delete error occurred',
+        color: 'danger',
+      });
 
       // Handle specific error messages from the API
       let errorMessage = 'Unknown error occurred';
@@ -114,7 +119,7 @@ export default function DeletionModal({
     className: 'w-full sm:w-auto',
     color: 'danger' as const,
     startContent: <TrashIcon />,
-    variant: 'light' as const,
+    variant: 'flat' as const,
     ...buttonProps,
   };
 

@@ -20,12 +20,18 @@ import AddBookingModal from '@/components/AddBookingModal';
 import DeletionModal from '@/components/DeletionModal';
 import EditGuestModal from '@/components/EditGuestModal';
 import { ArrowLeftIcon } from '@/components/icons';
-import { useCustomer, useDeleteCustomer } from '@/hooks/useCustomers';
+import {
+  useCustomer,
+  useDeleteCustomer,
+  useLockCustomer,
+  useUnlockCustomer,
+} from '@/hooks/useCustomers';
 import {
   getInitials,
   getLoyaltyTier,
   getStatusColor,
 } from '@/utils/utilityFunctions';
+import { addToast } from '@heroui/toast';
 
 export default function GuestDetailPage() {
   const router = useRouter();
@@ -33,6 +39,8 @@ export default function GuestDetailPage() {
   const customerId = params.id as string;
   const { data: customer, isLoading, error, mutate } = useCustomer(customerId);
   const deleteCustomerMutation = useDeleteCustomer();
+  const lockCustomerMutation = useLockCustomer();
+  const unlockCustomerMutation = useUnlockCustomer();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -40,6 +48,42 @@ export default function GuestDetailPage() {
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  const handleLockCustomer = async () => {
+    try {
+      await lockCustomerMutation.mutateAsync(customerId);
+      mutate(); // Refresh customer data
+      addToast({
+        title: 'Success',
+        description: 'Customer has been locked',
+        color: 'success',
+      });
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: 'Failed to lock customer',
+        color: 'danger',
+      });
+    }
+  };
+
+  const handleUnlockCustomer = async () => {
+    try {
+      await unlockCustomerMutation.mutateAsync(customerId);
+      mutate(); // Refresh customer data
+      addToast({
+        title: 'Success',
+        description: 'Customer has been unlocked',
+        color: 'success',
+      });
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: 'Failed to unlock customer',
+        color: 'danger',
+      });
+    }
   };
 
   if (isLoading) {
@@ -106,8 +150,27 @@ export default function GuestDetailPage() {
             guestData={customer}
             onGuestUpdated={() => mutate()}
           />
+          {customer.locked ? (
+            <Button
+              color='success'
+              variant='flat'
+              onPress={handleUnlockCustomer}
+              isLoading={unlockCustomerMutation.isPending}
+            >
+              Unlock User
+            </Button>
+          ) : (
+            <Button
+              color='warning'
+              variant='flat'
+              onPress={handleLockCustomer}
+              isLoading={lockCustomerMutation.isPending}
+            >
+              Lock User
+            </Button>
+          )}
           <DeletionModal
-            resourceId={customer._id}
+            resourceId={customer.id}
             resourceName='Customer'
             itemName={customer.name}
             onDelete={deleteCustomerMutation}
@@ -126,18 +189,41 @@ export default function GuestDetailPage() {
                 className='w-16 h-16 text-large'
                 color='primary'
                 name={getInitials(customer.name)}
+                src={customer.image_url}
               />
               <div className='flex flex-col'>
                 <p className='text-lg font-semibold'>{customer.name}</p>
                 <p className='text-small text-default-600'>{customer.email}</p>
-                <Chip
-                  className='mt-2 w-fit'
-                  color={loyalty.color}
-                  size='sm'
-                  variant='flat'
-                >
-                  {loyalty.tier} Member
-                </Chip>
+                <div className='flex gap-2 mt-2'>
+                  <Chip
+                    className='w-fit'
+                    color={loyalty.color}
+                    size='sm'
+                    variant='flat'
+                  >
+                    {loyalty.tier} Member
+                  </Chip>
+                  {customer.locked && (
+                    <Chip
+                      className='w-fit'
+                      color='danger'
+                      size='sm'
+                      variant='flat'
+                    >
+                      🔒 Locked
+                    </Chip>
+                  )}
+                  {customer.banned && (
+                    <Chip
+                      className='w-fit'
+                      color='danger'
+                      size='sm'
+                      variant='solid'
+                    >
+                      🚫 Banned
+                    </Chip>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <Divider />
@@ -187,7 +273,10 @@ export default function GuestDetailPage() {
                   <div className='space-y-1 text-sm'>
                     <div className='flex justify-between'>
                       <span className='text-default-600'>Name:</span>
-                      <span>{customer.emergencyContact.name}</span>
+                      <span>
+                        {customer.emergencyContact.firstName}{' '}
+                        {customer.emergencyContact.lastName}
+                      </span>
                     </div>
                     <div className='flex justify-between'>
                       <span className='text-default-600'>Phone:</span>

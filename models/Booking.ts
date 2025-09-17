@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IBooking extends Document {
   _id: string;
   cabin: mongoose.Types.ObjectId;
-  customer: mongoose.Types.ObjectId;
+  customer: string; // Changed to string to store Clerk user ID
   checkInDate: Date;
   checkOutDate: Date;
   numNights: number;
@@ -50,9 +50,9 @@ const BookingSchema: Schema = new Schema(
       required: [true, 'Cabin is required'],
     },
     customer: {
-      type: Schema.Types.ObjectId,
-      ref: 'Customer',
+      type: String,
       required: [true, 'Customer is required'],
+      trim: true,
     },
     checkInDate: {
       type: Date,

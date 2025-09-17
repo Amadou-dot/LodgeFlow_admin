@@ -1,52 +1,63 @@
+import { requireAuth } from '@/lib/auth';
+import {
+  createCompleteCustomer,
+  getClerkUsers,
+  searchClerkUsers,
+} from '@/lib/clerk-users';
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '../../../lib/mongodb';
-import { Customer } from '../../../models';
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
+    await requireAuth();
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search');
-    const sortBy = searchParams.get('sortBy') || 'name';
-    const sortOrder = searchParams.get('sortOrder') || 'asc';
-
-    // Build query for search
-    let query = {};
-    if (search) {
-      query = {
-        $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-          { nationality: { $regex: search, $options: 'i' } },
-          { nationalId: { $regex: search, $options: 'i' } },
-        ],
-      };
-    }
-
-    // Build sort object
-    const sort: any = {};
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    const sortBy = searchParams.get('sortBy') || 'created_at';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
 
     // Calculate pagination
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
-    // Get customers
-    const customers = await Customer.find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .select('-__v'); // Exclude version field
+    // Map sortBy to valid Clerk fields
+    let clerkSortBy = 'created_at';
+    switch (sortBy) {
+      case 'name':
+        clerkSortBy = 'first_name';
+        break;
+      case 'email':
+        clerkSortBy = 'email_address';
+        break;
+      case 'created_at':
+      case 'updated_at':
+      case 'last_sign_in_at':
+      case 'last_active_at':
+        clerkSortBy = sortBy;
+        break;
+      default:
+        clerkSortBy = 'created_at';
+    }
 
-    // Get total count for pagination
-    const totalCustomers = await Customer.countDocuments(query);
+    const orderBy = `${sortOrder === 'desc' ? '-' : ''}${clerkSortBy}`;
+
+    let response;
+    if (search) {
+      response = await searchClerkUsers(search, limit, offset);
+    } else {
+      response = await getClerkUsers({
+        limit,
+        offset,
+        orderBy,
+      });
+    }
+
+    const totalCustomers = response.totalCount;
     const totalPages = Math.ceil(totalCustomers / limit);
 
     return NextResponse.json({
       success: true,
-      data: customers,
+      data: response.data,
       pagination: {
         currentPage: page,
         totalPages,
@@ -57,12 +68,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching customers:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch customers',
-      },
+      { success: false, error: 'Failed to fetch customers' },
       { status: 500 }
     );
   }
@@ -70,50 +77,63 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await connectDB();
+    await requireAuth();
 
     const body = await request.json();
-    const customer = await Customer.create(body);
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: customer,
-      },
-      { status: 201 }
-    );
-  } catch (error: any) {
-    console.error('Error creating customer:', error);
+    // Validate required fields for Clerk user creation
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      nationality,
+      nationalId,
+      address,
+      emergencyContact,
+      preferences,
+    } = body;
 
-    // Handle validation errors
-    if (error.name === 'ValidationError') {
+    if (!firstName || !lastName || !email || !password) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Validation failed',
-          details: error.errors,
+          error: 'First name, last name, email, and password are required',
         },
         { status: 400 }
       );
     }
 
-    // Handle duplicate email errors
-    if (error.code === 11000) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Email already exists',
-        },
-        { status: 409 }
-      );
-    }
+    // Create complete customer (Clerk user + extended data)
+    const customer = await createCompleteCustomer({
+      email,
+      phone,
+      password,
+      firstName,
+      lastName,
+      nationality,
+      nationalId,
+      address,
+      emergencyContact,
+      preferences,
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: customer,
+      message: 'Customer created successfully',
+    });
+  } catch (error: any) {
+    // eslint-disable-next-line no-console
+    console.error('Error creating customer:', error);
+
+    const errorMessage = error.message || 'Failed to create customer';
+    const statusCode = error.message?.includes('already exists') ? 409 : 500;
 
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to create customer',
-      },
-      { status: 500 }
+      { success: false, error: errorMessage },
+      { status: statusCode }
     );
   }
 }

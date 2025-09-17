@@ -1,6 +1,7 @@
 'use client';
 
 import { useCreateCustomer, useUpdateCustomer } from '@/hooks/useCustomers';
+import type { Customer } from '@/types/clerk';
 import { Form } from '@heroui/form';
 import { useEffect, useState } from 'react';
 import {
@@ -16,7 +17,7 @@ import {
 interface AddGuestFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-  initialData?: any;
+  initialData?: Customer; // Changed from FormData to Customer
   isEditing?: boolean;
 }
 
@@ -36,9 +37,11 @@ export default function AddGuestForm({
   useEffect(() => {
     if (isEditing && initialData) {
       setFormData({
-        name: initialData.name || '',
+        firstName: initialData.first_name || '',
+        lastName: initialData.last_name || '',
         email: initialData.email || '',
         phone: initialData.phone || '',
+        password: '', // Never pre-fill password for security
         nationality: initialData.nationality || '',
         nationalId: initialData.nationalId || '',
         address: {
@@ -49,7 +52,8 @@ export default function AddGuestForm({
           zipCode: initialData.address?.zipCode || '',
         },
         emergencyContact: {
-          name: initialData.emergencyContact?.name || '',
+          firstName: initialData.emergencyContact?.firstName || '',
+          lastName: initialData.emergencyContact?.lastName || '',
           phone: initialData.emergencyContact?.phone || '',
           relationship: initialData.emergencyContact?.relationship || '',
         },
@@ -103,12 +107,23 @@ export default function AddGuestForm({
     const newErrors: Record<string, string> = {};
 
     // Required fields
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.firstName.trim())
+      newErrors.firstName = 'First Name is required';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last Name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!formData.nationality.trim())
       newErrors.nationality = 'Nationality is required';
     if (!formData.nationalId.trim())
       newErrors.nationalId = 'National ID is required';
+
+    // Password is required only for new users (not editing)
+    if (!isEditing) {
+      if (!formData.password.trim()) {
+        newErrors.password = 'Password is required';
+      } else if (formData.password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters long';
+      }
+    }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -144,8 +159,8 @@ export default function AddGuestForm({
       };
 
       if (isEditing && initialData) {
-        // Include the ID for updating
-        const updateData = { ...submitData, _id: initialData._id };
+        // Include the ID for updating (use Clerk user ID)
+        const updateData = { ...submitData, id: initialData.id };
         await updateCustomerMutation.mutateAsync(updateData);
       } else {
         await createCustomerMutation.mutateAsync(submitData);
@@ -203,6 +218,7 @@ export default function AddGuestForm({
         formData={formData}
         errors={errors}
         onInputChange={handleInputChange}
+        isEditing={isEditing}
       />
 
       <AddressSection formData={formData} onInputChange={handleInputChange} />

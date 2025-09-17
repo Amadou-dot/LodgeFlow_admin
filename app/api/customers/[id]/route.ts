@@ -1,17 +1,23 @@
+import { requireAuth } from '@/lib/auth';
+import {
+  deleteCompleteCustomer,
+  getClerkUser,
+  updateCompleteCustomer,
+} from '@/lib/clerk-users';
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../../lib/mongodb';
-import { Booking, Customer } from '../../../../models';
+import { Booking } from '../../../../models';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
+    await requireAuth();
     const { id } = await params;
 
-    // Get customer with their booking history
-    const customer = await Customer.findById(id);
+    // Get customer from Clerk with extended data
+    const customer = await getClerkUser(id);
 
     if (!customer) {
       return NextResponse.json(
@@ -23,11 +29,12 @@ export async function GET(
       );
     }
 
-    // Get customer's bookings
+    // Get customer's bookings from our database
+    await connectDB();
     const bookings = await Booking.find({ customer: id })
       .populate('cabin', 'name image capacity price')
       .sort({ createdAt: -1 })
-      .limit(10); // Last 10 bookings
+      .limit(10);
 
     // Calculate additional stats
     const totalBookings = await Booking.countDocuments({ customer: id });
@@ -37,14 +44,14 @@ export async function GET(
     });
 
     const revenueResult = await Booking.aggregate([
-      { $match: { customer: customer._id, isPaid: true } },
+      { $match: { customer: id, isPaid: true } },
       { $group: { _id: null, total: { $sum: '$totalPrice' } } },
     ]);
 
     const totalRevenue = revenueResult[0]?.total || 0;
 
     const customerData = {
-      ...customer.toObject(),
+      ...customer,
       stats: {
         totalBookings,
         completedBookings,
@@ -63,12 +70,8 @@ export async function GET(
       data: customerData,
     });
   } catch (error) {
-    console.error('Error fetching customer:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch customer',
-      },
+      { success: false, error: 'Failed to fetch customer' },
       { status: 500 }
     );
   }
@@ -79,31 +82,32 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
-    const { id } = await params;
+    await requireAuth();
+    const { id } = await params; // This is the Clerk user ID
 
     const body = await request.json();
 
-    const customer = await Customer.findByIdAndUpdate(id, body, {
-      new: true,
-      runValidators: true,
-    });
+    // Update complete customer (Clerk user + extended data)
+    const customer = await updateCompleteCustomer(id, {
+      // Clerk user fields
+      firstName: body.firstName,
+      lastName: body.lastName,
+      username: body.username,
 
-    if (!customer) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Customer not found',
-        },
-        { status: 404 }
-      );
-    }
+      // Extended data fields
+      nationality: body.nationality,
+      nationalId: body.nationalId,
+      address: body.address,
+      emergencyContact: body.emergencyContact,
+      preferences: body.preferences,
+    });
 
     return NextResponse.json({
       success: true,
       data: customer,
     });
   } catch (error: any) {
+    // eslint-disable-next-line no-console
     console.error('Error updating customer:', error);
 
     if (error.name === 'ValidationError') {
@@ -114,16 +118,6 @@ export async function PUT(
           details: error.errors,
         },
         { status: 400 }
-      );
-    }
-
-    if (error.code === 11000) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Email already exists',
-        },
-        { status: 409 }
       );
     }
 
@@ -142,8 +136,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     await connectDB();
-    const { id } = await params;
+    const { id } = await params; // This is the Clerk user ID
 
     // Check if customer has any bookings
     const bookingCount = await Booking.countDocuments({ customer: id });
@@ -158,23 +153,15 @@ export async function DELETE(
       );
     }
 
-    const customer = await Customer.findByIdAndDelete(id);
-
-    if (!customer) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Customer not found',
-        },
-        { status: 404 }
-      );
-    }
+    // Delete complete customer (Clerk user + extended data)
+    await deleteCompleteCustomer(id);
 
     return NextResponse.json({
       success: true,
       message: 'Customer deleted successfully',
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error deleting customer:', error);
     return NextResponse.json(
       {

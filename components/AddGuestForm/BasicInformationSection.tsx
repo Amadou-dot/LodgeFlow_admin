@@ -7,26 +7,38 @@ interface BasicInformationSectionProps {
   formData: FormData;
   errors: Record<string, string>;
   onInputChange: (field: string, value: string) => void;
+  isEditing?: boolean; // Add prop to hide password field when editing
 }
 
 export default function BasicInformationSection({
   formData,
   errors,
   onInputChange,
+  isEditing = false,
 }: BasicInformationSectionProps) {
   return (
     <div className='space-y-4 w-full'>
       <h3 className='text-lg font-semibold'>Basic Information</h3>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <Input
-          label='Full Name'
-          placeholder='Enter full name'
-          value={formData.name}
-          onValueChange={value => onInputChange('name', value)}
-          isInvalid={!!errors.name}
-          errorMessage={errors.name}
+          label='First Name'
+          placeholder='Enter first name'
+          value={formData.firstName}
+          onValueChange={value => onInputChange('firstName', value)}
+          isInvalid={!!errors.firstName}
+          errorMessage={errors.firstName}
           isRequired
-          name='name'
+          name='firstName'
+        />
+        <Input
+          label='Last Name'
+          placeholder='Enter last name'
+          value={formData.lastName}
+          onValueChange={value => onInputChange('lastName', value)}
+          isInvalid={!!errors.lastName}
+          errorMessage={errors.lastName}
+          isRequired
+          name='lastName'
         />
         <Input
           label='Email'
@@ -40,12 +52,27 @@ export default function BasicInformationSection({
           name='email'
         />
         <Input
+          isRequired
           label='Phone'
           placeholder='Enter phone number'
           value={formData.phone}
           onValueChange={value => onInputChange('phone', value)}
           name='phone'
         />
+        {!isEditing && (
+          <Input
+            label='Password'
+            placeholder='Enter password (min 8 characters)'
+            type='password'
+            value={formData.password}
+            onValueChange={value => onInputChange('password', value)}
+            isInvalid={!!errors.password}
+            errorMessage={errors.password}
+            isRequired
+            name='password'
+            description='Minimum 8 characters required'
+          />
+        )}
         <Select
           label='Nationality'
           placeholder='Select nationality'
@@ -65,7 +92,7 @@ export default function BasicInformationSection({
         </Select>
         <Input
           label='National ID'
-          placeholder='Enter national ID/passport'
+          placeholder='Enter ID/passport number'
           value={formData.nationalId}
           onValueChange={value => onInputChange('nationalId', value)}
           isInvalid={!!errors.nationalId}

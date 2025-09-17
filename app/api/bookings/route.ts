@@ -1,3 +1,4 @@
+import { getClerkUser } from '@/lib/clerk-users';
 import connectDB from '@/lib/mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { Booking, Customer } from '../../../models';
@@ -38,6 +39,48 @@ async function updateCustomerStats(customerId: string) {
   }
 }
 
+// Helper function to populate bookings with Clerk customer data
+async function populateBookingsWithClerkCustomers(bookings: any[]) {
+  const populatedBookings = [];
+
+  for (const booking of bookings) {
+    try {
+      // Get customer data from Clerk
+      const customer = await getClerkUser(booking.customer);
+
+      // Build populated booking object
+      const populatedBooking = {
+        ...booking.toObject(),
+        customer: customer,
+        guest: customer, // For legacy compatibility
+        cabinName: booking.cabin?.name, // Add cabin name for easier access
+      };
+
+      populatedBookings.push(populatedBooking);
+    } catch (error) {
+      // If customer fetch fails, use fallback data
+      console.error(`Failed to fetch customer ${booking.customer}:`, error);
+      const populatedBooking = {
+        ...booking.toObject(),
+        customer: {
+          id: booking.customer,
+          name: 'Unknown User',
+          email: 'N/A',
+        },
+        guest: {
+          id: booking.customer,
+          name: 'Unknown User',
+          email: 'N/A',
+        },
+        cabinName: booking.cabin?.name,
+      };
+      populatedBookings.push(populatedBooking);
+    }
+  }
+
+  return populatedBookings;
+}
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
@@ -62,15 +105,18 @@ export async function GET(request: NextRequest) {
 
     // If there's a search term, we need to get all bookings and filter after population
     if (search) {
-      // Get all bookings (with status filter if specified) and populate
+      // Get all bookings (with status filter if specified) and populate cabin only
       const allBookings = await Booking.find(query)
         .populate('cabin', 'name image capacity price discount')
-        .populate('customer', 'name email nationality phone')
         .sort(sort);
+
+      // Populate with Clerk customer data
+      const populatedBookings =
+        await populateBookingsWithClerkCustomers(allBookings);
 
       // Filter by search term after population
       const searchLower = search.toLowerCase();
-      const filteredBookings = allBookings.filter((booking: any) => {
+      const filteredBookings = populatedBookings.filter((booking: any) => {
         const cabin = booking.cabin;
         const customer = booking.customer || booking.guest;
 
@@ -107,17 +153,20 @@ export async function GET(request: NextRequest) {
 
       const bookings = await Booking.find(query)
         .populate('cabin', 'name image capacity price discount')
-        .populate('customer', 'name email nationality phone')
         .sort(sort)
         .skip(skip)
         .limit(limit);
+
+      // Populate with Clerk customer data
+      const populatedBookings =
+        await populateBookingsWithClerkCustomers(bookings);
 
       const totalBookings = await Booking.countDocuments(query);
       const totalPages = Math.ceil(totalBookings / limit);
 
       return NextResponse.json({
         success: true,
-        data: bookings,
+        data: populatedBookings,
         pagination: {
           currentPage: page,
           totalPages,
@@ -150,14 +199,20 @@ export async function POST(request: NextRequest) {
     await updateCustomerStats(booking.customer);
 
     // Populate the response
-    const populatedBooking = await Booking.findById(booking._id)
-      .populate('cabin', 'name image capacity price discount')
-      .populate('customer', 'name email nationality phone');
+    const populatedBooking = await Booking.findById(booking._id).populate(
+      'cabin',
+      'name image capacity price discount'
+    );
+
+    // Populate with Clerk customer data
+    const [populatedWithClerk] = await populateBookingsWithClerkCustomers([
+      populatedBooking,
+    ]);
 
     return NextResponse.json(
       {
         success: true,
-        data: populatedBooking,
+        data: populatedWithClerk,
       },
       { status: 201 }
     );
@@ -215,9 +270,7 @@ export async function PUT(request: NextRequest) {
     const booking = await Booking.findByIdAndUpdate(_id, updateData, {
       new: true,
       runValidators: true,
-    })
-      .populate('cabin', 'name image capacity price discount')
-      .populate('customer', 'name email nationality phone');
+    }).populate('cabin', 'name image capacity price discount');
 
     if (!booking) {
       return NextResponse.json(
@@ -229,12 +282,17 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Populate with Clerk customer data
+    const [populatedWithClerk] = await populateBookingsWithClerkCustomers([
+      booking,
+    ]);
+
     // Update customer statistics after updating booking
-    await updateCustomerStats(booking.customer._id || booking.customer);
+    await updateCustomerStats(booking.customer);
 
     return NextResponse.json({
       success: true,
-      data: booking,
+      data: populatedWithClerk,
     });
   } catch (error: any) {
     if (error.name === 'ValidationError') {

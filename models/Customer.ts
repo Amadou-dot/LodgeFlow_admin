@@ -2,12 +2,9 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ICustomer extends Document {
   _id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  nationality: string;
-  nationalId: string;
-  profileImage?: string;
+  clerkUserId: string;
+  nationality?: string;
+  nationalId?: string;
   address?: {
     street?: string;
     city?: string;
@@ -16,7 +13,8 @@ export interface ICustomer extends Document {
     zipCode?: string;
   };
   emergencyContact?: {
-    name: string;
+    firstName: string;
+    lastName: string;
     phone: string;
     relationship: string;
   };
@@ -34,60 +32,24 @@ export interface ICustomer extends Document {
 
 const CustomerSchema: Schema = new Schema(
   {
-    name: {
+    clerkUserId: {
       type: String,
-      required: [true, 'Customer name is required'],
-      trim: true,
-      maxlength: [100, 'Name cannot exceed 100 characters'],
-    },
-    email: {
-      type: String,
-      required: [true, 'Email is required'],
+      required: [true, 'Clerk User ID is required'],
       unique: true,
-      lowercase: true,
       trim: true,
-      validate: {
-        validator: function (v: string) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-        },
-        message: 'Please provide a valid email address',
-      },
-    },
-    phone: {
-      type: String,
-      trim: true,
-      validate: {
-        validator: function (v: string) {
-          return !v || /^[+]?[1-9][\d]{0,15}$/.test(v);
-        },
-        message: 'Please provide a valid phone number',
-      },
     },
     nationality: {
       type: String,
-      required: [true, 'Nationality is required'],
       trim: true,
     },
     nationalId: {
       type: String,
-      required: [true, 'National ID is required'],
       trim: true,
       validate: {
         validator: function (v: string) {
-          return /^[A-Za-z0-9]{5,20}$/.test(v);
+          return !v || /^[A-Za-z0-9]{5,20}$/.test(v);
         },
         message: 'National ID must be 5-20 alphanumeric characters',
-      },
-    },
-    profileImage: {
-      type: String,
-      trim: true,
-      validate: {
-        validator: function (v: string) {
-          // Allow URLs to common image services and traditional image URLs
-          return !v || /^https?:\/\/.+/.test(v);
-        },
-        message: 'Profile image must be a valid URL',
       },
     },
     address: {
@@ -98,10 +60,21 @@ const CustomerSchema: Schema = new Schema(
       zipCode: { type: String, trim: true },
     },
     emergencyContact: {
-      name: {
+      firstName: {
         type: String,
         trim: true,
-        maxlength: [100, 'Emergency contact name cannot exceed 100 characters'],
+        maxlength: [
+          50,
+          'Emergency contact first name cannot exceed 50 characters',
+        ],
+      },
+      lastName: {
+        type: String,
+        trim: true,
+        maxlength: [
+          50,
+          'Emergency contact last name cannot exceed 50 characters',
+        ],
       },
       phone: {
         type: String,
@@ -157,14 +130,10 @@ const CustomerSchema: Schema = new Schema(
   }
 );
 
-// Indexes for better query performance
-// Note: email index is already created by unique: true
 CustomerSchema.index({ nationality: 1 });
 CustomerSchema.index({ totalBookings: -1 });
 CustomerSchema.index({ lastBookingDate: -1 });
-CustomerSchema.index({ name: 'text', email: 'text' });
 
-// Virtual for customer loyalty tier
 CustomerSchema.virtual('loyaltyTier').get(function (this: ICustomer) {
   if (this.totalBookings >= 10) return 'platinum';
   if (this.totalBookings >= 5) return 'gold';
@@ -172,14 +141,12 @@ CustomerSchema.virtual('loyaltyTier').get(function (this: ICustomer) {
   return 'bronze';
 });
 
-// Virtual for full address
 CustomerSchema.virtual('fullAddress').get(function (this: ICustomer) {
   if (!this.address) return '';
   const { street, city, state, country, zipCode } = this.address;
   return [street, city, state, country, zipCode].filter(Boolean).join(', ');
 });
 
-// Ensure virtual fields are serialized
 CustomerSchema.set('toJSON', { virtuals: true });
 
 export default mongoose.models.Customer ||

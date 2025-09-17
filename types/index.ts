@@ -1,10 +1,16 @@
 import type { IBooking } from '@/models/Booking';
 import type { ICabin } from '@/models/Cabin';
-import type { ICustomer } from '@/models/Customer';
 import type { IDining } from '@/models/Dining';
 import type { IExperience } from '@/models/Experience';
 import type { ISettings } from '@/models/Settings';
 import { SVGProps } from 'react';
+import type {
+  ClerkUser,
+  ClerkUserListParams,
+  ClerkUserListResponse,
+  Customer,
+  CustomerExtendedData,
+} from './clerk';
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
@@ -14,7 +20,14 @@ export type IdParam = { params: Promise<{ id: string }> };
 
 // Re-export model types for easier importing
 export type Cabin = ICabin;
-export type Customer = ICustomer;
+// Customer is now imported from clerk.ts instead of the model
+export type {
+  ClerkUser,
+  ClerkUserListParams,
+  ClerkUserListResponse,
+  Customer,
+  CustomerExtendedData,
+};
 export type Booking = IBooking;
 export type Dining = IDining;
 export type Settings = ISettings;
@@ -27,11 +40,11 @@ export interface PopulatedBooking
     'cabin' | 'customer' | 'checkInDate' | 'checkOutDate'
   > {
   cabin: ICabin;
-  customer: ICustomer;
+  customer: Customer; // Updated to use new Customer type from Clerk
   checkInDate: string | Date; // API returns string, but might be Date in some contexts
   checkOutDate: string | Date; // API returns string, but might be Date in some contexts
   cabinName?: string; // For legacy compatibility
-  guest?: ICustomer; // For legacy compatibility
+  guest?: Customer; // For legacy compatibility - updated to use new Customer type
 }
 
 // Legacy type aliases for backward compatibility

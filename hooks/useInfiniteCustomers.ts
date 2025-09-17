@@ -1,5 +1,5 @@
 import type { Customer } from '@/types';
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 // Custom hook for infinite scrolling customers with search support
 export function useInfiniteCustomers() {
@@ -40,10 +40,10 @@ export function useInfiniteCustomers() {
             // Ensure no duplicates when infinite scrolling
             setAllCustomers(prev => {
               const existingIds = new Set(
-                prev.map((customer: Customer) => customer._id)
+                prev.map((customer: Customer) => customer.id)
               );
               const uniqueNewCustomers = newCustomers.filter(
-                (customer: Customer) => !existingIds.has(customer._id)
+                (customer: Customer) => !existingIds.has(customer.id)
               );
               return [...prev, ...uniqueNewCustomers];
             });
