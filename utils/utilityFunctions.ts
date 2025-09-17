@@ -82,7 +82,7 @@ export const validateEmail = (email: string) => {
 
 export const validatePhoneNumber = (phone: string) => {
   const re = /^\+?[1-9]\d{1,14}$/;
-  return re.test(String(phone).toLowerCase());
+  return re.test(String(phone));
 };
 
 export const validateName = (name: string) => {
