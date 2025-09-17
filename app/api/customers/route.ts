@@ -1,5 +1,9 @@
 import { requireAuth } from '@/lib/auth';
-import { getClerkUsers, searchClerkUsers } from '@/lib/clerk-users';
+import {
+  createCompleteCustomer,
+  getClerkUsers,
+  searchClerkUsers,
+} from '@/lib/clerk-users';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -67,6 +71,69 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { success: false, error: 'Failed to fetch customers' },
       { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    await requireAuth();
+
+    const body = await request.json();
+
+    // Validate required fields for Clerk user creation
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      nationality,
+      nationalId,
+      address,
+      emergencyContact,
+      preferences,
+    } = body;
+
+    if (!firstName || !lastName || !email || !password) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'First name, last name, email, and password are required',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Create complete customer (Clerk user + extended data)
+    const customer = await createCompleteCustomer({
+      email,
+      phone,
+      password,
+      firstName,
+      lastName,
+      nationality,
+      nationalId,
+      address,
+      emergencyContact,
+      preferences,
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: customer,
+      message: 'Customer created successfully',
+    });
+  } catch (error: any) {
+    // eslint-disable-next-line no-console
+    console.error('Error creating customer:', error);
+
+    const errorMessage = error.message || 'Failed to create customer';
+    const statusCode = error.message?.includes('already exists') ? 409 : 500;
+
+    return NextResponse.json(
+      { success: false, error: errorMessage },
+      { status: statusCode }
     );
   }
 }

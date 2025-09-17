@@ -1,5 +1,9 @@
 import { requireAuth } from '@/lib/auth';
-import { getClerkUser, upsertCustomerExtendedData } from '@/lib/clerk-users';
+import {
+  deleteCompleteCustomer,
+  getClerkUser,
+  updateCompleteCustomer,
+} from '@/lib/clerk-users';
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../../lib/mongodb';
 import { Booking } from '../../../../models';
@@ -83,30 +87,20 @@ export async function PUT(
 
     const body = await request.json();
 
-    // Update extended customer data in our database
-    const extendedData = await upsertCustomerExtendedData(id, {
+    // Update complete customer (Clerk user + extended data)
+    const customer = await updateCompleteCustomer(id, {
+      // Clerk user fields
+      firstName: body.firstName,
+      lastName: body.lastName,
+      username: body.username,
+
+      // Extended data fields
       nationality: body.nationality,
       nationalId: body.nationalId,
       address: body.address,
       emergencyContact: body.emergencyContact,
       preferences: body.preferences,
-      totalBookings: body.totalBookings,
-      totalSpent: body.totalSpent,
-      lastBookingDate: body.lastBookingDate,
     });
-
-    // Get the updated customer with Clerk data
-    const customer = await getClerkUser(id);
-
-    if (!customer) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Customer not found',
-        },
-        { status: 404 }
-      );
-    }
 
     return NextResponse.json({
       success: true,
@@ -159,26 +153,12 @@ export async function DELETE(
       );
     }
 
-    // We can only delete the extended data from our database
-    // Clerk users should be deleted through Clerk's dashboard/API
-    const CustomerModel = (await import('../../../../models')).Customer;
-    const extendedData = await CustomerModel.findOneAndDelete({
-      clerkUserId: id,
-    });
-
-    if (!extendedData) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Customer extended data not found',
-        },
-        { status: 404 }
-      );
-    }
+    // Delete complete customer (Clerk user + extended data)
+    await deleteCompleteCustomer(id);
 
     return NextResponse.json({
       success: true,
-      message: 'Customer extended data deleted successfully',
+      message: 'Customer deleted successfully',
     });
   } catch (error) {
     // eslint-disable-next-line no-console
