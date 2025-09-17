@@ -1,12 +1,13 @@
 'use client';
 
 import { EditIcon } from '@/components/icons';
+import type { Customer } from '@/types/clerk';
 import { Button } from '@heroui/button';
 import { Modal, ModalBody, ModalContent, useDisclosure } from '@heroui/modal';
 import AddGuestForm from './AddGuestForm';
 
 interface EditGuestModalProps {
-  guestData: any;
+  guestData: Customer; // Changed from FormData to Customer
   onGuestUpdated?: () => void;
 }
 
