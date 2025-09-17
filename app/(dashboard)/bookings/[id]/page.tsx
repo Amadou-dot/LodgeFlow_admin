@@ -15,6 +15,7 @@ import {
 import { formatBookingDates } from '@/utils/bookingUtils';
 import { Button } from '@heroui/button';
 import { Spinner } from '@heroui/spinner';
+import { addToast } from '@heroui/toast';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -58,7 +59,11 @@ export default function BookingDetailsPage() {
       await checkInMutation.mutateAsync(bookingId);
       mutate(); // Refresh booking data
     } catch (error) {
-      // Handle error silently or with toast notification
+      addToast({
+        title: 'Error',
+        description: 'Failed to check in booking',
+        color: 'danger',
+      });
     } finally {
       setActionLoading(null);
     }
@@ -71,7 +76,11 @@ export default function BookingDetailsPage() {
       await checkOutMutation.mutateAsync(bookingId);
       mutate(); // Refresh booking data
     } catch (error) {
-      // Handle error silently or with toast notification
+      addToast({
+        title: 'Error',
+        description: 'Failed to check out booking',
+        color: 'danger',
+      });
     } finally {
       setActionLoading(null);
     }
