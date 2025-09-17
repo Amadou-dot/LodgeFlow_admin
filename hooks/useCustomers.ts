@@ -153,3 +153,41 @@ export const useDeleteCustomer = () => {
     },
   });
 };
+
+// Lock customer
+export const useLockCustomer = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/customers/${id}/lock`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to lock customer');
+      }
+
+      const result = await response.json();
+      return result.success ? result : result;
+    },
+  });
+};
+
+// Unlock customer
+export const useUnlockCustomer = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/customers/${id}/lock`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to unlock customer');
+      }
+
+      const result = await response.json();
+      return result.success ? result : result;
+    },
+  });
+};
