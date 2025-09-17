@@ -13,7 +13,8 @@ export interface ICustomer extends Document {
     zipCode?: string;
   };
   emergencyContact?: {
-    name: string;
+    firstName: string;
+    lastName: string;
     phone: string;
     relationship: string;
   };
@@ -59,10 +60,21 @@ const CustomerSchema: Schema = new Schema(
       zipCode: { type: String, trim: true },
     },
     emergencyContact: {
-      name: {
+      firstName: {
         type: String,
         trim: true,
-        maxlength: [100, 'Emergency contact name cannot exceed 100 characters'],
+        maxlength: [
+          50,
+          'Emergency contact first name cannot exceed 50 characters',
+        ],
+      },
+      lastName: {
+        type: String,
+        trim: true,
+        maxlength: [
+          50,
+          'Emergency contact last name cannot exceed 50 characters',
+        ],
       },
       phone: {
         type: String,
@@ -118,7 +130,6 @@ const CustomerSchema: Schema = new Schema(
   }
 );
 
-CustomerSchema.index({ clerkUserId: 1 }, { unique: true });
 CustomerSchema.index({ nationality: 1 });
 CustomerSchema.index({ totalBookings: -1 });
 CustomerSchema.index({ lastBookingDate: -1 });

@@ -104,7 +104,8 @@ export interface CustomerExtendedData {
     zipCode?: string;
   };
   emergencyContact?: {
-    name: string;
+    firstName: string;
+    lastName: string;
     phone: string;
     relationship: string;
   };
@@ -137,6 +138,11 @@ export interface Customer {
   last_sign_in_at: Date | null;
   last_active_at: Date;
 
+  // Clerk status fields
+  banned: boolean;
+  locked: boolean;
+  lockout_expires_in_seconds: number | null;
+
   // Our extended data (optional, may not exist for all users)
   nationality?: string;
   nationalId?: string;
@@ -148,7 +154,8 @@ export interface Customer {
     zipCode?: string;
   };
   emergencyContact?: {
-    name: string;
+    firstName: string;
+    lastName: string;
     phone: string;
     relationship: string;
   };
