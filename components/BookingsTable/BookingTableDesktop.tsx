@@ -80,7 +80,7 @@ export default function BookingTableDesktop({
         emptyContent='No bookings found'
       >
         {booking => (
-          <TableRow key={booking.id}>
+          <TableRow key={booking._id}>
             {columnKey => (
               <TableCell className='overflow-hidden'>
                 <BookingTableCell
