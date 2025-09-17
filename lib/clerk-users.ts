@@ -65,7 +65,8 @@ export function convertClerkUserToCustomer(
     // Clerk status fields
     banned: clerkUser.banned,
     locked: clerkUser.locked,
-    lockout_expires_in_seconds: null, // TODO: Check correct property name
+    // Clerk does not currently provide lockout expiration information in the User object
+    lockout_expires_in_seconds: null,
 
     // Extended data (with defaults)
     nationality: extendedData?.nationality,
