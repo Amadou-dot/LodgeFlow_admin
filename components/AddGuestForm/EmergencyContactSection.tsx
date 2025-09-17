@@ -17,10 +17,20 @@ export default function EmergencyContactSection({
       <h3 className='text-lg font-semibold'>Emergency Contact</h3>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <Input
-          label='Contact Name'
-          placeholder='Enter contact name'
-          value={formData.emergencyContact.name}
-          onValueChange={value => onInputChange('emergencyContact.name', value)}
+          label='Contact First Name'
+          placeholder='Enter contact first name'
+          value={formData.emergencyContact.firstName}
+          onValueChange={value =>
+            onInputChange('emergencyContact.firstName', value)
+          }
+        />
+        <Input
+          label='Contact Last Name'
+          placeholder='Enter contact last name'
+          value={formData.emergencyContact.lastName}
+          onValueChange={value =>
+            onInputChange('emergencyContact.lastName', value)
+          }
         />
         <Input
           label='Contact Phone'
