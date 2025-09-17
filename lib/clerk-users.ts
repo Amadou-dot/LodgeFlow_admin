@@ -62,6 +62,11 @@ export function convertClerkUserToCustomer(
       : null,
     last_active_at: new Date(clerkUser.lastActiveAt || clerkUser.createdAt),
 
+    // Clerk status fields
+    banned: clerkUser.banned,
+    locked: clerkUser.locked,
+    lockout_expires_in_seconds: null, // TODO: Check correct property name
+
     // Extended data (with defaults)
     nationality: extendedData?.nationality,
     nationalId: extendedData?.nationalId,
@@ -227,5 +232,347 @@ export async function getCustomerExtendedData(
     // eslint-disable-next-line no-console
     console.error('Error fetching customer extended data:', error);
     throw new Error('Failed to fetch customer extended data');
+  }
+}
+
+/**
+ * Create a new user in Clerk with required fields
+ */
+export async function createClerkUser(userData: {
+  email: string;
+  phone?: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  username?: string;
+}): Promise<User> {
+  try {
+    const client = await clerkClient();
+
+    const createParams: any = {
+      emailAddress: [userData.email],
+      password: userData.password,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+    };
+
+    // Add optional fields if provided
+    if (userData.phone) {
+      createParams.phoneNumber = [userData.phone];
+    }
+
+    if (userData.username) {
+      createParams.username = userData.username;
+    }
+
+    const clerkUser = await client.users.createUser(createParams);
+    return clerkUser;
+  } catch (error: any) {
+    // eslint-disable-next-line no-console
+    console.error('Error creating user in Clerk:', error);
+
+    // Handle specific Clerk errors
+    if (error?.errors) {
+      const errorMessages = error.errors
+        .map((err: any) => err.message)
+        .join(', ');
+      throw new Error(`Failed to create user: ${errorMessages}`);
+    }
+
+    throw new Error('Failed to create user in Clerk');
+  }
+}
+
+/**
+ * Update a user in Clerk
+ */
+export async function updateClerkUser(
+  userId: string,
+  userData: {
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+  }
+): Promise<User> {
+  try {
+    const client = await clerkClient();
+
+    const updateParams: any = {};
+
+    // Only include fields that are provided
+    if (userData.firstName !== undefined) {
+      updateParams.firstName = userData.firstName;
+    }
+    if (userData.lastName !== undefined) {
+      updateParams.lastName = userData.lastName;
+    }
+    if (userData.username !== undefined) {
+      updateParams.username = userData.username;
+    }
+
+    const clerkUser = await client.users.updateUser(userId, updateParams);
+    return clerkUser;
+  } catch (error: any) {
+    // eslint-disable-next-line no-console
+    console.error('Error updating user in Clerk:', error);
+
+    // Handle specific Clerk errors
+    if (error?.errors) {
+      const errorMessages = error.errors
+        .map((err: any) => err.message)
+        .join(', ');
+      throw new Error(`Failed to update user: ${errorMessages}`);
+    }
+
+    throw new Error('Failed to update user in Clerk');
+  }
+}
+
+/**
+ * Delete a user from Clerk
+ */
+export async function deleteClerkUser(userId: string): Promise<User> {
+  try {
+    const client = await clerkClient();
+    const deletedUser = await client.users.deleteUser(userId);
+    return deletedUser;
+  } catch (error: any) {
+    // eslint-disable-next-line no-console
+    console.error('Error deleting user from Clerk:', error);
+
+    if (error?.status === 404) {
+      throw new Error('User not found');
+    }
+
+    throw new Error('Failed to delete user from Clerk');
+  }
+}
+
+/**
+ * Lock a user in Clerk (prevent them from signing in)
+ */
+export async function lockClerkUser(userId: string): Promise<User> {
+  try {
+    const client = await clerkClient();
+    const lockedUser = await client.users.lockUser(userId);
+    return lockedUser;
+  } catch (error: any) {
+    // eslint-disable-next-line no-console
+    console.error('Error locking user in Clerk:', error);
+
+    if (error?.status === 404) {
+      throw new Error('User not found');
+    }
+
+    throw new Error('Failed to lock user in Clerk');
+  }
+}
+
+/**
+ * Unlock a user in Clerk (allow them to sign in again)
+ */
+export async function unlockClerkUser(userId: string): Promise<User> {
+  try {
+    const client = await clerkClient();
+    const unlockedUser = await client.users.unlockUser(userId);
+    return unlockedUser;
+  } catch (error: any) {
+    // eslint-disable-next-line no-console
+    console.error('Error unlocking user in Clerk:', error);
+
+    if (error?.status === 404) {
+      throw new Error('User not found');
+    }
+
+    throw new Error('Failed to unlock user in Clerk');
+  }
+}
+
+/**
+ * Create a complete customer (Clerk user + extended data)
+ */
+export async function createCompleteCustomer(userData: {
+  // Required Clerk fields
+  email: string;
+  phone?: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  username?: string;
+
+  // Extended data fields
+  nationality?: string;
+  nationalId?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    zipCode?: string;
+  };
+  emergencyContact?: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    relationship?: string;
+  };
+  preferences?: {
+    smokingPreference?: 'smoking' | 'non-smoking' | 'no-preference';
+    dietaryRestrictions?: string[];
+    accessibilityNeeds?: string[];
+  };
+}): Promise<Customer> {
+  try {
+    // 1. Create user in Clerk
+    const clerkUser = await createClerkUser({
+      email: userData.email,
+      phone: userData.phone,
+      password: userData.password,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      username: userData.username,
+    });
+
+    // 2. Create extended data in our database
+    const extendedDataToSave: any = {
+      clerkUserId: clerkUser.id,
+    };
+
+    // Add optional extended data fields if provided
+    if (userData.nationality)
+      extendedDataToSave.nationality = userData.nationality;
+    if (userData.nationalId)
+      extendedDataToSave.nationalId = userData.nationalId;
+    if (userData.address) extendedDataToSave.address = userData.address;
+    if (userData.emergencyContact)
+      extendedDataToSave.emergencyContact = userData.emergencyContact;
+    if (userData.preferences)
+      extendedDataToSave.preferences = userData.preferences;
+
+    const extendedData = await upsertCustomerExtendedData(
+      clerkUser.id,
+      extendedDataToSave
+    );
+
+    // 3. Return combined customer object
+    return convertClerkUserToCustomer(clerkUser, extendedData);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error creating complete customer:', error);
+    throw error; // Re-throw to preserve the original error message
+  }
+}
+
+/**
+ * Delete a complete customer (Clerk user + extended data)
+ */
+export async function deleteCompleteCustomer(
+  clerkUserId: string
+): Promise<void> {
+  try {
+    // 1. Delete extended data from our database first
+    await connectDB();
+    await CustomerModel.findOneAndDelete({ clerkUserId });
+
+    // 2. Delete user from Clerk
+    await deleteClerkUser(clerkUserId);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error deleting complete customer:', error);
+    throw error; // Re-throw to preserve the original error message
+  }
+}
+
+/**
+ * Update a complete customer (Clerk user + extended data)
+ */
+export async function updateCompleteCustomer(
+  clerkUserId: string,
+  userData: {
+    // Clerk fields that can be updated
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+
+    // Extended data fields
+    nationality?: string;
+    nationalId?: string;
+    address?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      country?: string;
+      zipCode?: string;
+    };
+    emergencyContact?: {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+      relationship?: string;
+    };
+    preferences?: {
+      smokingPreference?: 'smoking' | 'non-smoking' | 'no-preference';
+      dietaryRestrictions?: string[];
+      accessibilityNeeds?: string[];
+    };
+  }
+): Promise<Customer> {
+  try {
+    // 1. Update user in Clerk (only if Clerk-related fields are provided)
+    let clerkUser;
+    const clerkUpdateFields = {
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      username: userData.username,
+    };
+
+    // Check if any Clerk fields need updating
+    const hasClerkUpdates = Object.values(clerkUpdateFields).some(
+      value => value !== undefined
+    );
+
+    if (hasClerkUpdates) {
+      clerkUser = await updateClerkUser(clerkUserId, clerkUpdateFields);
+    } else {
+      // Get current Clerk user if no updates needed
+      const client = await clerkClient();
+      clerkUser = await client.users.getUser(clerkUserId);
+    }
+
+    // 2. Update extended data in our database
+    const extendedDataToUpdate: any = {};
+
+    // Add optional extended data fields if provided
+    if (userData.nationality !== undefined)
+      extendedDataToUpdate.nationality = userData.nationality;
+    if (userData.nationalId !== undefined)
+      extendedDataToUpdate.nationalId = userData.nationalId;
+    if (userData.address !== undefined)
+      extendedDataToUpdate.address = userData.address;
+    if (userData.emergencyContact !== undefined)
+      extendedDataToUpdate.emergencyContact = userData.emergencyContact;
+    if (userData.preferences !== undefined)
+      extendedDataToUpdate.preferences = userData.preferences;
+
+    let extendedData;
+    if (Object.keys(extendedDataToUpdate).length > 0) {
+      extendedData = await upsertCustomerExtendedData(
+        clerkUserId,
+        extendedDataToUpdate
+      );
+    } else {
+      extendedData = await getCustomerExtendedData(clerkUserId);
+    }
+
+    // 3. Return updated combined customer object
+    if (!clerkUser) {
+      throw new Error('Failed to get updated user data');
+    }
+
+    return convertClerkUserToCustomer(clerkUser, extendedData || undefined);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error updating complete customer:', error);
+    throw error; // Re-throw to preserve the original error message
   }
 }
