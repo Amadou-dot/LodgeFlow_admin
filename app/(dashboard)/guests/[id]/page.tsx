@@ -273,7 +273,10 @@ export default function GuestDetailPage() {
                   <div className='space-y-1 text-sm'>
                     <div className='flex justify-between'>
                       <span className='text-default-600'>Name:</span>
-                      <span>{customer.emergencyContact.name}</span>
+                      <span>
+                        {customer.emergencyContact.firstName}{' '}
+                        {customer.emergencyContact.lastName}
+                      </span>
                     </div>
                     <div className='flex justify-between'>
                       <span className='text-default-600'>Phone:</span>
