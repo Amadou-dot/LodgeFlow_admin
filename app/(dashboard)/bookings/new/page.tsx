@@ -4,10 +4,27 @@ import BookingForm from '@/components/BookingForm';
 import { ArrowLeftIcon } from '@/components/icons';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function NewBookingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [prefillData, setPrefillData] = useState<any>(null);
+
+  // Extract prefill data from URL parameters
+  useEffect(() => {
+    const customerId = searchParams.get('customer');
+    const guestName = searchParams.get('guestName');
+
+    if (customerId || guestName) {
+      setPrefillData({
+        customer: customerId || '',
+        // If we have a guest name but no customer ID, we could pre-populate the search
+        customerSearchTerm: guestName || '',
+      });
+    }
+  }, [searchParams]);
 
   const handleSuccess = () => {
     // Navigate back to bookings list with success message
@@ -33,7 +50,9 @@ export default function NewBookingPage() {
         <div>
           <h1 className='text-3xl font-bold'>Create New Booking</h1>
           <p className='text-default-600 mt-1'>
-            Fill in the details below to create a new cabin reservation
+            {prefillData?.customerSearchTerm
+              ? `Creating booking for ${prefillData.customerSearchTerm}`
+              : 'Fill in the details below to create a new cabin reservation'}
           </p>
         </div>
       </div>
@@ -44,7 +63,11 @@ export default function NewBookingPage() {
         <div className='lg:col-span-3'>
           <Card className='shadow-lg'>
             <CardBody className='p-8'>
-              <BookingForm onSuccess={handleSuccess} onCancel={handleCancel} />
+              <BookingForm
+                onSuccess={handleSuccess}
+                onCancel={handleCancel}
+                prefillData={prefillData}
+              />
             </CardBody>
           </Card>
         </div>
