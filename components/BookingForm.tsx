@@ -2,20 +2,33 @@
 
 import { useBookingForm } from '@/hooks/useBookingForm';
 import { useCreateBooking } from '@/hooks/useBookings';
+import { useEffect } from 'react';
 import { FormActions } from './BookingForm/index';
 import BookingFormFields from './BookingFormFields';
 
 interface BookingFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  prefillData?: any;
 }
 
-export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
+export default function BookingForm({
+  onSuccess,
+  onCancel,
+  prefillData,
+}: BookingFormProps) {
   const createBooking = useCreateBooking();
 
   // Use the booking form hook here and pass everything to BookingFormFields
   const bookingFormHook = useBookingForm();
-  const { validateForm, buildBookingData } = bookingFormHook;
+  const { validateForm, buildBookingData, handleInputChange } = bookingFormHook;
+
+  // Handle prefill data when component mounts or prefillData changes
+  useEffect(() => {
+    if (prefillData?.customer) {
+      handleInputChange('customer', prefillData.customer);
+    }
+  }, [prefillData, handleInputChange]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
