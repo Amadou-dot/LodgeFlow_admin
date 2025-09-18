@@ -1,9 +1,9 @@
 import DeletionModal from '@/components/DeletionModal';
-import EditBookingModal from '@/components/EditBookingModal';
-import { ArrowLeftIcon, TrashIcon } from '@/components/icons';
+import { ArrowLeftIcon, EditIcon, TrashIcon } from '@/components/icons';
 import type { PopulatedBooking } from '@/types';
 import { Button } from '@heroui/button';
 import { UseMutationResult } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 
 interface BookingDetailsHeaderProps {
   booking: PopulatedBooking;
@@ -22,6 +22,12 @@ export default function BookingDetailsHeader({
   deleteMutation,
   isCancelable,
 }: BookingDetailsHeaderProps) {
+  const router = useRouter();
+
+  const handleEditBooking = () => {
+    router.push(`/bookings/${booking._id}/edit`);
+  };
+
   return (
     <div className='flex items-center justify-between mb-6'>
       <div className='flex items-center gap-4'>
@@ -35,10 +41,14 @@ export default function BookingDetailsHeader({
       </div>
       <div className='flex gap-2'>
         {isCancelable && (
-          <EditBookingModal
-            booking={booking}
-            onBookingUpdated={onBookingUpdated}
-          />
+          <Button
+            color='primary'
+            variant='flat'
+            startContent={<EditIcon className='w-4 h-4' />}
+            onPress={handleEditBooking}
+          >
+            Edit Booking
+          </Button>
         )}
         <DeletionModal
           resourceId={booking._id}
