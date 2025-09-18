@@ -8,6 +8,7 @@ interface BookingSidebarProps {
   onCheckIn: () => void;
   onCheckOut: () => void;
   actionLoading: string | null;
+  onBookingUpdated?: () => void;
 }
 
 export default function BookingSidebar({
@@ -15,6 +16,7 @@ export default function BookingSidebar({
   onCheckIn,
   onCheckOut,
   actionLoading,
+  onBookingUpdated,
 }: BookingSidebarProps) {
   return (
     <div className='space-y-6'>
@@ -37,6 +39,10 @@ export default function BookingSidebar({
         actionLoading={actionLoading}
         firstName={booking.customer.first_name || booking.customer.name}
         email={booking.customer.email}
+        bookingId={booking._id}
+        totalPrice={booking.totalPrice}
+        remainingAmount={booking.remainingAmount}
+        onPaymentRecorded={onBookingUpdated}
       />
 
       <BookingHistoryCard
