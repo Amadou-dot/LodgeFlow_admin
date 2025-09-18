@@ -1,4 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   Cabin,
   CabinFilters,
@@ -6,6 +5,7 @@ import type {
   UpdateCabinData,
 } from '@/types';
 import { addToast } from '@heroui/toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const displayCabinToast = (message: string, type: 'success' | 'error') => {
   addToast({
