@@ -5,6 +5,7 @@ import { useCreateBooking } from '@/hooks/useBookings';
 import { useEffect } from 'react';
 import { FormActions } from './BookingForm/index';
 import BookingFormFields from './BookingFormFields';
+
 interface BookingFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -43,7 +44,6 @@ export default function BookingForm({
       await createBooking.mutateAsync(bookingData as any);
       onSuccess?.();
     } catch (error) {
-
       console.error('Error creating booking:', error);
       alert('Failed to create booking. Please try again.');
     }
