@@ -152,6 +152,41 @@ export const useCreateBooking = () => {
   });
 };
 
+// Record payment for a booking
+export const useRecordPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      bookingId: string;
+      paymentMethod: 'cash' | 'card' | 'bank-transfer' | 'online';
+      amountPaid: number;
+      notes?: string;
+    }): Promise<PopulatedBooking> => {
+      const { bookingId, ...paymentData } = data;
+
+      const response = await fetch(`/api/bookings/${bookingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordPayment: paymentData }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to record payment');
+      }
+
+      const result = await response.json();
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['overview'] });
+    },
+  });
+};
+
 // Update an existing booking
 export const useUpdateBooking = () => {
   const queryClient = useQueryClient();
