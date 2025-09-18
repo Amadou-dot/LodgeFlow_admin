@@ -38,6 +38,26 @@ export function useCabins(filters: CabinFilters = {}) {
   });
 }
 
+export function useCabin(id: string) {
+  return useQuery<Cabin>({
+    queryKey: ['cabin', id],
+    queryFn: async () => {
+      if (!id) {
+        throw new Error('Cabin ID is required');
+      }
+
+      const response = await fetch(`/api/cabins/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch cabin');
+      }
+
+      const result = await response.json();
+      return result.success ? result.data : result;
+    },
+    enabled: !!id, // Only run query if id is provided
+  });
+}
+
 export function useCreateCabin() {
   const queryClient = useQueryClient();
 
