@@ -1,38 +1,35 @@
 import { useBookingByEmail, useRecordPayment } from '@/hooks/useBookings';
 import { useCabin } from '@/hooks/useCabins';
+import { usePrintBooking } from '@/hooks/usePrintBooking';
 import { useSendConfirmationEmail } from '@/hooks/useSendEmail';
+import type { PopulatedBooking } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
-import { useDisclosure } from '@heroui/modal';
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+} from '@heroui/dropdown';
+import { Modal, ModalBody, ModalContent, useDisclosure } from '@heroui/modal';
 import { addToast } from '@heroui/toast';
 import { useState } from 'react';
 import RecordPaymentModal, { PaymentData } from '../RecordPaymentModal';
+import BookingPDFTemplate from './BookingPDFTemplate';
 
 interface QuickActionsCardProps {
-  status: string;
-  isPaid: boolean;
+  booking: PopulatedBooking;
   onCheckIn: () => void;
   onCheckOut: () => void;
   actionLoading: string | null;
-  firstName: string;
-  email: string;
-  bookingId: string;
-  totalPrice: number;
-  remainingAmount: number;
   onPaymentRecorded?: () => void;
 }
 
 export default function QuickActionsCard({
-  status,
-  isPaid,
+  booking,
   onCheckIn,
   onCheckOut,
   actionLoading,
-  firstName,
-  email,
-  bookingId,
-  totalPrice,
-  remainingAmount,
   onPaymentRecorded,
 }: QuickActionsCardProps) {
   const { sendConfirmationEmail } = useSendConfirmationEmail();
@@ -42,13 +39,29 @@ export default function QuickActionsCard({
     onOpen: onPaymentModalOpen,
     onClose: onPaymentModalClose,
   } = useDisclosure();
+  const {
+    isOpen: isPrintModalOpen,
+    onOpen: onPrintModalOpen,
+    onClose: onPrintModalClose,
+  } = useDisclosure();
   const [paymentLoading, setPaymentLoading] = useState(false);
 
-  const { data: bookingData, isLoading: bookingLoading } =
-    useBookingByEmail(email);
+  // Get data for email functionality
+  const { data: bookingData, isLoading: bookingLoading } = useBookingByEmail(
+    booking.customer.email
+  );
   const { data: cabinData, isLoading: cabinLoading } = useCabin(
     bookingData?.cabin?._id || bookingData?.cabin?.toString() || ''
   );
+
+  // Initialize print functionality
+  const {
+    isPrinting,
+    isGeneratingPDF,
+    handlePrint,
+    handleDownloadPDF,
+    handleBrowserPrint,
+  } = usePrintBooking(booking);
 
   const handleSendConfirmation = async () => {
     if (!bookingData || !cabinData) {
@@ -60,7 +73,13 @@ export default function QuickActionsCard({
     }
 
     try {
-      await sendConfirmationEmail(firstName, email, bookingData, cabinData);
+      const firstName = booking.customer.first_name || booking.customer.name;
+      await sendConfirmationEmail(
+        firstName,
+        booking.customer.email,
+        bookingData,
+        cabinData
+      );
       addToast({
         color: 'success',
         description: 'Confirmation email sent successfully',
@@ -77,7 +96,7 @@ export default function QuickActionsCard({
     setPaymentLoading(true);
     try {
       await recordPaymentMutation.mutateAsync({
-        bookingId,
+        bookingId: booking._id,
         ...paymentData,
       });
 
@@ -99,72 +118,165 @@ export default function QuickActionsCard({
     }
   };
 
+  // Print handlers
+  const handlePrintBooking = async () => {
+    try {
+      await handlePrint('booking-pdf-template');
+      onPrintModalClose();
+    } catch (error) {
+      addToast({
+        color: 'danger',
+        description: `Failed to print booking: ${(error as Error).message}`,
+      });
+    }
+  };
+
+  const handleDownloadBookingPDF = async () => {
+    try {
+      await handleDownloadPDF('booking-pdf-template');
+      onPrintModalClose();
+    } catch (error) {
+      addToast({
+        color: 'danger',
+        description: `Failed to generate PDF: ${(error as Error).message}`,
+      });
+    }
+  };
+
   const isDataLoading = bookingLoading || cabinLoading;
+  const firstName = booking.customer.first_name || booking.customer.name;
 
   return (
-    <Card>
-      <CardHeader>
-        <h2 className='text-lg font-semibold'>Quick Actions</h2>
-      </CardHeader>
-      <CardBody className='space-y-2'>
-        {status === 'confirmed' && (
+    <>
+      <Card>
+        <CardHeader>
+          <h2 className='text-lg font-semibold'>Quick Actions</h2>
+        </CardHeader>
+        <CardBody className='space-y-2'>
+          {booking.status === 'confirmed' && (
+            <Button
+              color='success'
+              variant='flat'
+              fullWidth
+              onPress={onCheckIn}
+              isLoading={actionLoading === 'check-in'}
+              isDisabled={actionLoading !== null}
+            >
+              Check In Guest
+            </Button>
+          )}
+          {booking.status === 'checked-in' && (
+            <Button
+              color='primary'
+              variant='flat'
+              fullWidth
+              onPress={onCheckOut}
+              isLoading={actionLoading === 'check-out'}
+              isDisabled={actionLoading !== null}
+            >
+              Check Out Guest
+            </Button>
+          )}
+          {!booking.isPaid && booking.status !== 'cancelled' && (
+            <Button
+              color='warning'
+              variant='flat'
+              fullWidth
+              onPress={onPaymentModalOpen}
+              isDisabled={actionLoading !== null || paymentLoading}
+            >
+              Record Payment
+            </Button>
+          )}
           <Button
-            color='success'
             variant='flat'
             fullWidth
-            onPress={onCheckIn}
-            isLoading={actionLoading === 'check-in'}
-            isDisabled={actionLoading !== null}
+            onPress={handleSendConfirmation}
+            isDisabled={isDataLoading}
           >
-            Check In Guest
+            Send Confirmation Email
           </Button>
-        )}
-        {status === 'checked-in' && (
-          <Button
-            color='primary'
-            variant='flat'
-            fullWidth
-            onPress={onCheckOut}
-            isLoading={actionLoading === 'check-out'}
-            isDisabled={actionLoading !== null}
-          >
-            Check Out Guest
-          </Button>
-        )}
-        {!isPaid && status !== 'cancelled' && (
-          <Button
-            color='warning'
-            variant='flat'
-            fullWidth
-            onPress={onPaymentModalOpen}
-            isDisabled={actionLoading !== null || paymentLoading}
-          >
-            Record Payment
-          </Button>
-        )}
-        <Button
-          variant='flat'
-          fullWidth
-          onPress={handleSendConfirmation}
-          isDisabled={isDataLoading}
-        >
-          Send Confirmation Email
-        </Button>
-        <Button variant='flat' fullWidth>
-          Print Booking Details
-        </Button>
-      </CardBody>
+
+          {/* Print Dropdown */}
+          <Dropdown>
+            <DropdownTrigger>
+              <Button
+                variant='flat'
+                fullWidth
+                isDisabled={isPrinting || isGeneratingPDF}
+                isLoading={isPrinting || isGeneratingPDF}
+              >
+                {isPrinting
+                  ? 'Printing...'
+                  : isGeneratingPDF
+                    ? 'Generating PDF...'
+                    : 'Print Booking Details'}
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu>
+              <DropdownItem key='print' onPress={onPrintModalOpen}>
+                Print Booking
+              </DropdownItem>
+              <DropdownItem key='pdf' onPress={handleDownloadBookingPDF}>
+                Download as PDF
+              </DropdownItem>
+              <DropdownItem key='browser-print' onPress={handleBrowserPrint}>
+                Browser Print
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </CardBody>
+      </Card>
 
       {/* Record Payment Modal */}
       <RecordPaymentModal
         isOpen={isPaymentModalOpen}
         onClose={onPaymentModalClose}
         onRecordPayment={handleRecordPayment}
-        totalAmount={totalPrice}
-        remainingAmount={remainingAmount}
-        bookingId={bookingId}
+        totalAmount={booking.totalPrice}
+        remainingAmount={booking.remainingAmount}
+        bookingId={booking._id}
         guestName={firstName}
       />
-    </Card>
+
+      {/* Print Preview Modal */}
+      <Modal
+        isOpen={isPrintModalOpen}
+        onClose={onPrintModalClose}
+        size='5xl'
+        scrollBehavior='inside'
+      >
+        <ModalContent>
+          <ModalBody className='p-0'>
+            <div className='p-4 border-b border-default-200 flex justify-between items-center'>
+              <h3 className='text-lg font-semibold'>Print Preview</h3>
+              <div className='flex gap-2'>
+                <Button
+                  size='sm'
+                  variant='flat'
+                  onPress={handlePrintBooking}
+                  isLoading={isPrinting}
+                  isDisabled={isGeneratingPDF}
+                >
+                  Print
+                </Button>
+                <Button
+                  size='sm'
+                  color='primary'
+                  onPress={handleDownloadBookingPDF}
+                  isLoading={isGeneratingPDF}
+                  isDisabled={isPrinting}
+                >
+                  Download PDF
+                </Button>
+              </div>
+            </div>
+            <div className='p-4'>
+              <BookingPDFTemplate booking={booking} className='max-w-none' />
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    </>
   );
 }

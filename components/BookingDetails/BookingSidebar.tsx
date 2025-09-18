@@ -32,16 +32,10 @@ export default function BookingSidebar({
       />
 
       <QuickActionsCard
-        status={booking.status}
-        isPaid={booking.isPaid}
+        booking={booking}
         onCheckIn={onCheckIn}
         onCheckOut={onCheckOut}
         actionLoading={actionLoading}
-        firstName={booking.customer.first_name || booking.customer.name}
-        email={booking.customer.email}
-        bookingId={booking._id}
-        totalPrice={booking.totalPrice}
-        remainingAmount={booking.remainingAmount}
         onPaymentRecorded={onBookingUpdated}
       />
 
