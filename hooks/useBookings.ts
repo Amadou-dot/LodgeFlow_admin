@@ -94,6 +94,37 @@ export const useBooking = (id: string) => {
     mutate,
   };
 };
+
+// Fetch a single booking by email
+export const useBookingByEmail = (email: string) => {
+  const { data, error, isLoading, mutate } = useSWR<PopulatedBooking>(
+    email ? `/api/bookings/by-email?email=${encodeURIComponent(email)}` : null,
+    async (url: string) => {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch booking');
+      }
+      const result = await response.json();
+      if (result.success) {
+        return result.data as PopulatedBooking;
+      }
+      throw new Error(result.error || 'Failed to fetch booking');
+    },
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+    }
+  );
+
+  return {
+    data,
+    error,
+    isLoading,
+    mutate,
+  };
+};
+
 // Create a new booking
 export const useCreateBooking = () => {
   const queryClient = useQueryClient();

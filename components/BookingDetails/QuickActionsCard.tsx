@@ -1,3 +1,5 @@
+import { useBookingByEmail } from '@/hooks/useBookings';
+import { useCabin } from '@/hooks/useCabins';
 import { useSendConfirmationEmail } from '@/hooks/useSendEmail';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
@@ -23,10 +25,23 @@ export default function QuickActionsCard({
   email,
 }: QuickActionsCardProps) {
   const { sendConfirmationEmail } = useSendConfirmationEmail();
+  const { data: bookingData, isLoading: bookingLoading } =
+    useBookingByEmail(email);
+  const { data: cabinData, isLoading: cabinLoading } = useCabin(
+    bookingData?.cabin?._id || bookingData?.cabin?.toString() || ''
+  );
 
   const handleSendConfirmation = async () => {
+    if (!bookingData || !cabinData) {
+      addToast({
+        color: 'danger',
+        description: 'Booking or cabin data not available',
+      });
+      return;
+    }
+
     try {
-      await sendConfirmationEmail(firstName, email);
+      await sendConfirmationEmail(firstName, email, bookingData, cabinData);
       addToast({
         color: 'success',
         description: 'Confirmation email sent successfully',
@@ -34,10 +49,12 @@ export default function QuickActionsCard({
     } catch (error) {
       addToast({
         color: 'danger',
-        description: 'Failed to send confirmation email',
+        description: `Email Failed to send: ${(error as Error).message}`,
       });
     }
   };
+
+  const isDataLoading = bookingLoading || cabinLoading;
 
   return (
     <Card>
@@ -74,7 +91,12 @@ export default function QuickActionsCard({
             Record Payment
           </Button>
         )}
-        <Button variant='flat' fullWidth onPress={handleSendConfirmation}>
+        <Button
+          variant='flat'
+          fullWidth
+          onPress={handleSendConfirmation}
+          isDisabled={isDataLoading}
+        >
           Send Confirmation Email
         </Button>
         <Button variant='flat' fullWidth>

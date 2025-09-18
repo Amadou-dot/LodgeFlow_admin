@@ -1,4 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   Cabin,
   CabinFilters,
@@ -6,6 +5,7 @@ import type {
   UpdateCabinData,
 } from '@/types';
 import { addToast } from '@heroui/toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const displayCabinToast = (message: string, type: 'success' | 'error') => {
   addToast({
@@ -35,6 +35,26 @@ export function useCabins(filters: CabinFilters = {}) {
       const result = await response.json();
       return result.success ? result.data : result; // Handle both old and new format
     },
+  });
+}
+
+export function useCabin(id: string) {
+  return useQuery<Cabin>({
+    queryKey: ['cabin', id],
+    queryFn: async () => {
+      if (!id) {
+        throw new Error('Cabin ID is required');
+      }
+
+      const response = await fetch(`/api/cabins/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch cabin');
+      }
+
+      const result = await response.json();
+      return result.success ? result.data : result;
+    },
+    enabled: !!id, // Only run query if id is provided
   });
 }
 
