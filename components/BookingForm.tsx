@@ -5,6 +5,7 @@ import { useCreateBooking } from '@/hooks/useBookings';
 import { useEffect } from 'react';
 import { FormActions } from './BookingForm/index';
 import BookingFormFields from './BookingFormFields';
+import { useEffect } from 'react';
 
 interface BookingFormProps {
   onSuccess?: () => void;
@@ -12,11 +13,9 @@ interface BookingFormProps {
   prefillData?: any;
 }
 
-export default function BookingForm({
-  onSuccess,
-  onCancel,
-  prefillData,
-}: BookingFormProps) {
+
+export default function BookingForm({ onSuccess, onCancel, prefillData }: BookingFormProps) {
+
   const createBooking = useCreateBooking();
 
   // Use the booking form hook here and pass everything to BookingFormFields

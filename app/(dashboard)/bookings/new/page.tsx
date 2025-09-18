@@ -5,9 +5,10 @@ import { ArrowLeftIcon } from '@/components/icons';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
-export default function NewBookingPage() {
+import { useEffect, useState, Suspense } from 'react';
+
+function NewBookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [prefillData, setPrefillData] = useState<any>(null);
@@ -50,9 +51,12 @@ export default function NewBookingPage() {
         <div>
           <h1 className='text-3xl font-bold'>Create New Booking</h1>
           <p className='text-default-600 mt-1'>
-            {prefillData?.customerSearchTerm
-              ? `Creating booking for ${prefillData.customerSearchTerm}`
-              : 'Fill in the details below to create a new cabin reservation'}
+
+            {prefillData?.customerSearchTerm 
+              ? `Creating booking for ${prefillData.customerSearchTerm}` 
+              : 'Fill in the details below to create a new cabin reservation'
+            }
+
           </p>
         </div>
       </div>
@@ -63,8 +67,10 @@ export default function NewBookingPage() {
         <div className='lg:col-span-3'>
           <Card className='shadow-lg'>
             <CardBody className='p-8'>
-              <BookingForm
-                onSuccess={handleSuccess}
+
+              <BookingForm 
+                onSuccess={handleSuccess} 
+
                 onCancel={handleCancel}
                 prefillData={prefillData}
               />
@@ -166,5 +172,13 @@ export default function NewBookingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NewBookingPage() {
+  return (
+    <Suspense fallback={<div className='flex justify-center items-center min-h-[400px]'>Loading...</div>}>
+      <NewBookingContent />
+    </Suspense>
   );
 }
