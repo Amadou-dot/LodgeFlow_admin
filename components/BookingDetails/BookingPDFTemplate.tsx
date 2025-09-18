@@ -287,12 +287,15 @@ export default function BookingPDFTemplate({
       {getAddons().length > 0 && (
         <div style={printStyles.section}>
           <h2 style={printStyles.sectionTitle}>Extras & Add-ons</h2>
-          {getAddons().map((addon, index) => (
-            <div key={index} style={printStyles.row}>
-              <span style={printStyles.label}>{addon.split(' - ')[0]}:</span>
-              <span style={printStyles.value}>{addon.split(' - ')[1]}</span>
-            </div>
-          ))}
+          {getAddons().map((addon, index) => {
+            const [label, value] = addon.split(' - ');
+            return (
+              <div key={index} style={printStyles.row}>
+                <span style={printStyles.label}>{label}:</span>
+                <span style={printStyles.value}>{value}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 
