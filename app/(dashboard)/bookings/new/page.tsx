@@ -5,7 +5,7 @@ import { ArrowLeftIcon } from '@/components/icons';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 function NewBookingContent() {
   const router = useRouter();
