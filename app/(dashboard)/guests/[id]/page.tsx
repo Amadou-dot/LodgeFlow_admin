@@ -16,10 +16,9 @@ import {
 } from '@heroui/table';
 import { useParams, useRouter } from 'next/navigation';
 
-import AddBookingModal from '@/components/AddBookingModal';
 import DeletionModal from '@/components/DeletionModal';
 import EditGuestModal from '@/components/EditGuestModal';
-import { ArrowLeftIcon } from '@/components/icons';
+import { ArrowLeftIcon, PlusIcon } from '@/components/icons';
 import {
   useCustomer,
   useDeleteCustomer,
@@ -66,6 +65,13 @@ export default function GuestDetailPage() {
         color: 'danger',
       });
     }
+  };
+
+  const handleNewBooking = () => {
+    // Redirect to new booking page with customer prefill
+    router.push(
+      `/bookings/new?customer=${customerId}&guestName=${encodeURIComponent(customer?.name || '')}`
+    );
   };
 
   const handleUnlockCustomer = async () => {
@@ -377,7 +383,14 @@ export default function GuestDetailPage() {
           <Card>
             <CardHeader className='flex justify-between items-center'>
               <h3 className='text-lg font-semibold'>Recent Bookings</h3>
-              <AddBookingModal onBookingAdded={() => mutate()} />
+              <Button
+                color='primary'
+                startContent={<PlusIcon size={18} />}
+                onPress={handleNewBooking}
+                className='w-full sm:w-auto'
+              >
+                New Booking
+              </Button>
             </CardHeader>
             <CardBody>
               {customer.recentBookings && customer.recentBookings.length > 0 ? (
@@ -433,8 +446,14 @@ export default function GuestDetailPage() {
                 </Table>
               ) : (
                 <div className='text-center py-8'>
-                  <p className='text-default-600'>No bookings found</p>
-                  {/* <AddBookingModal onBookingAdded={() => mutate()} /> */}
+                  <p className='text-default-600 mb-4'>No bookings found</p>
+                  <Button
+                    color='primary'
+                    startContent={<PlusIcon size={18} />}
+                    onPress={handleNewBooking}
+                  >
+                    Create First Booking
+                  </Button>
                 </div>
               )}
             </CardBody>
