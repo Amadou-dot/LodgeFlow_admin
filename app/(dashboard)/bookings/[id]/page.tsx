@@ -170,6 +170,7 @@ export default function BookingDetailsPage() {
           onCheckIn={handleCheckIn}
           onCheckOut={handleCheckOut}
           actionLoading={actionLoading}
+          onBookingUpdated={mutate}
         />
       </div>
     </div>
