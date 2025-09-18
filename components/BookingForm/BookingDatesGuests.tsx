@@ -131,6 +131,12 @@ export default function BookingDatesGuests({
     <>
       {/* Date Range Selection */}
       <div
+        className='relative'
+        style={{
+          position: 'relative',
+          zIndex: 1000,
+          isolation: 'isolate',
+        }}
         onSubmit={e => e.preventDefault()}
         onKeyDown={e => {
           if (e.key === 'Enter') {
@@ -138,7 +144,10 @@ export default function BookingDatesGuests({
             e.stopPropagation();
           }
         }}
+        onFocus={e => e.stopPropagation()}
+        onBlur={e => e.stopPropagation()}
         onClick={e => e.stopPropagation()}
+        onMouseDown={e => e.stopPropagation()}
       >
         <DateRangePicker
           label='Stay Duration'
@@ -156,6 +165,13 @@ export default function BookingDatesGuests({
           isDateUnavailable={selectedCabin ? isDateUnavailable : undefined}
           isDisabled={!selectedCabin}
           errorMessage={error ? 'Failed to load availability data' : undefined}
+          autoFocus={false}
+          className='w-full'
+          classNames={{
+            base: 'w-full',
+            calendar: 'z-[9999]',
+            popoverContent: 'z-[9999]',
+          }}
         />
       </div>
 
