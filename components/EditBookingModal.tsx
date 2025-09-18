@@ -113,7 +113,7 @@ export default function EditBookingModal({
         size='5xl'
         scrollBehavior='inside'
         isDismissable={false}
-        shouldBlockScroll={false}
+        shouldBlockScroll={true}
         backdrop='opaque'
       >
         <ModalContent>
