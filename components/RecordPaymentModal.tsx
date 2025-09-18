@@ -143,7 +143,7 @@ export default function RecordPaymentModal({
               type='number'
               step='0.01'
               min='0'
-              max={totalAmount}
+              max={remainingAmount}
               isRequired
             />
 
