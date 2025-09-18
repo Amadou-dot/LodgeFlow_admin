@@ -224,8 +224,7 @@ export function BookingConfirmationEmail({
           <div style={emailStyles.row}>
             <span style={emailStyles.label}>Guests:</span>
             <span style={emailStyles.value}>
-              {bookingData.numGuests} guest
-              {bookingData.numGuests > 1 ? 's' : ''}
+              {`${bookingData.numGuests} guest${bookingData.numGuests > 1 ? 's' : ''}`}
             </span>
           </div>
         </div>
