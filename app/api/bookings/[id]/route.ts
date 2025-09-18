@@ -74,15 +74,17 @@ export async function PATCH(req: Request, { params }: IdParam) {
         );
       }
 
-      // Calculate remaining amount
-      const remainingAmount = booking.totalPrice - amountPaid;
+      // Calculate remaining amount, accounting for previous payments
+      const totalPreviouslyPaid = booking.depositAmount || 0;
+      const totalPaid = totalPreviouslyPaid + amountPaid;
+      const remainingAmount = booking.totalPrice - totalPaid;
       const isPaid = remainingAmount <= 0;
 
       // Update booking payment fields
       booking.paymentMethod = paymentMethod;
       booking.isPaid = isPaid;
       booking.depositPaid = true;
-      booking.depositAmount = amountPaid;
+      booking.depositAmount = totalPaid;
       booking.remainingAmount = Math.max(0, remainingAmount);
 
       // Add payment notes to observations if provided
