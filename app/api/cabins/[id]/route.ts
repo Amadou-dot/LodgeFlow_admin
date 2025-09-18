@@ -27,7 +27,6 @@ export async function GET(
       data: cabin,
     });
   } catch (error) {
-    console.error('Error fetching cabin:', error);
     return NextResponse.json(
       {
         success: false,
@@ -95,8 +94,6 @@ export async function PUT(
       data: cabin,
     });
   } catch (error: any) {
-    console.error('Error updating cabin:', error);
-
     if (error.name === 'ValidationError') {
       return NextResponse.json(
         {
@@ -143,7 +140,6 @@ export async function DELETE(
       message: 'Cabin deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting cabin:', error);
     return NextResponse.json(
       {
         success: false,
