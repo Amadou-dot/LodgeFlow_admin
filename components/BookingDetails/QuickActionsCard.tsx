@@ -1,9 +1,12 @@
-import { useBookingByEmail } from '@/hooks/useBookings';
+import { useBookingByEmail, useRecordPayment } from '@/hooks/useBookings';
 import { useCabin } from '@/hooks/useCabins';
 import { useSendConfirmationEmail } from '@/hooks/useSendEmail';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
+import { useDisclosure } from '@heroui/modal';
 import { addToast } from '@heroui/toast';
+import { useState } from 'react';
+import RecordPaymentModal, { PaymentData } from '../RecordPaymentModal';
 
 interface QuickActionsCardProps {
   status: string;
@@ -13,6 +16,10 @@ interface QuickActionsCardProps {
   actionLoading: string | null;
   firstName: string;
   email: string;
+  bookingId: string;
+  totalPrice: number;
+  remainingAmount: number;
+  onPaymentRecorded?: () => void;
 }
 
 export default function QuickActionsCard({
@@ -23,8 +30,20 @@ export default function QuickActionsCard({
   actionLoading,
   firstName,
   email,
+  bookingId,
+  totalPrice,
+  remainingAmount,
+  onPaymentRecorded,
 }: QuickActionsCardProps) {
   const { sendConfirmationEmail } = useSendConfirmationEmail();
+  const recordPaymentMutation = useRecordPayment();
+  const {
+    isOpen: isPaymentModalOpen,
+    onOpen: onPaymentModalOpen,
+    onClose: onPaymentModalClose,
+  } = useDisclosure();
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
   const { data: bookingData, isLoading: bookingLoading } =
     useBookingByEmail(email);
   const { data: cabinData, isLoading: cabinLoading } = useCabin(
@@ -51,6 +70,32 @@ export default function QuickActionsCard({
         color: 'danger',
         description: `Email Failed to send: ${(error as Error).message}`,
       });
+    }
+  };
+
+  const handleRecordPayment = async (paymentData: PaymentData) => {
+    setPaymentLoading(true);
+    try {
+      await recordPaymentMutation.mutateAsync({
+        bookingId,
+        ...paymentData,
+      });
+
+      addToast({
+        color: 'success',
+        description: 'Payment recorded successfully',
+      });
+
+      // Call the callback to refresh booking data
+      onPaymentRecorded?.();
+    } catch (error) {
+      addToast({
+        color: 'danger',
+        description: `Failed to record payment: ${(error as Error).message}`,
+      });
+      throw error; // Re-throw to keep modal open
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -87,7 +132,13 @@ export default function QuickActionsCard({
           </Button>
         )}
         {!isPaid && (
-          <Button color='warning' variant='flat' fullWidth>
+          <Button
+            color='warning'
+            variant='flat'
+            fullWidth
+            onPress={onPaymentModalOpen}
+            isDisabled={actionLoading !== null || paymentLoading}
+          >
             Record Payment
           </Button>
         )}
@@ -103,6 +154,17 @@ export default function QuickActionsCard({
           Print Booking Details
         </Button>
       </CardBody>
+
+      {/* Record Payment Modal */}
+      <RecordPaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={onPaymentModalClose}
+        onRecordPayment={handleRecordPayment}
+        totalAmount={totalPrice}
+        remainingAmount={remainingAmount}
+        bookingId={bookingId}
+        guestName={firstName}
+      />
     </Card>
   );
 }
