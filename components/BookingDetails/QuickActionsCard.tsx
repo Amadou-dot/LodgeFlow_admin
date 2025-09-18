@@ -131,7 +131,7 @@ export default function QuickActionsCard({
             Check Out Guest
           </Button>
         )}
-        {!isPaid && (
+        {!isPaid && status !== 'cancelled' && (
           <Button
             color='warning'
             variant='flat'
