@@ -43,6 +43,7 @@ export default function AddBookingModal({
         scrollBehavior='inside'
         isDismissable={false}
         backdrop='opaque'
+        shouldBlockScroll={true}
       >
         <ModalContent>
           <ModalHeader className='flex flex-col gap-1'>
