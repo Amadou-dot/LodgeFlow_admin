@@ -145,6 +145,8 @@ export default function QuickActionsCard({
 
   const isDataLoading = bookingLoading || cabinLoading;
   const firstName = booking.customer.first_name || booking.customer.name;
+  const isPaymentButtonVisible =
+    !booking.isPaid && booking.status !== 'cancelled';
 
   return (
     <>
@@ -177,7 +179,7 @@ export default function QuickActionsCard({
               Check Out Guest
             </Button>
           )}
-          {!booking.isPaid && booking.status !== 'cancelled' && (
+          {isPaymentButtonVisible && (
             <Button
               color='warning'
               variant='flat'

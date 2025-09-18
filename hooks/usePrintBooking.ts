@@ -1,4 +1,5 @@
 import type { PopulatedBooking } from '@/types';
+import { addToast } from '@heroui/toast';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useCallback, useState } from 'react';
@@ -109,6 +110,12 @@ export const usePrintBooking = (
         // Generate filename and download
         const filename = generateFilename(options.filename);
         pdf.save(filename);
+      } catch (error) {
+        setIsGeneratingPDF(false);
+        addToast({
+          color: 'danger',
+          description: `Failed to generate PDF: ${(error as Error).message}`,
+        });
       } finally {
         setIsGeneratingPDF(false);
       }
