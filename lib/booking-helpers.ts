@@ -13,7 +13,7 @@ export async function populateBookingWithClerkCustomer(booking: any) {
       customer: customer || null,
     };
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error fetching customer for booking:', error);
     return {
       ...(booking.toObject ? booking.toObject() : booking),

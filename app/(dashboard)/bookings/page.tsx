@@ -14,6 +14,7 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import type { PopulatedBooking } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
+import { addToast } from '@heroui/toast';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -42,8 +43,11 @@ export default function BookingsPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('created') === 'true') {
-      // You could show a toast notification here
-      console.log('Booking created successfully!');
+      addToast({
+        title: 'Success',
+        description: 'Booking created successfully',
+        color: 'success',
+      });
       // Remove the query parameter from URL
       window.history.replaceState({}, '', '/bookings');
       // Refresh the bookings data

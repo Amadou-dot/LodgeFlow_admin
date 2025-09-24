@@ -107,7 +107,7 @@ export async function PUT(
       data: customer,
     });
   } catch (error: any) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error updating customer:', error);
 
     if (error.name === 'ValidationError') {
@@ -161,7 +161,7 @@ export async function DELETE(
       message: 'Customer deleted successfully',
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error deleting customer:', error);
     return NextResponse.json(
       {

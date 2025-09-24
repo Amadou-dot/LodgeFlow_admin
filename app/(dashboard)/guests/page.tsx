@@ -5,6 +5,7 @@ import { PlusIcon } from '@/components/icons';
 import StandardFilters, { FilterOption } from '@/components/StandardFilters';
 import { useCustomers } from '@/hooks/useCustomers';
 import { Button } from '@heroui/button';
+import { addToast } from '@heroui/toast';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -33,8 +34,11 @@ export default function GuestsPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('created') === 'true') {
-      // You could show a toast notification here
-      console.log('Guest created successfully!');
+      addToast({
+        title: 'Success',
+        description: 'Guest created successfully',
+        color: 'success',
+      });
       // Remove the query parameter from URL
       window.history.replaceState({}, '', '/guests');
       // Refresh the guests data

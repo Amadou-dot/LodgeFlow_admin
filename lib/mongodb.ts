@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 
 if (!process.env.MONGODB_URI) {
-  //eslint-disable-next-line no-console
   console.warn('MONGODB_URI environment variable not found, will use fallback');
 }
 

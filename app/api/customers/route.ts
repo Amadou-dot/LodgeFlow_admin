@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       message: 'Customer created successfully',
     });
   } catch (error: any) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error creating customer:', error);
 
     const errorMessage = error.message || 'Failed to create customer';

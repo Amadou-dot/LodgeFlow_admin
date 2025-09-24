@@ -42,7 +42,12 @@ export default [
     },
     rules: {
       // General rules
-      'no-console': 'warn',
+      'no-console': [
+        'warn',
+        {
+          allow: ['warn', 'error'],
+        },
+      ],
       'prefer-const': 'warn',
       'no-unused-vars': [
         'warn',
