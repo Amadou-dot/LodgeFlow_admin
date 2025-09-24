@@ -16,7 +16,7 @@ function NewBookingContent() {
   useEffect(() => {
     const customerId = searchParams.get('customer');
     const guestName = searchParams.get('guestName');
-    
+
     if (customerId || guestName) {
       setPrefillData({
         customer: customerId || '',
@@ -50,10 +50,9 @@ function NewBookingContent() {
         <div>
           <h1 className='text-3xl font-bold'>Create New Booking</h1>
           <p className='text-default-600 mt-1'>
-            {prefillData?.customerSearchTerm 
-              ? `Creating booking for ${prefillData.customerSearchTerm}` 
-              : 'Fill in the details below to create a new cabin reservation'
-            }
+            {prefillData?.customerSearchTerm
+              ? `Creating booking for ${prefillData.customerSearchTerm}`
+              : 'Fill in the details below to create a new cabin reservation'}
           </p>
         </div>
       </div>
@@ -64,8 +63,8 @@ function NewBookingContent() {
         <div className='lg:col-span-3'>
           <Card className='shadow-lg'>
             <CardBody className='p-8'>
-              <BookingForm 
-                onSuccess={handleSuccess} 
+              <BookingForm
+                onSuccess={handleSuccess}
                 onCancel={handleCancel}
                 prefillData={prefillData}
               />
@@ -172,7 +171,13 @@ function NewBookingContent() {
 
 export default function NewBookingPage() {
   return (
-    <Suspense fallback={<div className='flex justify-center items-center min-h-[400px]'>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className='flex justify-center items-center min-h-[400px]'>
+          Loading...
+        </div>
+      }
+    >
       <NewBookingContent />
     </Suspense>
   );
