@@ -22,7 +22,7 @@ export async function POST(
       },
     });
   } catch (error: any) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error locking user:', error);
 
     if (error.message === 'User not found') {
@@ -65,7 +65,7 @@ export async function DELETE(
       },
     });
   } catch (error: any) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error unlocking user:', error);
 
     if (error.message === 'User not found') {

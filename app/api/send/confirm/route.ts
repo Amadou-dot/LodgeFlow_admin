@@ -8,7 +8,6 @@ export async function POST(request: Request) {
   const { firstName, email, bookingData, cabinData } = await request.json();
   const emailValid = validateEmail(email);
   try {
-    
     if (!emailValid) {
       return Response.json({ error: 'Invalid email address' }, { status: 400 });
     }

@@ -231,7 +231,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
       await createBooking.mutateAsync(bookingData as any);
       onSuccess?.();
     } catch (error) {
-      // eslint-disable-next-line no-console
+       
       console.error('Error creating booking:', error);
       alert('Failed to create booking. Please try again.');
     }

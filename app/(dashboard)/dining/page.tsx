@@ -9,6 +9,7 @@ import { Dining } from '@/types';
 import { Button } from '@heroui/button';
 import { useDisclosure } from '@heroui/modal';
 import { Spinner } from '@heroui/spinner';
+import { addToast } from '@heroui/toast';
 import { useState } from 'react';
 
 export default function DiningPage() {
@@ -65,7 +66,11 @@ export default function DiningPage() {
   const handleDeleteDining = async (id: string) => {
     const success = await deleteDining(id);
     if (success) {
-      console.log('Dining item deleted successfully');
+      addToast({
+        title: 'Success',
+        description: 'Dining item deleted successfully',
+        color: 'success',
+      });
     } else {
       console.error('Failed to delete dining item');
     }
@@ -75,10 +80,18 @@ export default function DiningPage() {
     try {
       if (selectedDining?._id) {
         await updateDining(selectedDining._id, data);
-        console.log('Dining item updated successfully');
+        addToast({
+          title: 'Success',
+          description: 'Dining item updated successfully',
+          color: 'success',
+        });
       } else {
         await createDining(data);
-        console.log('Dining item created successfully');
+        addToast({
+          title: 'Success',
+          description: 'Dining item created successfully',
+          color: 'success',
+        });
       }
       onClose();
     } catch (error) {

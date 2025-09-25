@@ -52,7 +52,12 @@ export default [
     },
     rules: {
       // General rules
-      "no-console": "warn",
+      "no-console": [
+        "warn",
+        {
+          allow: ["warn", "error"]
+        }
+      ],
       "prefer-const": "warn",
       "no-unused-vars": "off", // Turn off for TypeScript files
       "no-undef": "off", // Turn off for TypeScript files (TypeScript handles this)
@@ -90,7 +95,12 @@ export default [
     },
     rules: {
       // General rules
-      "no-console": "warn",
+      "no-console": [
+        "warn",
+        {
+          allow: ["warn", "error"]
+        }
+      ],
       "prefer-const": "warn",
       "no-unused-vars": [
         "warn",

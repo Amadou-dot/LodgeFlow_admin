@@ -128,7 +128,7 @@ export async function getClerkUsers(params: ClerkUserListParams = {}): Promise<{
       totalCount: response.totalCount,
     };
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error fetching users from Clerk:', error);
     throw new Error('Failed to fetch users from Clerk');
   }
@@ -149,7 +149,7 @@ export async function getClerkUser(userId: string): Promise<Customer | null> {
 
     return convertClerkUserToCustomer(clerkUser, extendedData);
   } catch (error: any) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error fetching user from Clerk:', error);
     if (error?.status === 404) {
       return null;
@@ -170,7 +170,7 @@ export async function getClerkUserCount(): Promise<number> {
     });
     return response.totalCount;
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error fetching user count from Clerk:', error);
     throw new Error('Failed to fetch user count from Clerk');
   }
@@ -214,7 +214,7 @@ export async function upsertCustomerExtendedData(
     );
     return extendedData;
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error upserting customer extended data:', error);
     throw new Error('Failed to update customer extended data');
   }
@@ -230,7 +230,7 @@ export async function getCustomerExtendedData(
     await connectDB();
     return await CustomerModel.findOne({ clerkUserId });
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error fetching customer extended data:', error);
     throw new Error('Failed to fetch customer extended data');
   }
@@ -269,7 +269,7 @@ export async function createClerkUser(userData: {
     const clerkUser = await client.users.createUser(createParams);
     return clerkUser;
   } catch (error: any) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error creating user in Clerk:', error);
 
     // Handle specific Clerk errors
@@ -314,7 +314,7 @@ export async function updateClerkUser(
     const clerkUser = await client.users.updateUser(userId, updateParams);
     return clerkUser;
   } catch (error: any) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error updating user in Clerk:', error);
 
     // Handle specific Clerk errors
@@ -338,7 +338,7 @@ export async function deleteClerkUser(userId: string): Promise<User> {
     const deletedUser = await client.users.deleteUser(userId);
     return deletedUser;
   } catch (error: any) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error deleting user from Clerk:', error);
 
     if (error?.status === 404) {
@@ -358,7 +358,7 @@ export async function lockClerkUser(userId: string): Promise<User> {
     const lockedUser = await client.users.lockUser(userId);
     return lockedUser;
   } catch (error: any) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error locking user in Clerk:', error);
 
     if (error?.status === 404) {
@@ -378,7 +378,7 @@ export async function unlockClerkUser(userId: string): Promise<User> {
     const unlockedUser = await client.users.unlockUser(userId);
     return unlockedUser;
   } catch (error: any) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error unlocking user in Clerk:', error);
 
     if (error?.status === 404) {
@@ -458,7 +458,7 @@ export async function createCompleteCustomer(userData: {
     // 3. Return combined customer object
     return convertClerkUserToCustomer(clerkUser, extendedData);
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error creating complete customer:', error);
     throw error; // Re-throw to preserve the original error message
   }
@@ -478,7 +478,7 @@ export async function deleteCompleteCustomer(
     // 2. Delete user from Clerk
     await deleteClerkUser(clerkUserId);
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error deleting complete customer:', error);
     throw error; // Re-throw to preserve the original error message
   }
@@ -572,7 +572,7 @@ export async function updateCompleteCustomer(
 
     return convertClerkUserToCustomer(clerkUser, extendedData || undefined);
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Error updating complete customer:', error);
     throw error; // Re-throw to preserve the original error message
   }

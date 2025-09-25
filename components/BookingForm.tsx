@@ -12,7 +12,6 @@ interface BookingFormProps {
   prefillData?: any;
 }
 
-
 export default function BookingForm({ onSuccess, onCancel, prefillData }: BookingFormProps) {
 
   const createBooking = useCreateBooking();
@@ -42,7 +41,6 @@ export default function BookingForm({ onSuccess, onCancel, prefillData }: Bookin
       await createBooking.mutateAsync(bookingData as any);
       onSuccess?.();
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Error creating booking:', error);
       alert('Failed to create booking. Please try again.');
     }
