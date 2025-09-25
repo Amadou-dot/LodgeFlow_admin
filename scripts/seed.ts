@@ -1144,6 +1144,12 @@ async function seedDatabase() {
         ? Math.round(totalPrice * (settings.depositPercentage / 100))
         : 0;
 
+      // Create a realistic createdAt date (booking was made before check-in)
+      const bookingCreatedAt = faker.date.between({
+        from: new Date('2024-01-01'),
+        to: new Date(Math.min(checkInDate.getTime(), Date.now())),
+      });
+
       const booking = await Booking.create({
         cabin: cabin._id,
         customer: clerkUserId, // Using Clerk user ID instead of MongoDB customer ID
@@ -1194,6 +1200,7 @@ async function seedDatabase() {
             ? faker.datatype.boolean({ probability: 0.8 })
             : false,
         depositAmount,
+        createdAt: bookingCreatedAt,
       });
 
       bookings.push(booking);
