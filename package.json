@@ -15,9 +15,19 @@
     "seed": "tsx scripts/seed.ts",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "extract:all": "npm run extract:cabins && npm run extract:dining && npm run extract:experiences && npm run extract:settings",
+    "extract:cabins": "tsx scripts/extract-cabins.ts",
+    "extract:dining": "tsx scripts/extract-dining.ts",
+    "extract:experiences": "tsx scripts/extract-experiences.ts",
+    "extract:settings": "tsx scripts/extract-settings.ts",
+    "clerk:users": "tsx scripts/create-clerk-users.ts",
+    "clerk:list": "tsx scripts/get-clerk-users.ts",
+    "verify:bookings": "tsx scripts/verify-bookings.ts",
+    "summary": "tsx scripts/data-summary.ts"
   },
   "dependencies": {
+    "@clerk/backend": "^2.15.0",
     "@clerk/nextjs": "^6.31.9",
     "@clerk/themes": "^2.4.17",
     "@faker-js/faker": "^9.9.0",

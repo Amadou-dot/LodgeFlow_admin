@@ -2,21 +2,8 @@ import { faker } from '@faker-js/faker';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import connectDB from '../lib/mongodb';
-import type {
-  IBooking,
-  ICabin,
-  ICustomer,
-  IDining,
-  IExperience,
-} from '../models';
-import {
-  Booking,
-  Cabin,
-  Customer,
-  Dining,
-  Experience,
-  Settings,
-} from '../models';
+import type { IBooking, IExperience } from '../models';
+import { Booking, Cabin, Dining, Experience, Settings } from '../models';
 
 // Load environment variables from .env.local
 config({ path: resolve(process.cwd(), '.env.local') });
@@ -1050,7 +1037,6 @@ async function seedDatabase() {
     // Clear existing data
     await Promise.all([
       Cabin.deleteMany({}),
-      Customer.deleteMany({}),
       Booking.deleteMany({}),
       Settings.deleteMany({}),
       Experience.deleteMany({}),
@@ -1083,7 +1069,7 @@ async function seedDatabase() {
     console.log('⚙️  Settings created');
 
     // Create cabins
-    const cabins: ICabin[] = await Cabin.insertMany(cabinData);
+    const cabins = await Cabin.insertMany(cabinData as any);
     console.log(`🏠 Created ${cabins.length} cabins`);
 
     // Create experiences
@@ -1092,73 +1078,40 @@ async function seedDatabase() {
     console.log(`🎯 Created ${experiences.length} experiences`);
 
     // Create dining items
-    const dining: IDining[] = await Dining.insertMany(diningData);
+    const dining = await Dining.insertMany(diningData as any);
     console.log(`🍽️ Created ${dining.length} dining items`);
 
-    // Create customers
-    const customers: ICustomer[] = [];
-    for (let i = 0; i < 100; i++) {
-      // Generate simple phone numbers that match the validation pattern
-      const generatePhoneNumber = () => {
-        // Generate a number starting with 1-9 followed by 9-14 digits
-        const firstDigit = faker.number.int({ min: 1, max: 9 });
-        const remainingDigits = faker.string.numeric(9); // 9 more digits for total of 10
-        return `${firstDigit}${remainingDigits}`;
-      };
-
-      // Generate profile image URL using UI Avatars service
-      const customerName = faker.person.fullName();
-      const profileImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(customerName)}&size=150&background=random&color=fff&bold=true`;
-
-      const customer = await Customer.create({
-        name: customerName,
-        email: faker.internet.email(),
-        phone: generatePhoneNumber(),
-        nationality: faker.location.country(),
-        nationalId: faker.string.alphanumeric(10).toUpperCase(),
-        profileImage: profileImage,
-        address: {
-          street: faker.location.streetAddress(),
-          city: faker.location.city(),
-          state: faker.location.state(),
-          country: faker.location.country(),
-          zipCode: faker.location.zipCode(),
-        },
-        emergencyContact: {
-          name: faker.person.fullName(),
-          phone: generatePhoneNumber(),
-          relationship: faker.helpers.arrayElement([
-            'spouse',
-            'parent',
-            'sibling',
-            'friend',
-          ]),
-        },
-        preferences: {
-          smokingPreference: faker.helpers.arrayElement([
-            'smoking',
-            'non-smoking',
-            'no-preference',
-          ]),
-          dietaryRestrictions: faker.helpers.arrayElements(
-            ['vegetarian', 'vegan', 'gluten-free', 'lactose-free'],
-            { min: 0, max: 2 }
-          ),
-          accessibilityNeeds: faker.helpers.arrayElements(
-            ['wheelchair-accessible', 'hearing-impaired', 'vision-impaired'],
-            { min: 0, max: 1 }
-          ),
-        },
-      });
-      customers.push(customer);
+    // NOTE: Users are now created via Clerk, not MongoDB
+    // Use the create-clerk-users.ts script to create users in Clerk
+    // Load real Clerk user IDs from generated file
+    let clerkUserIds: string[] = [];
+    try {
+      const fs = await import('fs/promises');
+      const userIdsData = await fs.readFile('clerk-user-ids.json', 'utf-8');
+      clerkUserIds = JSON.parse(userIdsData);
+      console.log(
+        `👥 Loaded ${clerkUserIds.length} real Clerk user IDs for bookings`
+      );
+    } catch (error) {
+      console.warn('⚠️  Could not load clerk-user-ids.json, using sample IDs');
+      // Fallback to sample IDs if file doesn't exist
+      clerkUserIds = [
+        'user_2NhL8ZbYr0vE3fPm4WqXt6KaB7d',
+        'user_2NhL8ZcYr0vE3fPm4WqXt6KaB7e',
+        'user_2NhL8ZdYr0vE3fPm4WqXt6KaB7f',
+        'user_2NhL8ZeYr0vE3fPm4WqXt6KaB7g',
+        'user_2NhL8ZfYr0vE3fPm4WqXt6KaB7h',
+      ];
+      console.log(
+        `👥 Using ${clerkUserIds.length} sample Clerk user IDs for bookings`
+      );
     }
-    console.log(`👥 Created ${customers.length} customers`);
 
     // Create bookings
     const bookings: IBooking[] = [];
     for (let i = 0; i < 150; i++) {
       const cabin = faker.helpers.arrayElement(cabins);
-      const customer = faker.helpers.arrayElement(customers);
+      const clerkUserId = faker.helpers.arrayElement(clerkUserIds);
       const checkInDate = faker.date.between({
         from: new Date('2024-01-01'),
         to: new Date('2025-12-31'),
@@ -1193,7 +1146,7 @@ async function seedDatabase() {
 
       const booking = await Booking.create({
         cabin: cabin._id,
-        customer: customer._id,
+        customer: clerkUserId, // Using Clerk user ID instead of MongoDB customer ID
         checkInDate,
         checkOutDate,
         numNights,
@@ -1247,26 +1200,9 @@ async function seedDatabase() {
     }
     console.log(`📅 Created ${bookings.length} bookings`);
 
-    // Update customer statistics
-    for (const customer of customers) {
-      const customerBookings = bookings.filter(
-        b => b.customer.toString() === customer._id.toString()
-      );
-      const totalSpent = customerBookings.reduce(
-        (sum, booking) => sum + booking.totalPrice,
-        0
-      );
-      const lastBooking = customerBookings.sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      )[0];
-
-      await Customer.findByIdAndUpdate(customer._id, {
-        totalBookings: customerBookings.length,
-        totalSpent,
-        lastBookingDate: lastBooking?.createdAt,
-      });
-    }
-    console.log('📊 Updated customer statistics');
+    // NOTE: Customer statistics are no longer maintained in MongoDB
+    // since users are managed by Clerk. Statistics can be calculated
+    // on-demand by querying bookings with Clerk user IDs.
 
     console.log('🎉 Database seeding completed successfully!');
     console.log(`
@@ -1275,8 +1211,10 @@ async function seedDatabase() {
 - Cabins: ${cabins.length}
 - Experiences: ${experiences.length}
 - Dining Items: ${dining.length}
-- Customers: ${customers.length}
+- Clerk User IDs: ${clerkUserIds.length}
 - Bookings: ${bookings.length}
+
+⚠️  Note: Users are now managed by Clerk. Use create-clerk-users.ts to create actual users.
     `);
   } catch (error) {
     console.error('❌ Error seeding database:', error);
