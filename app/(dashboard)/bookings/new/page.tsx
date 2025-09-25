@@ -4,6 +4,7 @@ import BookingForm from '@/components/BookingForm';
 import { ArrowLeftIcon } from '@/components/icons';
 import { Button } from '@heroui/button';
 import { Card, CardBody, CardHeader } from '@heroui/card';
+import { Spinner } from '@heroui/spinner';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Suspense, useEffect, useState } from 'react';
@@ -172,13 +173,7 @@ function NewBookingContent() {
 
 export default function NewBookingPage() {
   return (
-    <Suspense
-      fallback={
-        <div className='flex justify-center items-center min-h-[400px]'>
-          Loading...
-        </div>
-      }
-    >
+    <Suspense fallback={<Spinner title='Loading new booking...' />}>
       <NewBookingContent />
     </Suspense>
   );
