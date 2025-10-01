@@ -2,10 +2,11 @@
 
 import { PlusIcon } from '@/components/icons';
 import { Button } from '@heroui/button';
+import type { RecentBooking } from '@/types';
 import GuestRecentBookingCard from './GuestRecentBookingCard';
 
 interface GuestRecentBookingsMobileProps {
-  recentBookings: any[];
+  recentBookings: RecentBooking[];
   formatDate: (dateString: string) => string;
   onNewBooking: () => void;
 }
@@ -33,7 +34,7 @@ export default function GuestRecentBookingsMobile({
 
   return (
     <div>
-      {recentBookings.map((booking: any) => (
+      {recentBookings.map((booking) => (
         <GuestRecentBookingCard
           key={booking._id}
           booking={booking}

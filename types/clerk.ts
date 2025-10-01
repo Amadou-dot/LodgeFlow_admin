@@ -168,6 +168,20 @@ export interface Customer {
   totalSpent: number;
   lastBookingDate?: Date;
 
+  // Recent bookings data (populated from API)
+  recentBookings?: Array<{
+    _id: string;
+    cabin?: {
+      name: string;
+      image?: string;
+    };
+    checkInDate: string | Date;
+    checkOutDate: string | Date;
+    numNights: number;
+    status: 'unconfirmed' | 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled';
+    totalPrice: number;
+  }>;
+
   // Computed properties
   loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum';
   fullAddress?: string;

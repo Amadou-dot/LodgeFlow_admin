@@ -1,12 +1,12 @@
 'use client';
 
-import type { PopulatedBooking } from '@/types';
+import type { RecentBooking } from '@/types';
 import { getStatusColor } from '@/utils/utilityFunctions';
 import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 
 interface GuestRecentBookingCardProps {
-  booking: any; // Using any since this comes from customer.recentBookings
+  booking: RecentBooking;
   formatDate: (dateString: string) => string;
 }
 
@@ -55,10 +55,10 @@ export default function GuestRecentBookingCard({
           </span>
           <div className='mt-1'>
             <p className='text-sm text-foreground'>
-              {formatDate(booking.checkInDate)}
+              {formatDate(typeof booking.checkInDate === 'string' ? booking.checkInDate : booking.checkInDate.toISOString())}
             </p>
             <p className='text-xs text-default-600'>
-              to {formatDate(booking.checkOutDate)}
+              to {formatDate(typeof booking.checkOutDate === 'string' ? booking.checkOutDate : booking.checkOutDate.toISOString())}
             </p>
           </div>
         </div>

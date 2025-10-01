@@ -33,6 +33,17 @@ export type Dining = IDining;
 export type Settings = ISettings;
 export type Experience = IExperience;
 
+// Type for recent bookings from customer data
+export interface RecentBooking {
+  _id: string;
+  cabin?: Cabin;
+  checkInDate: string | Date;
+  checkOutDate: string | Date;
+  numNights: number;
+  status: 'unconfirmed' | 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled';
+  totalPrice: number;
+}
+
 // Extended types for populated models (used in API responses)
 export interface PopulatedBooking
   extends Omit<
