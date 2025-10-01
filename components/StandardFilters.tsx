@@ -108,7 +108,6 @@ export default function StandardFilters({
             onPress={() =>
               onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')
             }
-            className='col-span-1'
           >
             {sortOrder === 'asc' ? '↑' : '↓'}
           </Button>
