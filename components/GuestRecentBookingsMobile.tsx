@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@heroui/button';
 import { PlusIcon } from '@/components/icons';
+import { Button } from '@heroui/button';
 import GuestRecentBookingCard from './GuestRecentBookingCard';
 
 interface GuestRecentBookingsMobileProps {
@@ -32,7 +32,7 @@ export default function GuestRecentBookingsMobile({
   }
 
   return (
-    <div className='space-y-3'>
+    <div>
       {recentBookings.map((booking: any) => (
         <GuestRecentBookingCard
           key={booking._id}
