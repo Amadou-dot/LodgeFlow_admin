@@ -29,7 +29,7 @@ export default function BookingDetailsHeader({
   };
 
   return (
-    <div className='flex items-center justify-between mb-6'>
+    <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6'>
       <div className='flex items-center gap-4'>
         <Button isIconOnly variant='flat' onPress={onBack} aria-label='Go back'>
           <ArrowLeftIcon className='w-4 h-4' />
@@ -39,13 +39,14 @@ export default function BookingDetailsHeader({
           <p className='text-default-500'>Booking ID: {booking._id}</p>
         </div>
       </div>
-      <div className='flex gap-2'>
+      <div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto'>
         {isCancelable && (
           <Button
             color='primary'
             variant='flat'
             startContent={<EditIcon className='w-4 h-4' />}
             onPress={handleEditBooking}
+            className='w-full sm:w-auto'
           >
             Edit Booking
           </Button>
@@ -60,6 +61,7 @@ export default function BookingDetailsHeader({
             color: 'danger',
             variant: 'flat',
             startContent: <TrashIcon className='w-4 h-4' />,
+            className: 'w-full sm:w-auto',
           }}
         />
       </div>
