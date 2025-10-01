@@ -18,6 +18,7 @@ import { useParams, useRouter } from 'next/navigation';
 
 import DeletionModal from '@/components/DeletionModal';
 import EditGuestModal from '@/components/EditGuestModal';
+import GuestRecentBookingsMobile from '@/components/GuestRecentBookingsMobile';
 import { ArrowLeftIcon, PlusIcon } from '@/components/icons';
 import {
   useCustomer,
@@ -151,7 +152,7 @@ export default function GuestDetailPage() {
             <p className='text-default-600 mt-1'>{customer.name}</p>
           </div>
         </div>
-        <div className='flex gap-2'>
+        <div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto'>
           <EditGuestModal
             guestData={customer}
             onGuestUpdated={() => mutate()}
@@ -162,6 +163,7 @@ export default function GuestDetailPage() {
               variant='flat'
               onPress={handleUnlockCustomer}
               isLoading={unlockCustomerMutation.isPending}
+              className='w-full sm:w-auto'
             >
               Unlock User
             </Button>
@@ -171,6 +173,7 @@ export default function GuestDetailPage() {
               variant='flat'
               onPress={handleLockCustomer}
               isLoading={lockCustomerMutation.isPending}
+              className='w-full sm:w-auto'
             >
               Lock User
             </Button>
@@ -182,6 +185,9 @@ export default function GuestDetailPage() {
             onDelete={deleteCustomerMutation}
             note='Customers with active bookings cannot be deleted.'
             onResourceDeleted={() => router.push('/guests')}
+            buttonProps={{
+              className: 'w-full sm:w-auto',
+            }}
           />
         </div>
       </div>
@@ -381,7 +387,7 @@ export default function GuestDetailPage() {
 
           {/* Recent Bookings */}
           <Card>
-            <CardHeader className='flex justify-between items-center'>
+            <CardHeader className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
               <h3 className='text-lg font-semibold'>Recent Bookings</h3>
               <Button
                 color='primary'
@@ -394,56 +400,70 @@ export default function GuestDetailPage() {
             </CardHeader>
             <CardBody>
               {customer.recentBookings && customer.recentBookings.length > 0 ? (
-                <Table aria-label='Recent bookings'>
-                  <TableHeader>
-                    <TableColumn>CABIN</TableColumn>
-                    <TableColumn>DATES</TableColumn>
-                    <TableColumn>NIGHTS</TableColumn>
-                    <TableColumn>STATUS</TableColumn>
-                    <TableColumn>TOTAL</TableColumn>
-                  </TableHeader>
-                  <TableBody>
-                    {customer.recentBookings.map((booking: any) => (
-                      <TableRow key={booking._id}>
-                        <TableCell>
-                          <div className='flex items-center gap-2'>
-                            {booking.cabin?.image && (
-                              <img
-                                alt={booking.cabin.name}
-                                className='w-8 h-8 rounded object-cover'
-                                src={booking.cabin.image}
-                              />
-                            )}
-                            <span className='font-medium'>
-                              {booking.cabin?.name || 'N/A'}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className='text-sm'>
-                            <p>{formatDate(booking.checkInDate)}</p>
-                            <p className='text-default-600'>
-                              to {formatDate(booking.checkOutDate)}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>{booking.numNights}</TableCell>
-                        <TableCell>
-                          <Chip
-                            color={getStatusColor(booking.status) as any}
-                            size='sm'
-                            variant='flat'
-                          >
-                            {booking.status}
-                          </Chip>
-                        </TableCell>
-                        <TableCell className='font-medium'>
-                          ${booking.totalPrice.toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <>
+                  {/* Desktop Table View */}
+                  <div className='hidden md:block'>
+                    <Table aria-label='Recent bookings'>
+                      <TableHeader>
+                        <TableColumn>CABIN</TableColumn>
+                        <TableColumn>DATES</TableColumn>
+                        <TableColumn>NIGHTS</TableColumn>
+                        <TableColumn>STATUS</TableColumn>
+                        <TableColumn>TOTAL</TableColumn>
+                      </TableHeader>
+                      <TableBody>
+                        {customer.recentBookings.map((booking: any) => (
+                          <TableRow key={booking._id}>
+                            <TableCell>
+                              <div className='flex items-center gap-2'>
+                                {booking.cabin?.image && (
+                                  <img
+                                    alt={booking.cabin.name}
+                                    className='w-8 h-8 rounded object-cover'
+                                    src={booking.cabin.image}
+                                  />
+                                )}
+                                <span className='font-medium'>
+                                  {booking.cabin?.name || 'N/A'}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className='text-sm'>
+                                <p>{formatDate(booking.checkInDate)}</p>
+                                <p className='text-default-600'>
+                                  to {formatDate(booking.checkOutDate)}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>{booking.numNights}</TableCell>
+                            <TableCell>
+                              <Chip
+                                color={getStatusColor(booking.status) as any}
+                                size='sm'
+                                variant='flat'
+                              >
+                                {booking.status}
+                              </Chip>
+                            </TableCell>
+                            <TableCell className='font-medium'>
+                              ${booking.totalPrice.toLocaleString()}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className='block md:hidden'>
+                    <GuestRecentBookingsMobile
+                      recentBookings={customer.recentBookings}
+                      formatDate={formatDate}
+                      onNewBooking={handleNewBooking}
+                    />
+                  </div>
+                </>
               ) : (
                 <div className='text-center py-8'>
                   <p className='text-default-600 mb-4'>No bookings found</p>
