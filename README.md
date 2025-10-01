@@ -1,4 +1,5 @@
 # LodgeFlow - Hotel Management System
+[Live preview](https://loadgeflow-admin.aseck.dev/)
 
 A modern hotel management dashboard built with Next.js 15, HeroUI, and MongoDB. Features comprehensive cabin management, booking system, customer profiles, and business analytics.
 
