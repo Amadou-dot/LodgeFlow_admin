@@ -39,26 +39,26 @@ export default function GuestInformationCard({
             />
             <Divider className='my-4' />
             <div className='grid grid-cols-2 gap-4 text-sm'>
-              <div>
+              <div className='text-left'>
                 <span className='text-default-500'>Phone:</span>
                 <p className='font-medium'>
                   {customer.phone || 'Not provided'}
                 </p>
               </div>
-              <div>
+              <div className='text-left'>
                 <span className='text-default-500'>Nationality:</span>
                 <p className='font-medium'>
                   {customer.nationality || 'Not provided'}
                 </p>
               </div>
-              <div>
+              <div className='text-left'>
                 <span className='text-default-500'>Guests:</span>
                 <p className='font-medium'>
                   {numGuests} guest
                   {numGuests !== 1 ? 's' : ''}
                 </p>
               </div>
-              <div>
+              <div className='text-left'>
                 <span className='text-default-500'>Nights:</span>
                 <p className='font-medium'>
                   {numNights} night
@@ -68,8 +68,8 @@ export default function GuestInformationCard({
             </div>
           </>
         ) : (
-          <div className='text-center py-4'>
-            <p className='text-default-500'>Guest information not available</p>
+          <div className='py-4'>
+            <p className='text-default-500 text-left'>Guest information not available</p>
           </div>
         )}
       </CardBody>

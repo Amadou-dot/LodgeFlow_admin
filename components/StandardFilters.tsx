@@ -63,39 +63,38 @@ export default function StandardFilters({
   return (
     <div className='space-y-4'>
       {/* Search and Sort Row */}
-      <div className='flex flex-col md:flex-row gap-4'>
+      <div className='flex flex-col gap-4'>
         {/* Search Input */}
-        <div className='flex-1'>
-          <div className='flex gap-2'>
-            <Input
-              placeholder={searchPlaceholder}
-              startContent={<SearchIcon />}
-              value={localSearchValue}
-              onChange={e => setLocalSearchValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className='flex-1'
-              isClearable
-              onClear={handleSearchClear}
-            />
-            <Button
-              variant='solid'
-              color='primary'
-              onPress={handleSearchSubmit}
-              isDisabled={localSearchValue === searchValue}
-            >
-              Search
-            </Button>
-          </div>
+        <div className='flex gap-2'>
+          <Input
+            placeholder={searchPlaceholder}
+            startContent={<SearchIcon />}
+            value={localSearchValue}
+            onChange={e => setLocalSearchValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className='flex-1'
+            isClearable
+            onClear={handleSearchClear}
+          />
+          <Button
+            variant='solid'
+            color='primary'
+            onPress={handleSearchSubmit}
+            isDisabled={localSearchValue === searchValue}
+          >
+            Search
+          </Button>
         </div>
 
-        {/* Sort Options */}
-        <div className='flex gap-2 items-center'>
+        {/* Sort Options - Mobile: 2 rows x 3 columns, Desktop: single row */}
+        <div className='grid grid-cols-3 md:flex gap-2'>
           {sortOptions.map(option => (
             <Button
               key={option.key}
               variant={currentSort === option.value ? 'solid' : 'bordered'}
               size='sm'
               onPress={() => onSortChange(option.value)}
+              className='text-xs md:text-sm'
             >
               {option.label}
             </Button>
@@ -109,6 +108,7 @@ export default function StandardFilters({
             onPress={() =>
               onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')
             }
+            className='col-span-1'
           >
             {sortOrder === 'asc' ? '↑' : '↓'}
           </Button>
