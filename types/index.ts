@@ -160,10 +160,10 @@ export interface CustomersResponse {
   pagination: {
     currentPage: number;
     totalPages: number;
-    totalCustomers: number;
-    limit: number;
+    totalCustomers: number; // Keep original field name from API
+    limit: number; // Keep original field name from API
     hasNextPage: boolean;
-    hasPrevPage: boolean;
+    hasPrevPage: boolean; // Keep original field name from API
   };
 }
 
@@ -182,11 +182,15 @@ export interface CustomerWithStats extends Customer {
   recentBookings: RecentBooking[];
 }
 
-export interface CustomerPaginationMeta {
+// Generic pagination interface for components
+export interface PaginationData {
   currentPage: number;
   totalPages: number;
-  totalCustomers: number;
-  limit: number;
+  totalItems: number;
+  itemsPerPage: number;
   hasNextPage: boolean;
-  hasPrevPage: boolean;
+  hasPreviousPage: boolean;
 }
+
+// Alias for customer pagination (same structure)
+export type CustomerPaginationMeta = PaginationData;

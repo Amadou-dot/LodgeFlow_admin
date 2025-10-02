@@ -31,7 +31,14 @@ const fetcher = (url: string): Promise<CustomersListResponse> =>
       if (result.success) {
         return {
           customers: result.data,
-          pagination: result.pagination,
+          pagination: {
+            currentPage: result.pagination.currentPage,
+            totalPages: result.pagination.totalPages,
+            totalItems: result.pagination.totalCustomers, // Map to consistent naming
+            itemsPerPage: result.pagination.limit, // Map to consistent naming
+            hasNextPage: result.pagination.hasNextPage,
+            hasPreviousPage: result.pagination.hasPrevPage, // Map to consistent naming
+          },
         };
       }
       throw new Error('Failed to fetch customers');
