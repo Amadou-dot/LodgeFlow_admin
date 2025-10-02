@@ -362,7 +362,7 @@ export default function GuestDetailPage() {
             <Card>
               <CardBody className='text-center'>
                 <p className='text-2xl font-bold text-success'>
-                  {customer.stats?.completedBookings || 0}
+                  {customer.completedBookings || 0}
                 </p>
                 <p className='text-sm text-default-600'>Completed Stays</p>
               </CardBody>
@@ -378,7 +378,7 @@ export default function GuestDetailPage() {
             <Card>
               <CardBody className='text-center'>
                 <p className='text-2xl font-bold text-secondary'>
-                  {Math.round(customer.stats?.averageStayLength || 0)}
+                  {Math.round(customer.averageStayLength || 0)}
                 </p>
                 <p className='text-sm text-default-600'>Avg. Stay (nights)</p>
               </CardBody>

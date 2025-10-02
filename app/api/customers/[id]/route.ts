@@ -36,8 +36,7 @@ export async function GET(
       .sort({ createdAt: -1 })
       .limit(10);
 
-    // Calculate additional stats
-    const totalBookings = await Booking.countDocuments({ customer: id });
+    // Calculate additional stats that aren't stored in the database
     const completedBookings = await Booking.countDocuments({
       customer: id,
       status: 'checked-out',
@@ -50,18 +49,17 @@ export async function GET(
 
     const totalRevenue = revenueResult[0]?.total || 0;
 
+    // Flatten the customer data - use database values for core stats, calculated values for display-only stats
     const customerData = {
       ...customer,
-      stats: {
-        totalBookings,
-        completedBookings,
-        totalRevenue,
-        averageStayLength:
-          bookings.length > 0
-            ? bookings.reduce((sum, booking) => sum + booking.numNights, 0) /
-              bookings.length
-            : 0,
-      },
+      // Additional calculated stats for display purposes
+      completedBookings,
+      totalRevenue,
+      averageStayLength:
+        bookings.length > 0
+          ? bookings.reduce((sum, booking) => sum + booking.numNights, 0) /
+            bookings.length
+          : 0,
       recentBookings: bookings,
     };
 

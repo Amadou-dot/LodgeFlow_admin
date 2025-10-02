@@ -173,12 +173,10 @@ export interface CustomerResponse {
 }
 
 export interface CustomerWithStats extends Customer {
-  stats: {
-    totalBookings: number;
-    completedBookings: number;
-    totalRevenue: number;
-    averageStayLength: number;
-  };
+  // Additional calculated stats that aren't stored in the database
+  completedBookings: number;
+  totalRevenue: number;
+  averageStayLength: number;
   recentBookings: RecentBooking[];
 }
 
