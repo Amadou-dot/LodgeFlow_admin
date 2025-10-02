@@ -1,18 +1,9 @@
 'use client';
 
-import type { Customer } from '@/types';
+import type { Customer, PaginationData } from '@/types';
 import { Card, CardBody } from '@heroui/card';
 import { Pagination } from '@heroui/pagination';
 import GuestCard from './GuestCard';
-
-interface PaginationData {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
 
 interface GuestGridProps {
   customers: Customer[];

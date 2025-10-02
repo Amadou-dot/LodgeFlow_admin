@@ -42,8 +42,9 @@ export default function GuestDetailPage() {
   const lockCustomerMutation = useLockCustomer();
   const unlockCustomerMutation = useUnlockCustomer();
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -137,7 +138,7 @@ export default function GuestDetailPage() {
     );
   }
 
-  const loyalty = getLoyaltyTier(customer.stats?.totalRevenue || 0);
+    const loyalty = getLoyaltyTier(customer.totalSpent || 0);
 
   return (
     <div className='container mx-auto p-4 md:p-6'>
@@ -354,7 +355,7 @@ export default function GuestDetailPage() {
             <Card>
               <CardBody className='text-center'>
                 <p className='text-2xl font-bold text-primary'>
-                  {customer.stats?.totalBookings || 0}
+                  {customer.totalBookings || 0}
                 </p>
                 <p className='text-sm text-default-600'>Total Bookings</p>
               </CardBody>
@@ -362,7 +363,7 @@ export default function GuestDetailPage() {
             <Card>
               <CardBody className='text-center'>
                 <p className='text-2xl font-bold text-success'>
-                  {customer.stats?.completedBookings || 0}
+                  {customer.completedBookings || 0}
                 </p>
                 <p className='text-sm text-default-600'>Completed Stays</p>
               </CardBody>
@@ -370,7 +371,7 @@ export default function GuestDetailPage() {
             <Card>
               <CardBody className='text-center'>
                 <p className='text-2xl font-bold text-warning'>
-                  ${(customer.stats?.totalRevenue || 0).toLocaleString()}
+                  ${(customer.totalSpent || 0).toLocaleString()}
                 </p>
                 <p className='text-sm text-default-600'>Total Spent</p>
               </CardBody>
@@ -378,7 +379,7 @@ export default function GuestDetailPage() {
             <Card>
               <CardBody className='text-center'>
                 <p className='text-2xl font-bold text-secondary'>
-                  {Math.round(customer.stats?.averageStayLength || 0)}
+                  {Math.round(customer.averageStayLength || 0)}
                 </p>
                 <p className='text-sm text-default-600'>Avg. Stay (nights)</p>
               </CardBody>
@@ -412,7 +413,7 @@ export default function GuestDetailPage() {
                         <TableColumn>TOTAL</TableColumn>
                       </TableHeader>
                       <TableBody>
-                        {customer.recentBookings.map((booking: any) => (
+                        {customer.recentBookings.map((booking) => (
                           <TableRow key={booking._id}>
                             <TableCell>
                               <div className='flex items-center gap-2'>

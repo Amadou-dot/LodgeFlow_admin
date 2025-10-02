@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Booking, Customer } from '../../../models';
 
 // Helper function to update customer statistics
-async function updateCustomerStats(customerId: string) {
+async function updateCustomerStats(clerkUserId: string) {
   try {
     // Get all bookings for this customer
-    const customerBookings = await Booking.find({ customer: customerId });
+    const customerBookings = await Booking.find({ customer: clerkUserId });
 
     // Calculate statistics
     const totalBookings = customerBookings.length;
@@ -27,15 +27,23 @@ async function updateCustomerStats(customerId: string) {
     const lastBookingDate =
       sortedBookings.length > 0 ? sortedBookings[0].createdAt : null;
 
-    // Update customer record
-    await Customer.findByIdAndUpdate(customerId, {
-      totalBookings,
-      totalSpent,
-      lastBookingDate,
-    });
+    // Update customer record by clerkUserId, create if it doesn't exist
+    await Customer.findOneAndUpdate(
+      { clerkUserId }, 
+      {
+        clerkUserId, // Include this in case we're creating a new record
+        totalBookings,
+        totalSpent,
+        lastBookingDate,
+      },
+      { 
+        upsert: true, // Create the record if it doesn't exist
+        new: true // Return the updated document
+      }
+    );
   } catch (error) {
-    // Silently handle errors to not break booking operations
-    // Error logging could be added here if needed
+    console.error(`Error updating customer stats for ${clerkUserId}:`, error);
+    // Don't throw the error to avoid breaking booking operations
   }
 }
 
