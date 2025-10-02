@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '../../../lib/mongodb';
 import { Booking, Cabin } from '../../../models';
 import { getClerkUser } from '../../../lib/clerk-users';
+import { clerkClient } from '@clerk/nextjs/server';
 
 export async function GET() {
   try {
@@ -18,6 +19,7 @@ export async function GET() {
       totalBookings,
       totalRevenue,
       totalCabins,
+      totalCustomers,
       totalCancellations,
       recentBookings,
       checkInsToday,
@@ -51,9 +53,15 @@ export async function GET() {
       // Total cabins
       Cabin.countDocuments(),
 
-      // Total cancellations in last 30 days
+      // Total customers from Clerk
+      (async () => {
+        const clerk = await clerkClient();
+        return clerk.users.getCount();
+      })(),
+
+      // Total cancellations in last 6 months (to capture seeded data)
       Booking.countDocuments({
-        createdAt: { $gte: thirtyDaysAgo },
+        createdAt: { $gte: sixMonthsAgo },
         status: 'cancelled',
       }),
 
@@ -200,7 +208,7 @@ export async function GET() {
         totalBookings,
         totalRevenue: totalRevenue[0]?.total || 0,
         totalCabins,
-        totalCustomers: 17, // Placeholder - using known Clerk user count from seeding
+        totalCustomers,
         totalCancellations,
         occupancyRate: Math.round(occupancyRate * 100) / 100,
         checkInsToday,
