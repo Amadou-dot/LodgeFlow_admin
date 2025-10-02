@@ -27,17 +27,17 @@ export async function GET() {
       occupancyData,
       revenueData,
     ] = await Promise.all([
-      // Total bookings in last 6 months (to capture seeded data)
+      // Total bookings in last 30 days
       Booking.countDocuments({
-        createdAt: { $gte: sixMonthsAgo },
+        createdAt: { $gte: thirtyDaysAgo },
         status: { $ne: 'cancelled' },
       }),
 
-      // Total revenue in last 6 months (to capture seeded data)
+      // Total revenue in last 30 days
       Booking.aggregate([
         {
           $match: {
-            createdAt: { $gte: sixMonthsAgo },
+            createdAt: { $gte: thirtyDaysAgo },
             status: { $ne: 'cancelled' },
             isPaid: true,
           },
@@ -59,15 +59,15 @@ export async function GET() {
         return clerk.users.getCount();
       })(),
 
-      // Total cancellations in last 6 months (to capture seeded data)
+      // Total cancellations in last 30 days
       Booking.countDocuments({
-        createdAt: { $gte: sixMonthsAgo },
+        createdAt: { $gte: thirtyDaysAgo },
         status: 'cancelled',
       }),
 
-      // Recent bookings (last 6 months)
+      // Recent bookings (last 7 days)
       Booking.find({
-        createdAt: { $gte: sixMonthsAgo },
+        createdAt: { $gte: sevenDaysAgo },
       })
         .populate('cabin', 'name')
         .sort({ createdAt: -1 })
