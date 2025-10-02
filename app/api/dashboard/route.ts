@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import connectDB from '../../../lib/mongodb';
-import { Booking, Cabin, Customer } from '../../../models';
+import { Booking, Cabin } from '../../../models';
+import { getClerkUser } from '../../../lib/clerk-users';
+import { clerkClient } from '@clerk/nextjs/server';
 
 export async function GET() {
   try {
@@ -10,6 +12,7 @@ export async function GET() {
     const today = new Date();
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const sixMonthsAgo = new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000);
 
     // Parallel queries for efficiency
     const [
@@ -24,17 +27,17 @@ export async function GET() {
       occupancyData,
       revenueData,
     ] = await Promise.all([
-      // Total bookings in last 30 days
+      // Total bookings in last 6 months (to capture seeded data)
       Booking.countDocuments({
-        createdAt: { $gte: thirtyDaysAgo },
+        createdAt: { $gte: sixMonthsAgo },
         status: { $ne: 'cancelled' },
       }),
 
-      // Total revenue in last 30 days
+      // Total revenue in last 6 months (to capture seeded data)
       Booking.aggregate([
         {
           $match: {
-            createdAt: { $gte: thirtyDaysAgo },
+            createdAt: { $gte: sixMonthsAgo },
             status: { $ne: 'cancelled' },
             isPaid: true,
           },
@@ -50,21 +53,23 @@ export async function GET() {
       // Total cabins
       Cabin.countDocuments(),
 
-      // Total customers
-      Customer.countDocuments(),
+      // Total customers from Clerk
+      (async () => {
+        const clerk = await clerkClient();
+        return clerk.users.getCount();
+      })(),
 
-      // Total cancellations in last 30 days
+      // Total cancellations in last 6 months (to capture seeded data)
       Booking.countDocuments({
-        createdAt: { $gte: thirtyDaysAgo },
+        createdAt: { $gte: sixMonthsAgo },
         status: 'cancelled',
       }),
 
-      // Recent bookings (last 7 days)
+      // Recent bookings (last 6 months)
       Booking.find({
-        createdAt: { $gte: sevenDaysAgo },
+        createdAt: { $gte: sixMonthsAgo },
       })
         .populate('cabin', 'name')
-        .populate('customer', 'name')
         .sort({ createdAt: -1 })
         .limit(10),
 
@@ -209,18 +214,34 @@ export async function GET() {
         checkInsToday,
         checkOutsToday,
       },
-      recentActivity: recentBookings.map(booking => ({
-        id: booking._id,
-        customerName: booking.customer?.name || 'Unknown',
-        cabinName: booking.cabin?.name || 'Unknown',
-        checkInDate: booking.checkInDate,
-        checkOutDate: booking.checkOutDate,
-        totalPrice: booking.totalPrice,
-        status: booking.status,
-        createdAt: booking.createdAt,
-      })),
+      recentActivity: await Promise.all(
+        recentBookings.map(async (booking: any) => {
+          let customerName = 'Customer';
+          
+          // Fetch customer name from Clerk
+          if (booking.customer) {
+            try {
+              const clerkUser = await getClerkUser(booking.customer);
+              customerName = clerkUser?.name || `${clerkUser?.first_name || ''} ${clerkUser?.last_name || ''}`.trim() || 'Customer';
+            } catch (error) {
+              console.warn('Failed to fetch customer name for:', booking.customer, error);
+            }
+          }
+
+          return {
+            id: booking._id,
+            customerName,
+            cabinName: booking.cabin?.name || 'Unknown',
+            checkInDate: booking.checkInDate,
+            checkOutDate: booking.checkOutDate,
+            totalPrice: booking.totalPrice,
+            status: booking.status,
+            createdAt: booking.createdAt,
+          };
+        })
+      ),
       charts: {
-        occupancy: occupancyData.map(item => ({
+        occupancy: occupancyData.map((item: any) => ({
           date: item._id,
           occupancyRate:
             item.totalCapacity > 0
@@ -229,7 +250,7 @@ export async function GET() {
           totalGuests: item.totalGuests,
           totalCapacity: item.totalCapacity,
         })),
-        revenue: revenueData.map(item => ({
+        revenue: revenueData.map((item: any) => ({
           week: `Week ${item._id.week}`,
           revenue: item.totalRevenue,
           bookings: item.bookingCount,
