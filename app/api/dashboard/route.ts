@@ -224,7 +224,7 @@ export async function GET() {
               const clerkUser = await getClerkUser(booking.customer);
               customerName = clerkUser?.name || `${clerkUser?.first_name || ''} ${clerkUser?.last_name || ''}`.trim() || 'Customer';
             } catch (error) {
-              console.warn('Failed to fetch customer name for:', booking.customer);
+              console.warn('Failed to fetch customer name for:', booking.customer, error);
             }
           }
 
