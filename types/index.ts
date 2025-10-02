@@ -36,12 +36,18 @@ export type Experience = IExperience;
 // Type for recent bookings from customer data
 export interface RecentBooking {
   _id: string;
-  cabin?: Cabin;
+  cabin?: {
+    name: string;
+    image?: string;
+    capacity?: number;
+    price?: number;
+  };
   checkInDate: string | Date;
   checkOutDate: string | Date;
   numNights: number;
   status: 'unconfirmed' | 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled';
   totalPrice: number;
+  isPaid?: boolean;
 }
 
 // Extended types for populated models (used in API responses)
@@ -145,4 +151,42 @@ export interface CustomersFilters {
   search?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+}
+
+// API Response types for better type safety
+export interface CustomersResponse {
+  success: boolean;
+  data: Customer[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCustomers: number;
+    limit: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+export interface CustomerResponse {
+  success: boolean;
+  data: CustomerWithStats;
+}
+
+export interface CustomerWithStats extends Customer {
+  stats: {
+    totalBookings: number;
+    completedBookings: number;
+    totalRevenue: number;
+    averageStayLength: number;
+  };
+  recentBookings: RecentBooking[];
+}
+
+export interface CustomerPaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalCustomers: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
