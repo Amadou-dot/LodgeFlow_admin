@@ -1,16 +1,24 @@
 'use client';
 
-import type { Customer, CustomersFilters, PaginationMeta } from '@/types';
+import type { 
+  Customer, 
+  CustomersFilters, 
+  CustomersResponse,
+  CustomerResponse,
+  CustomerWithStats,
+  CustomerPaginationMeta,
+  ApiResponse
+} from '@/types';
 import { useMutation } from '@tanstack/react-query';
 import useSWR from 'swr';
 
-interface CustomersResponse {
+interface CustomersListResponse {
   customers: Customer[];
-  pagination: PaginationMeta;
+  pagination: CustomerPaginationMeta;
 }
 
 // Fetcher function for SWR
-const fetcher = (url: string) =>
+const fetcher = (url: string): Promise<CustomersListResponse> =>
   fetch(url)
     .then(res => {
       if (!res.ok) {
@@ -18,7 +26,7 @@ const fetcher = (url: string) =>
       }
       return res.json();
     })
-    .then(result => {
+    .then((result: CustomersResponse) => {
       // Handle new API response format
       if (result.success) {
         return {
@@ -26,7 +34,7 @@ const fetcher = (url: string) =>
           pagination: result.pagination,
         };
       }
-      throw new Error(result.error || 'Failed to fetch customers');
+      throw new Error('Failed to fetch customers');
     });
 
 // Fetch customers with filters and pagination using SWR
@@ -39,7 +47,7 @@ export const useCustomers = (filters: CustomersFilters = {}) => {
   if (filters.sortBy) params.append('sortBy', filters.sortBy);
   if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
 
-  const { data, error, isLoading, mutate } = useSWR<CustomersResponse>(
+  const { data, error, isLoading, mutate } = useSWR<CustomersListResponse>(
     `/api/customers?${params.toString()}`,
     fetcher,
     {
@@ -60,9 +68,9 @@ export const useCustomers = (filters: CustomersFilters = {}) => {
 
 // Fetch single customer
 export const useCustomer = (id: string) => {
-  const { data, error, isLoading, mutate } = useSWR<any>(
+  const { data, error, isLoading, mutate } = useSWR<CustomerWithStats>(
     id ? `/api/customers/${id}` : null,
-    (url: string) =>
+    (url: string): Promise<CustomerWithStats> =>
       fetch(url)
         .then(res => {
           if (!res.ok) {
@@ -70,11 +78,11 @@ export const useCustomer = (id: string) => {
           }
           return res.json();
         })
-        .then(result => {
+        .then((result: CustomerResponse) => {
           if (result.success) {
             return result.data;
           }
-          throw new Error(result.error || 'Failed to fetch customer');
+          throw new Error('Failed to fetch customer');
         }),
     {
       revalidateOnFocus: false,
@@ -91,14 +99,14 @@ export const useCustomer = (id: string) => {
 
 // Create customer
 export const useCreateCustomer = () => {
-  return useMutation({
-    mutationFn: async (customer: any) => {
+  return useMutation<Customer, Error, Partial<Customer>>({
+    mutationFn: async (customerData: Partial<Customer>): Promise<Customer> => {
       const response = await fetch('/api/customers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(customer),
+        body: JSON.stringify(customerData),
       });
 
       if (!response.ok) {
@@ -106,22 +114,25 @@ export const useCreateCustomer = () => {
         throw new Error(error.error || 'Failed to create customer');
       }
 
-      const result = await response.json();
-      return result.success ? result.data : result;
+      const result: ApiResponse<Customer> = await response.json();
+      if (result.success && result.data) {
+        return result.data;
+      }
+      throw new Error(result.error || 'Failed to create customer');
     },
   });
 };
 
 // Update customer
 export const useUpdateCustomer = () => {
-  return useMutation({
-    mutationFn: async (customer: any) => {
-      const response = await fetch(`/api/customers/${customer.id}`, {
+  return useMutation<Customer, Error, Partial<Customer> & { id: string }>({
+    mutationFn: async (customerData: Partial<Customer> & { id: string }): Promise<Customer> => {
+      const response = await fetch(`/api/customers/${customerData.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(customer),
+        body: JSON.stringify(customerData),
       });
 
       if (!response.ok) {
@@ -129,16 +140,19 @@ export const useUpdateCustomer = () => {
         throw new Error(error.error || 'Failed to update customer');
       }
 
-      const result = await response.json();
-      return result.success ? result.data : result;
+      const result: ApiResponse<Customer> = await response.json();
+      if (result.success && result.data) {
+        return result.data;
+      }
+      throw new Error(result.error || 'Failed to update customer');
     },
   });
 };
 
 // Delete customer
 export const useDeleteCustomer = () => {
-  return useMutation({
-    mutationFn: async (id: string) => {
+  return useMutation<{ success: boolean }, Error, string>({
+    mutationFn: async (id: string): Promise<{ success: boolean }> => {
       const response = await fetch(`/api/customers/${id}`, {
         method: 'DELETE',
       });
@@ -148,16 +162,19 @@ export const useDeleteCustomer = () => {
         throw new Error(error.error || 'Failed to delete customer');
       }
 
-      const result = await response.json();
-      return result.success ? result : result;
+      const result: ApiResponse<any> = await response.json();
+      if (result.success) {
+        return { success: true };
+      }
+      throw new Error(result.error || 'Failed to delete customer');
     },
   });
 };
 
 // Lock customer
 export const useLockCustomer = () => {
-  return useMutation({
-    mutationFn: async (id: string) => {
+  return useMutation<{ success: boolean }, Error, string>({
+    mutationFn: async (id: string): Promise<{ success: boolean }> => {
       const response = await fetch(`/api/customers/${id}/lock`, {
         method: 'POST',
       });
@@ -167,16 +184,19 @@ export const useLockCustomer = () => {
         throw new Error(error.error || 'Failed to lock customer');
       }
 
-      const result = await response.json();
-      return result.success ? result : result;
+      const result: ApiResponse<any> = await response.json();
+      if (result.success) {
+        return { success: true };
+      }
+      throw new Error(result.error || 'Failed to lock customer');
     },
   });
 };
 
 // Unlock customer
 export const useUnlockCustomer = () => {
-  return useMutation({
-    mutationFn: async (id: string) => {
+  return useMutation<{ success: boolean }, Error, string>({
+    mutationFn: async (id: string): Promise<{ success: boolean }> => {
       const response = await fetch(`/api/customers/${id}/lock`, {
         method: 'DELETE',
       });
@@ -186,8 +206,11 @@ export const useUnlockCustomer = () => {
         throw new Error(error.error || 'Failed to unlock customer');
       }
 
-      const result = await response.json();
-      return result.success ? result : result;
+      const result: ApiResponse<any> = await response.json();
+      if (result.success) {
+        return { success: true };
+      }
+      throw new Error(result.error || 'Failed to unlock customer');
     },
   });
 };
