@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '../../../lib/mongodb';
-import { Booking, Cabin, Customer } from '../../../models';
+import { Booking, Cabin } from '../../../models';
+import { getClerkUser } from '../../../lib/clerk-users';
 
 export async function GET() {
   try {
@@ -10,13 +11,13 @@ export async function GET() {
     const today = new Date();
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const sixMonthsAgo = new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000);
 
     // Parallel queries for efficiency
     const [
       totalBookings,
       totalRevenue,
       totalCabins,
-      totalCustomers,
       totalCancellations,
       recentBookings,
       checkInsToday,
@@ -50,21 +51,17 @@ export async function GET() {
       // Total cabins
       Cabin.countDocuments(),
 
-      // Total customers
-      Customer.countDocuments(),
-
       // Total cancellations in last 30 days
       Booking.countDocuments({
         createdAt: { $gte: thirtyDaysAgo },
         status: 'cancelled',
       }),
 
-      // Recent bookings (last 7 days)
+      // Recent bookings (last 6 months)
       Booking.find({
-        createdAt: { $gte: sevenDaysAgo },
+        createdAt: { $gte: sixMonthsAgo },
       })
         .populate('cabin', 'name')
-        .populate('customer', 'name')
         .sort({ createdAt: -1 })
         .limit(10),
 
