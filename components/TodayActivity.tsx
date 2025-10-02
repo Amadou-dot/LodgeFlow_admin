@@ -47,6 +47,7 @@ export default function TodayActivity() {
         )}
 
         {activities &&
+          activities.length > 0 &&
           activities.map((activity: any) => (
             <ActivityCard
               key={activity.id}
@@ -56,6 +57,17 @@ export default function TodayActivity() {
               stayDuration={activity.stayDuration}
             />
           ))}
+
+        {activities && activities.length === 0 && !isLoading && !error && (
+          <div className='flex-1 flex items-center justify-center'>
+            <div className='text-center'>
+              <p className='text-default-500 text-sm mb-2'>No activity today</p>
+              <p className='text-default-400 text-xs'>
+                Recent bookings will appear here
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
