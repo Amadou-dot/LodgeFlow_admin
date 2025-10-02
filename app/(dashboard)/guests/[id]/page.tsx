@@ -42,8 +42,9 @@ export default function GuestDetailPage() {
   const lockCustomerMutation = useLockCustomer();
   const unlockCustomerMutation = useUnlockCustomer();
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -412,7 +413,7 @@ export default function GuestDetailPage() {
                         <TableColumn>TOTAL</TableColumn>
                       </TableHeader>
                       <TableBody>
-                        {customer.recentBookings.map((booking: any) => (
+                        {customer.recentBookings.map((booking) => (
                           <TableRow key={booking._id}>
                             <TableCell>
                               <div className='flex items-center gap-2'>
