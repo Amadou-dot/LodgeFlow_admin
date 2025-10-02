@@ -1107,14 +1107,20 @@ async function seedDatabase() {
       );
     }
 
-    // Create bookings
+    // Create bookings with recent dates (within last 60 days)
     const bookings: IBooking[] = [];
+    const today = new Date();
+    const sixtyDaysAgo = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000);
+    const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    
     for (let i = 0; i < 150; i++) {
       const cabin = faker.helpers.arrayElement(cabins);
       const clerkUserId = faker.helpers.arrayElement(clerkUserIds);
+      
+      // Generate check-in dates from 30 days ago to 30 days in the future
       const checkInDate = faker.date.between({
-        from: new Date('2024-01-01'),
-        to: new Date('2025-12-31'),
+        from: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),
+        to: thirtyDaysFromNow,
       });
       const numNights = faker.number.int({ min: 2, max: 14 });
       const checkOutDate = new Date(checkInDate);
@@ -1144,9 +1150,9 @@ async function seedDatabase() {
         ? Math.round(totalPrice * (settings.depositPercentage / 100))
         : 0;
 
-      // Create a realistic createdAt date (booking was made before check-in)
+      // Create a realistic createdAt date (booking was made within last 60 days, before check-in)
       const bookingCreatedAt = faker.date.between({
-        from: new Date('2024-01-01'),
+        from: sixtyDaysAgo,
         to: new Date(Math.min(checkInDate.getTime(), Date.now())),
       });
 
