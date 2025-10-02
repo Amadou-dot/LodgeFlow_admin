@@ -27,17 +27,17 @@ export async function GET() {
       occupancyData,
       revenueData,
     ] = await Promise.all([
-      // Total bookings in last 30 days
+      // Total bookings in last 6 months (to capture seeded data)
       Booking.countDocuments({
-        createdAt: { $gte: thirtyDaysAgo },
+        createdAt: { $gte: sixMonthsAgo },
         status: { $ne: 'cancelled' },
       }),
 
-      // Total revenue in last 30 days
+      // Total revenue in last 6 months (to capture seeded data)
       Booking.aggregate([
         {
           $match: {
-            createdAt: { $gte: thirtyDaysAgo },
+            createdAt: { $gte: sixMonthsAgo },
             status: { $ne: 'cancelled' },
             isPaid: true,
           },
