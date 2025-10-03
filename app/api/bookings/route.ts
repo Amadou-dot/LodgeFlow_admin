@@ -49,42 +49,40 @@ async function updateCustomerStats(clerkUserId: string) {
 
 // Helper function to populate bookings with Clerk customer data
 async function populateBookingsWithClerkCustomers(bookings: any[]) {
-  const populatedBookings = [];
+  // Use Promise.all for parallel processing instead of sequential loop
+  const populatedBookings = await Promise.all(
+    bookings.map(async (booking) => {
+      try {
+        // Get customer data from Clerk
+        const customer = await getClerkUser(booking.customer);
 
-  for (const booking of bookings) {
-    try {
-      // Get customer data from Clerk
-      const customer = await getClerkUser(booking.customer);
-
-      // Build populated booking object
-      const populatedBooking = {
-        ...booking.toObject(),
-        customer: customer,
-        guest: customer, // For legacy compatibility
-        cabinName: booking.cabin?.name, // Add cabin name for easier access
-      };
-
-      populatedBookings.push(populatedBooking);
-    } catch (error) {
-      // If customer fetch fails, use fallback data
-      console.error(`Failed to fetch customer ${booking.customer}:`, error);
-      const populatedBooking = {
-        ...booking.toObject(),
-        customer: {
-          id: booking.customer,
-          name: 'Unknown User',
-          email: 'N/A',
-        },
-        guest: {
-          id: booking.customer,
-          name: 'Unknown User',
-          email: 'N/A',
-        },
-        cabinName: booking.cabin?.name,
-      };
-      populatedBookings.push(populatedBooking);
-    }
-  }
+        // Build populated booking object
+        return {
+          ...booking.toObject(),
+          customer: customer,
+          guest: customer, // For legacy compatibility
+          cabinName: booking.cabin?.name, // Add cabin name for easier access
+        };
+      } catch (error) {
+        // If customer fetch fails, use fallback data
+        console.error(`Failed to fetch customer ${booking.customer}:`, error);
+        return {
+          ...booking.toObject(),
+          customer: {
+            id: booking.customer,
+            name: 'Unknown User',
+            email: 'N/A',
+          },
+          guest: {
+            id: booking.customer,
+            name: 'Unknown User',
+            email: 'N/A',
+          },
+          cabinName: booking.cabin?.name,
+        };
+      }
+    })
+  );
 
   return populatedBookings;
 }
