@@ -26,6 +26,7 @@ export async function GET() {
       checkOutsToday,
       occupancyData,
       revenueData,
+      durationData,
     ] = await Promise.all([
       // Total bookings in last 30 days
       Booking.countDocuments({
@@ -167,6 +168,47 @@ export async function GET() {
           $sort: { '_id.year': 1, '_id.week': 1 },
         },
       ]),
+
+      // Duration distribution data
+      Booking.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: thirtyDaysAgo },
+            status: { $ne: 'cancelled' },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $switch: {
+                branches: [
+                  {
+                    case: { $lte: ['$numNights', 2] },
+                    then: '1-2 nights'
+                  },
+                  {
+                    case: { $lte: ['$numNights', 4] },
+                    then: '3-4 nights'
+                  },
+                  {
+                    case: { $lte: ['$numNights', 7] },
+                    then: '5-7 nights'
+                  },
+                  {
+                    case: { $lte: ['$numNights', 14] },
+                    then: '8-14 nights'
+                  }
+                ],
+                default: '15+ nights'
+              }
+            },
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $sort: { '_id': 1 }
+        }
+      ]),
     ]);
 
     // Calculate occupancy rate
@@ -255,6 +297,34 @@ export async function GET() {
           revenue: item.totalRevenue,
           bookings: item.bookingCount,
         })),
+        durations: (() => {
+          const colors = [
+            '#3b82f6', // blue
+            '#10b981', // emerald
+            '#f59e0b', // amber
+            '#ef4444', // red
+            '#8b5cf6', // violet
+          ];
+          
+          const categories = [
+            '1-2 nights',
+            '3-4 nights', 
+            '5-7 nights',
+            '8-14 nights',
+            '15+ nights',
+          ];
+          
+          return categories
+            .map((category, index) => {
+              const found = durationData.find((item: any) => item._id === category);
+              return {
+                name: category,
+                value: found ? found.count : 0,
+                color: colors[index],
+              };
+            })
+            .filter(item => item.value > 0);
+        })(),
       },
     };
 
