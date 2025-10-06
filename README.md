@@ -116,5 +116,5 @@ This project is licensed under the [MIT License](./LICENSE).
 ---
 
 <p align="center">
-  Made with ❤️ by <a href="https://github.com/Amadou-dot">Amadou</a>
+  Made by <a href="https://github.com/Amadou-dot">Amadou</a>
 </p>
