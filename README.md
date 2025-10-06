@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Amadou-dot/assets/main/banners/lodgeflow-banner.png" 
+  <img src="https://raw.githubusercontent.com/Amadou-dot/Amadou-dot/main/assets/banners/lodgeflow-admin-dashboard-banner.png" 
        alt="LodgeFlow Banner" 
        width="100%" />
 </p>
