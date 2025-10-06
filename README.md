@@ -40,7 +40,7 @@
 - **Backend**: [MongoDB](https://mongodb.com/) • [Mongoose ODM](https://mongoosejs.com/)
 - **Tools**: [TypeScript](https://www.typescriptlang.org/) • [SWR](https://swr.vercel.app/) • [Recharts](https://recharts.org/)
 
-## � Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+ and pnpm
