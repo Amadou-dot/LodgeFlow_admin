@@ -149,12 +149,26 @@ export async function getClerkUser(userId: string): Promise<Customer | null> {
 
     return convertClerkUserToCustomer(clerkUser, extendedData);
   } catch (error: any) {
-     
     console.error('Error fetching user from Clerk:', error);
-    if (error?.status === 404) {
-      return null;
+    
+    // Handle different types of errors gracefully
+    if (error?.status === 404 || error?.errors?.[0]?.code === 'resource_not_found') {
+      return null; // User not found - this is expected for some cases
     }
-    throw new Error('Failed to fetch user from Clerk');
+    
+    if (error?.status === 429) {
+      console.warn('Rate limited by Clerk API, returning null for user:', userId);
+      return null; // Rate limited - return null to prevent hanging
+    }
+    
+    if (error?.status >= 500) {
+      console.warn('Clerk server error, returning null for user:', userId);
+      return null; // Server error - return null to prevent hanging
+    }
+    
+    // For other errors, return null instead of throwing to prevent search from hanging
+    console.warn('Unknown Clerk error, returning null for user:', userId);
+    return null;
   }
 }
 

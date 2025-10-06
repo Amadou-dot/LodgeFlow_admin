@@ -13,7 +13,7 @@ interface BookingsTableProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  onStatusChange?: (bookingId: number, newStatus: string) => void;
+  onStatusChange?: (bookingId: string, newStatus: string) => void;
   onViewDetails?: (booking: PopulatedBooking) => void;
   onEdit?: (booking: PopulatedBooking) => void;
   onDelete?: (booking: PopulatedBooking) => void;

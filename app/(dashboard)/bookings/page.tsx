@@ -69,8 +69,8 @@ export default function BookingsPage() {
     setCurrentPage(1);
   };
 
-  const handleStatusChange = async (bookingId: number, newStatus: string) => {
-    const booking = bookingsData?.bookings.find(b => b.id === bookingId);
+  const handleStatusChange = async (bookingId: string, newStatus: string) => {
+    const booking = bookingsData?.bookings.find(b => b._id === bookingId);
     if (booking) {
       try {
         await updateBooking.mutateAsync({

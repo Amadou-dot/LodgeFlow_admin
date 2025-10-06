@@ -15,7 +15,7 @@ import BookingTableCell from './BookingTableCell';
 interface BookingTableDesktopProps {
   bookings: PopulatedBooking[];
   isLoading: boolean;
-  onStatusChange?: (bookingId: number, newStatus: string) => void;
+  onStatusChange?: (bookingId: string, newStatus: string) => void;
   onViewDetails?: (booking: PopulatedBooking) => void;
   onEdit?: (booking: PopulatedBooking) => void;
   onDelete?: (booking: PopulatedBooking) => void;
