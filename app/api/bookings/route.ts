@@ -47,42 +47,64 @@ async function updateCustomerStats(clerkUserId: string) {
   }
 }
 
+// Helper function to limit concurrent operations
+async function mapWithLimit<T, R>(
+  items: T[],
+  limit: number,
+  mapper: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += limit) {
+    const batch = items.slice(i, i + limit);
+    const batchResults = await Promise.all(batch.map(mapper));
+    results.push(...batchResults);
+  }
+  return results;
+}
+
 // Helper function to populate bookings with Clerk customer data
 async function populateBookingsWithClerkCustomers(bookings: any[]) {
-  // Use Promise.all for parallel processing instead of sequential loop
-  const populatedBookings = await Promise.all(
-    bookings.map(async (booking) => {
+  // Get unique customer IDs to avoid duplicate API calls
+  const customerIds = bookings.map(booking => booking.customer);
+  const uniqueCustomerIds = Array.from(new Set(customerIds));
+  
+  // Pre-fetch all unique customers with limited concurrency
+  const CONCURRENT_LIMIT = 3; // Max 3 concurrent Clerk API calls
+  
+  const customers = await mapWithLimit(
+    uniqueCustomerIds,
+    CONCURRENT_LIMIT,
+    async (customerId) => {
       try {
-        // Get customer data from Clerk
-        const customer = await getClerkUser(booking.customer);
-
-        // Build populated booking object
-        return {
-          ...booking.toObject(),
-          customer: customer,
-          guest: customer, // For legacy compatibility
-          cabinName: booking.cabin?.name, // Add cabin name for easier access
-        };
+        return { id: customerId, data: await getClerkUser(customerId) };
       } catch (error) {
-        // If customer fetch fails, use fallback data
-        console.error(`Failed to fetch customer ${booking.customer}:`, error);
+        console.error(`Failed to fetch customer ${customerId}:`, error);
         return {
-          ...booking.toObject(),
-          customer: {
-            id: booking.customer,
+          id: customerId,
+          data: {
+            id: customerId,
             name: 'Unknown User',
             email: 'N/A',
-          },
-          guest: {
-            id: booking.customer,
-            name: 'Unknown User',
-            email: 'N/A',
-          },
-          cabinName: booking.cabin?.name,
+          }
         };
       }
-    })
+    }
   );
+
+  // Create a lookup map for customers
+  const customerMap = new Map(customers.map(c => [c.id, c.data]));
+
+  // Populate bookings with customer data
+  const populatedBookings = bookings.map(booking => {
+    const customer = customerMap.get(booking.customer);
+    
+    return {
+      ...booking.toObject(),
+      customer: customer,
+      guest: customer, // For legacy compatibility
+      cabinName: booking.cabin?.name, // Add cabin name for easier access
+    };
+  });
 
   return populatedBookings;
 }
