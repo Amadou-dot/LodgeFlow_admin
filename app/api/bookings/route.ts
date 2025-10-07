@@ -9,9 +9,14 @@ async function updateCustomerStats(clerkUserId: string) {
     // Get all bookings for this customer
     const customerBookings = await Booking.find({ customer: clerkUserId });
 
+    // Filter out cancelled bookings for revenue calculations
+    const validBookings = customerBookings.filter(
+      booking => booking.status !== 'cancelled'
+    );
+
     // Calculate statistics
-    const totalBookings = customerBookings.length;
-    const totalSpent = customerBookings.reduce(
+    const totalBookings = customerBookings.length; // Include all bookings for count
+    const totalSpent = validBookings.reduce(
       (sum, booking) => sum + (booking.totalPrice || 0),
       0
     );

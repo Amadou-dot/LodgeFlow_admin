@@ -34,9 +34,14 @@ async function updateAllCustomerStats() {
     const customerEntries = Array.from(customerBookingsMap.entries());
     
     for (const [clerkUserId, customerBookings] of customerEntries) {
+      // Filter out cancelled bookings for revenue calculations
+      const validBookings = customerBookings.filter(
+        (booking: IBooking) => booking.status !== 'cancelled'
+      );
+
       // Calculate statistics
-      const totalBookings = customerBookings.length;
-      const totalSpent = customerBookings.reduce(
+      const totalBookings = customerBookings.length; // Include all bookings for count
+      const totalSpent = validBookings.reduce(
         (sum: number, booking: IBooking) => sum + (booking.totalPrice || 0),
         0
       );
