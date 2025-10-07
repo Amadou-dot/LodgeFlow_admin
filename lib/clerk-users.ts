@@ -3,6 +3,66 @@ import { ClerkUserListParams, Customer, CustomerExtendedData } from '@/types';
 import { clerkClient, User } from '@clerk/nextjs/server';
 import connectDB from './mongodb';
 
+// In-memory cache for Clerk user data
+const userCache = new Map<string, { data: Customer | null; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+// Rate limiting variables
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 100; // Minimum 100ms between requests
+
+/**
+ * Simple cache management
+ */
+function getCachedUser(userId: string): Customer | null | undefined {
+  const cached = userCache.get(userId);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+  return undefined; // Not in cache or expired
+}
+
+function setCachedUser(userId: string, user: Customer | null): void {
+  userCache.set(userId, { data: user, timestamp: Date.now() });
+}
+
+/**
+ * Rate limiting helper with exponential backoff
+ */
+async function waitForRateLimit(): Promise<void> {
+  const now = Date.now();
+  const timeSinceLastRequest = now - lastRequestTime;
+  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+    const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+  lastRequestTime = Date.now();
+}
+
+/**
+ * Retry mechanism with exponential backoff for rate limited requests
+ */
+async function retryWithBackoff<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 2,
+  baseDelay: number = 1000
+): Promise<T> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      if (error?.status === 429 && attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
+        console.warn(`Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries + 1})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error; // Re-throw if not rate limited or max retries exceeded
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+
 /**
  * Service functions for interacting with Clerk users and combining with our extended data
  */
@@ -138,23 +198,56 @@ export async function getClerkUsers(params: ClerkUserListParams = {}): Promise<{
  * Get a single user from Clerk by ID
  */
 export async function getClerkUser(userId: string): Promise<Customer | null> {
+  // Check cache first
+  const cachedUser = getCachedUser(userId);
+  if (cachedUser !== undefined) {
+    return cachedUser;
+  }
+
   try {
-    // Fetch user from Clerk
-    const client = await clerkClient();
-    const clerkUser = await client.users.getUser(userId);
+    // Apply rate limiting and retry with exponential backoff
+    const customer = await retryWithBackoff(async () => {
+      await waitForRateLimit();
 
-    // Get extended data from our database
-    await connectDB();
-    const extendedData = await CustomerModel.findOne({ clerkUserId: userId });
+      // Fetch user from Clerk
+      const client = await clerkClient();
+      const clerkUser = await client.users.getUser(userId);
 
-    return convertClerkUserToCustomer(clerkUser, extendedData);
+      // Get extended data from our database
+      await connectDB();
+      const extendedData = await CustomerModel.findOne({ clerkUserId: userId });
+
+      return convertClerkUserToCustomer(clerkUser, extendedData);
+    });
+    
+    // Cache the result
+    setCachedUser(userId, customer);
+    
+    return customer;
   } catch (error: any) {
-     
     console.error('Error fetching user from Clerk:', error);
-    if (error?.status === 404) {
-      return null;
+    
+    // Handle different types of errors gracefully
+    if (error?.status === 404 || error?.errors?.[0]?.code === 'resource_not_found') {
+      setCachedUser(userId, null); // Cache the null result
+      return null; // User not found - this is expected for some cases
     }
-    throw new Error('Failed to fetch user from Clerk');
+    
+    if (error?.status === 429) {
+      console.warn('Rate limited by Clerk API after retries, returning null for user:', userId);
+      // Don't cache rate limit errors, but return null
+      return null; // Rate limited - return null to prevent hanging
+    }
+    
+    if (error?.status >= 500) {
+      console.warn('Clerk server error, returning null for user:', userId);
+      // Don't cache server errors, but return null
+      return null; // Server error - return null to prevent hanging
+    }
+    
+    // For other errors, return null instead of throwing to prevent search from hanging
+    console.warn('Unknown Clerk error, returning null for user:', userId);
+    return null;
   }
 }
 

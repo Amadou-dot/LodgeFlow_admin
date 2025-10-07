@@ -11,7 +11,7 @@ import {
 
 interface BookingActionsMenuProps {
   booking: PopulatedBooking;
-  onStatusChange?: (bookingId: number, newStatus: string) => void;
+  onStatusChange?: (bookingId: string, newStatus: string) => void;
   onViewDetails?: (booking: PopulatedBooking) => void;
   onEdit?: (booking: PopulatedBooking) => void;
   onDelete?: (booking: PopulatedBooking) => void;
@@ -46,7 +46,7 @@ export default function BookingActionsMenu({
     menuItems.push(
       <DropdownItem
         key='checkin'
-        onPress={() => onStatusChange(booking.id, 'checked-in')}
+        onPress={() => onStatusChange(booking._id, 'checked-in')}
       >
         Check In
       </DropdownItem>
@@ -57,7 +57,7 @@ export default function BookingActionsMenu({
     menuItems.push(
       <DropdownItem
         key='checkout'
-        onPress={() => onStatusChange(booking.id, 'checked-out')}
+        onPress={() => onStatusChange(booking._id, 'checked-out')}
       >
         Check Out
       </DropdownItem>
@@ -70,7 +70,7 @@ export default function BookingActionsMenu({
         key='cancel'
         className='text-danger'
         color='danger'
-        onPress={() => onStatusChange(booking.id, 'cancelled')}
+        onPress={() => onStatusChange(booking._id, 'cancelled')}
       >
         Cancel Booking
       </DropdownItem>

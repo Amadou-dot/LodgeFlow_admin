@@ -13,7 +13,7 @@ import BookingActionsMenu from './BookingActionsMenu';
 interface BookingTableCellProps {
   booking: PopulatedBooking;
   columnKey: string;
-  onStatusChange?: (bookingId: number, newStatus: string) => void;
+  onStatusChange?: (bookingId: string, newStatus: string) => void;
   onViewDetails?: (booking: PopulatedBooking) => void;
   onEdit?: (booking: PopulatedBooking) => void;
   onDelete?: (booking: PopulatedBooking) => void;
