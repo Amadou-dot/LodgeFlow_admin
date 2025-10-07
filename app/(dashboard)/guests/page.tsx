@@ -4,17 +4,21 @@ import GuestGrid from '@/components/GuestGrid';
 import { PlusIcon } from '@/components/icons';
 import StandardFilters, { FilterOption } from '@/components/StandardFilters';
 import { useCustomers } from '@/hooks/useCustomers';
+import { useURLFilters, guestsFilterConfig } from '@/hooks/useURLFilters';
+import type { CustomersFilters } from '@/types';
 import { Button } from '@heroui/button';
 import { addToast } from '@heroui/toast';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export default function GuestsPage() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const router = useRouter();
+
+  // Use URL-based filter state
+  const { filters, updateFilter, updateFilters, resetFilters } = useURLFilters<CustomersFilters>({
+    filterConfig: guestsFilterConfig,
+    basePath: '/guests',
+  });
 
   const {
     data: customers,
@@ -23,11 +27,11 @@ export default function GuestsPage() {
     error,
     mutate,
   } = useCustomers({
-    page: currentPage,
-    limit: 12,
-    search: searchTerm,
-    sortBy,
-    sortOrder,
+    page: filters.page || 1,
+    limit: filters.limit || 12,
+    search: filters.search,
+    sortBy: filters.sortBy,
+    sortOrder: filters.sortOrder,
   });
 
   // Check for success message in URL (when coming back from new guest page)
@@ -39,8 +43,11 @@ export default function GuestsPage() {
         description: 'Guest created successfully',
         color: 'success',
       });
-      // Remove the query parameter from URL
-      window.history.replaceState({}, '', '/guests');
+      // Remove the query parameter from URL while preserving other filters
+      urlParams.delete('created');
+      const newURL = urlParams.toString() ? 
+        `/guests?${urlParams.toString()}` : '/guests';
+      window.history.replaceState({}, '', newURL);
       // Refresh the guests data
       mutate();
     }
@@ -53,18 +60,28 @@ export default function GuestsPage() {
   ];
 
   const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setCurrentPage(1); // Reset to first page when searching
+    updateFilters({
+      search: value || undefined,
+      page: 1, // Reset to first page when searching
+    });
   };
 
   const handleSortChange = (newSortBy: string) => {
-    setSortBy(newSortBy);
-    setCurrentPage(1);
+    updateFilters({
+      sortBy: newSortBy,
+      page: 1,
+    });
   };
 
   const handleSortOrderChange = (newSortOrder: 'asc' | 'desc') => {
-    setSortOrder(newSortOrder);
-    setCurrentPage(1);
+    updateFilters({
+      sortOrder: newSortOrder,
+      page: 1,
+    });
+  };
+
+  const handlePageChange = (page: number) => {
+    updateFilter('page', page, true); // Add to history for pagination
   };
 
   if (error) {
@@ -101,12 +118,12 @@ export default function GuestsPage() {
       <div className='mb-6'>
         <StandardFilters
           searchPlaceholder='Search guests by name, email, nationality...'
-          searchValue={searchTerm}
+          searchValue={filters.search || ''}
           onSearchChange={handleSearch}
           sortOptions={sortOptions}
-          currentSort={sortBy}
+          currentSort={filters.sortBy || 'name'}
           onSortChange={handleSortChange}
-          sortOrder={sortOrder}
+          sortOrder={filters.sortOrder || 'asc'}
           onSortOrderChange={handleSortOrderChange}
           totalCount={
             (pagination as any)?.totalCustomers || customers?.length || 0
@@ -120,8 +137,8 @@ export default function GuestsPage() {
         customers={customers || []}
         pagination={pagination}
         isLoading={isLoading}
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
+        currentPage={filters.page || 1}
+        onPageChange={handlePageChange}
       />
     </div>
   );
