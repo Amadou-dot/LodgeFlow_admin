@@ -59,7 +59,7 @@ function BookingsContent() {
       urlParams.delete('created');
       const newURL = urlParams.toString() ? 
         `/bookings?${urlParams.toString()}` : '/bookings';
-      window.history.replaceState({}, '', newURL);
+      router.replace(newURL);
       // Refresh the bookings data
       mutate();
     }

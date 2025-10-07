@@ -48,7 +48,7 @@ function GuestsContent() {
       urlParams.delete('created');
       const newURL = urlParams.toString() ? 
         `/guests?${urlParams.toString()}` : '/guests';
-      window.history.replaceState({}, '', newURL);
+      router.replace(newURL);
       // Refresh the guests data
       mutate();
     }
