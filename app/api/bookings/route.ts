@@ -69,7 +69,7 @@ async function populateBookingsWithClerkCustomers(bookings: any[]) {
   const uniqueCustomerIds = Array.from(new Set(customerIds));
   
   // Pre-fetch all unique customers with limited concurrency
-  const CONCURRENT_LIMIT = 3; // Max 3 concurrent Clerk API calls
+  const CONCURRENT_LIMIT = Number(process.env.CLERK_API_CONCURRENT_LIMIT) || 3; // Max 3 concurrent Clerk API calls
   
   const customers = await mapWithLimit(
     uniqueCustomerIds,
