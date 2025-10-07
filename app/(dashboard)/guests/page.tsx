@@ -7,11 +7,12 @@ import { useCustomers } from '@/hooks/useCustomers';
 import { useURLFilters, guestsFilterConfig } from '@/hooks/useURLFilters';
 import type { CustomersFilters } from '@/types';
 import { Button } from '@heroui/button';
+import { Card, CardBody } from '@heroui/card';
 import { addToast } from '@heroui/toast';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 
-export default function GuestsPage() {
+function GuestsContent() {
   const router = useRouter();
 
   // Use URL-based filter state
@@ -141,5 +142,39 @@ export default function GuestsPage() {
         onPageChange={handlePageChange}
       />
     </div>
+  );
+}
+
+export default function GuestsPage() {
+  return (
+    <Suspense fallback={
+      <div className='container mx-auto p-4 md:p-6'>
+        <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6'>
+          <div>
+            <h1 className='text-2xl md:text-3xl font-bold'>Guests</h1>
+            <p className='text-default-600 mt-1'>
+              Manage your hotel guests and their information
+            </p>
+          </div>
+          <Button
+            color='primary'
+            startContent={<PlusIcon />}
+            isDisabled
+            className='w-full sm:w-auto'
+          >
+            Add New Guest
+          </Button>
+        </div>
+        <Card>
+          <CardBody>
+            <div className='flex justify-center items-center py-8'>
+              <div className='text-default-500'>Loading...</div>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
+    }>
+      <GuestsContent />
+    </Suspense>
   );
 }
