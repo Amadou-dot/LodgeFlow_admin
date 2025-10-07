@@ -34,6 +34,7 @@ export function useURLFilters<T extends Record<string, any>>({
 }: UseURLFiltersOptions): UseURLFiltersReturn<T> {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathName = usePathname();
 
   // Parse current URL parameters into filter values
   const filters = useMemo(() => {
@@ -94,7 +95,7 @@ export function useURLFilters<T extends Record<string, any>>({
       });
 
       const queryString = params.toString();
-      const pathName = usePathname();
+      
       const currentPath = basePath || pathName;
       return queryString ? `${currentPath}?${queryString}` : currentPath;
     },
