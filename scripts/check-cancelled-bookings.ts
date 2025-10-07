@@ -1,9 +1,8 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
-import { Booking } from '../models';
-import { connectDB } from '../lib/mongodb';
+import { Booking, connectDB } from '../models';
+config({ path: resolve(process.cwd(), '.env.local') });
 async function checkCancelledBookings() {
-  config({ path: resolve(process.cwd(), '.env.local') });
   try {
     await connectDB();
     // Check for cancelled bookings
