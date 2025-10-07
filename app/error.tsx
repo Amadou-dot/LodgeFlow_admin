@@ -3,7 +3,7 @@
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { useEffect } from 'react';
-
+import { useRouter } from 'next/navigation';
 // Error Icon Component
 const ErrorIcon = () => (
   <svg
@@ -70,9 +70,10 @@ export default function Error({
      
     console.error('Application Error:', error);
   }, [error]);
+  const router = useRouter();
 
   const handleGoHome = () => {
-    window.location.href = '/';
+    router.push('/');
   };
 
   return (
