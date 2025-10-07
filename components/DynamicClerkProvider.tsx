@@ -22,6 +22,10 @@ export function DynamicClerkProvider({ children }: DynamicClerkProviderProps) {
   const clerkTheme = mounted && resolvedTheme === 'dark' ? dark : undefined;
 
   return (
-    <ClerkProvider appearance={{ theme: clerkTheme }}>{children}</ClerkProvider>
+    <ClerkProvider 
+      appearance={{ theme: clerkTheme }}
+    >
+      {children}
+    </ClerkProvider>
   );
 }
