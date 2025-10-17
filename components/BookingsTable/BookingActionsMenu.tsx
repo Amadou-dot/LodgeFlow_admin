@@ -8,6 +8,7 @@ import {
   DropdownMenu,
   DropdownTrigger,
 } from '@heroui/dropdown';
+import { MoreVertical } from 'lucide-react';
 
 interface BookingActionsMenuProps {
   booking: PopulatedBooking;
@@ -94,19 +95,7 @@ export default function BookingActionsMenu({
     <Dropdown>
       <DropdownTrigger>
         <Button isIconOnly variant='light' size='sm'>
-          <svg
-            className='w-4 h-4'
-            fill='none'
-            stroke='currentColor'
-            viewBox='0 0 24 24'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              strokeWidth={2}
-              d='M12 5v.01M12 12v.01M12 19v.01'
-            />
-          </svg>
+          <MoreVertical className='w-4 h-4' />
         </Button>
       </DropdownTrigger>
       <DropdownMenu>{menuItems}</DropdownMenu>
