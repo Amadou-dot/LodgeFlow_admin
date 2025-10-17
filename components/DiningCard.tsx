@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import DeletionModal from './DeletionModal';
 import { EditIcon } from './icons';
+import { Clock } from 'lucide-react';
 
 interface DiningCardProps {
   dining: Dining;
@@ -138,15 +139,7 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
           </p>
 
           <div className='flex items-center gap-2 mb-2'>
-            <svg
-              className='w-4 h-4 text-default-500'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'
-            >
-              <circle cx='12' cy='12' r='10'></circle>
-              <polyline points='12,6 12,12 16,14'></polyline>
-            </svg>
+            <Clock className='w-4 h-4 text-default-500' />
             <span className='text-sm text-default-600'>
               {formatTime(dining.servingTime.start)} -{' '}
               {formatTime(dining.servingTime.end)}
