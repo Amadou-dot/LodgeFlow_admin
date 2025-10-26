@@ -77,7 +77,6 @@
     "html2canvas": "^1.4.1",
     "intl-messageformat": "10.7.16",
     "jspdf": "^3.0.3",
-    "lodgeflow": "link:",
     "lucide-react": "^0.546.0",
     "mongodb": "^6.20.0",
     "mongoose": "^8.19.1",
