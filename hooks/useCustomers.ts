@@ -1,5 +1,6 @@
 'use client';
 
+import { SWR_CONFIG } from '@/lib/config';
 import type { 
   Customer, 
   CustomersFilters, 
@@ -58,9 +59,9 @@ export const useCustomers = (filters: CustomersFilters = {}) => {
     `/api/customers?${params.toString()}`,
     fetcher,
     {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-      dedupingInterval: 10000,
+      keepPreviousData: SWR_CONFIG.KEEP_PREVIOUS_DATA,
+      revalidateOnFocus: SWR_CONFIG.REVALIDATE_ON_FOCUS,
+      dedupingInterval: SWR_CONFIG.DEDUPING_INTERVAL_LONG,
     }
   );
 

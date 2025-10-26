@@ -1,5 +1,6 @@
 'use client';
 
+import { SWR_CONFIG } from '@/lib/config';
 import type { Booking, BookingsFilters, PopulatedBooking } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useSWR from 'swr';
@@ -51,9 +52,9 @@ export const useBookings = (filters: BookingsFilters = {}) => {
     `/api/bookings?${params.toString()}`,
     fetcher,
     {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-      dedupingInterval: 5000, // Dedupe requests within 5 seconds
+      keepPreviousData: SWR_CONFIG.KEEP_PREVIOUS_DATA,
+      revalidateOnFocus: SWR_CONFIG.REVALIDATE_ON_FOCUS,
+      dedupingInterval: SWR_CONFIG.DEDUPING_INTERVAL,
     }
   );
 
@@ -81,9 +82,9 @@ export const useBooking = (id: string) => {
       throw new Error(result.error || 'Failed to fetch booking');
     },
     {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
+      keepPreviousData: SWR_CONFIG.KEEP_PREVIOUS_DATA,
+      revalidateOnFocus: SWR_CONFIG.REVALIDATE_ON_FOCUS,
+      dedupingInterval: SWR_CONFIG.DEDUPING_INTERVAL,
     }
   );
 
