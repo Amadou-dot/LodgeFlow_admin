@@ -1,17 +1,38 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+
+import { hasAuthorizedRole } from '@/lib/auth-helpers';
 
 const isPublicRoute = createRouteMatcher([
-  '/sign-in(.*)', 
+  '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/webhooks(.*)',
-  '/'
+  '/',
+  '/unauthorized(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  // Only protect non-public routes
-  if (!isPublicRoute(req)) {
-    await auth.protect();
+  // Allow public routes without any checks
+  if (isPublicRoute(req)) {
+    return;
   }
+
+  // Protect all other routes - require authentication
+  const { has, redirectToSignIn, sessionClaims } = await auth();
+
+  // Check if user is authenticated
+  if (!sessionClaims) {
+    return redirectToSignIn();
+  }
+
+  // Only allow admin and staff roles to access the application
+  if (!hasAuthorizedRole(has)) {
+    const unauthorizedUrl = new URL('/unauthorized', req.url);
+    return NextResponse.redirect(unauthorizedUrl);
+  }
+
+  // User has valid role (admin or staff), allow access
+  return;
 });
 
 export const config = {
