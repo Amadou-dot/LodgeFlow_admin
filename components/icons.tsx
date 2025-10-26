@@ -1,36 +1,16 @@
 'use client';
 import { ArrowLeft, Edit, Moon, Plus, Search, Sun, Trash2 } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import * as React from 'react';
-import { useEffect, useState } from 'react';
 
 import { IconSvgProps } from '@/types';
 
 export const Logo: React.FC<IconSvgProps> = ({ size = 36, width, height }) => {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // Only render logo after component has mounted to avoid hydration issues
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const logoSize = Number(size || width || height || 36);
-
-  if (!mounted) {
-    // Return a placeholder during SSR/hydration
-    return (
-      <div
-        style={{ width: logoSize, height: logoSize }}
-        className='bg-default-200 rounded animate-pulse'
-      />
-    );
-  }
 
   return (
     <Image
-      src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo-light.png'}
+      src='/logo.svg'
       alt='LodgeFlow'
       width={logoSize}
       height={logoSize}
