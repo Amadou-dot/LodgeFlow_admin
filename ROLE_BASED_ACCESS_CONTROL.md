@@ -13,41 +13,63 @@ The following roles are configured in Clerk:
 
 ## Implementation Details
 
-### 1. Middleware-Level Protection (`middleware.ts`)
+### 1. Auth Helper Function (`lib/auth-helpers.ts`)
+
+A centralized helper function for role checking to avoid code duplication:
+
+```typescript
+export function hasAuthorizedRole(has: ((params: { role: string }) => boolean) | undefined): boolean {
+  if (!has) return false;
+  
+  const isAdmin = has({ role: 'org:admin' });
+  const isStaff = has({ role: 'org:staff' });
+  
+  return isAdmin || isStaff;
+}
+```
+
+**Benefits:**
+- Single source of truth for role authorization logic
+- Easy to maintain and update
+- Consistent behavior across middleware and client components
+- Type-safe with proper TypeScript support
+
+### 2. Middleware-Level Protection (`middleware.ts`)
 
 The primary access control is implemented at the middleware level, which runs before any page or API route is accessed:
 
 **How it works:**
 1. Public routes (sign-in, sign-up, unauthorized, webhooks) are allowed without checks
 2. For all other routes, the middleware checks if the user is authenticated
-3. If authenticated, it checks the user's role using `has({ role: 'org:customer' })`, `has({ role: 'org:admin' })`, and `has({ role: 'org:staff' })`
-4. Users with the `org:customer` role are redirected to `/unauthorized`
-5. Users without `org:admin` or `org:staff` roles are also redirected to `/unauthorized`
-6. Only users with `org:admin` or `org:staff` roles can proceed
+3. If authenticated, it uses `hasAuthorizedRole()` to verify the user has either `org:admin` or `org:staff` role
+4. Users without authorized roles (including customers) are redirected to `/unauthorized`
+5. Only users with `org:admin` or `org:staff` roles can proceed
 
 **Key features:**
 - Runs on every request (except public routes)
 - Prevents unauthorized access before any page loads
 - Handles both authentication and authorization
-- Uses Clerk's built-in role checking with `has()` helper
+- Uses centralized helper function for consistency
+- No need to explicitly check for customer role - any non-admin/non-staff role is rejected
 
-### 2. Client-Side Protection (`AuthGuard` component)
+### 3. Client-Side Protection (`AuthGuard` component)
 
 An additional layer of protection is provided by the `AuthGuard` component for enhanced security:
 
 **How it works:**
 1. Checks if authentication is loaded
 2. Verifies the user is signed in
-3. Checks the user's role on the client side
-4. Redirects customers and users without valid roles to `/unauthorized`
+3. Uses `hasAuthorizedRole()` helper to check if user has valid role
+4. Redirects unauthorized users to `/unauthorized`
 5. Shows appropriate loading states during checks
 
 **Benefits:**
 - Provides immediate feedback to users
 - Prevents unauthorized UI rendering
 - Works in conjunction with middleware for defense in depth
+- Uses same authorization logic as middleware (via shared helper)
 
-### 3. Unauthorized Page (`/unauthorized`)
+### 4. Unauthorized Page (`/unauthorized`)
 
 A dedicated page for users who are denied access:
 
@@ -100,35 +122,40 @@ Create the following roles with these exact keys:
 
 ### Defense in Depth
 This implementation uses multiple layers of security:
-1. **Middleware** - Server-side check before route access
-2. **AuthGuard** - Client-side check for UI protection
-3. **Clerk's built-in protection** - Session and token validation
+1. **Auth Helper** - Centralized, reusable role checking logic
+2. **Middleware** - Server-side check before route access
+3. **AuthGuard** - Client-side check for UI protection
+4. **Clerk's built-in protection** - Session and token validation
 
 ### Why Multiple Layers?
+- **Auth Helper**: Ensures consistency and maintainability
 - **Middleware**: Prevents unauthorized server requests and API access
 - **AuthGuard**: Provides immediate UI feedback and prevents unauthorized component rendering
 - **Clerk**: Ensures session validity and role integrity
 
 ### Best Practices Followed
+✅ DRY principle - Single helper function for role checking
 ✅ Server-side authorization (middleware)
 ✅ Client-side authorization (AuthGuard)
 ✅ Explicit role checking using Clerk's `has()` method
 ✅ Graceful error handling with dedicated unauthorized page
 ✅ Clear user feedback and messaging
 ✅ Proper redirect flows
+✅ No redundant role checks (any non-admin/non-staff is rejected)
 
 ## API Route Protection
 
-All API routes are automatically protected by the middleware. For additional API-specific checks, you can use Clerk's `auth()` helper in your API routes:
+All API routes are automatically protected by the middleware. For additional API-specific checks, you can use the `hasAuthorizedRole` helper with Clerk's `auth()`:
 
 ```typescript
 import { auth } from '@clerk/nextjs/server';
+import { hasAuthorizedRole } from '@/lib/auth-helpers';
 
 export async function GET(req: Request) {
   const { has } = await auth();
   
-  // Check for specific role
-  if (!has({ role: 'org:admin' }) && !has({ role: 'org:staff' })) {
+  // Check for authorized roles
+  if (!hasAuthorizedRole(has)) {
     return new Response('Unauthorized', { status: 403 });
   }
   
@@ -166,16 +193,22 @@ export async function GET(req: Request) {
 
 ### Adding New Roles
 1. Create the role in Clerk Dashboard with `org:` prefix
-2. Update `middleware.ts` to include the new role in authorization checks
-3. Update `AuthGuard.tsx` if client-side checks are needed
+2. Update `hasAuthorizedRole()` in `lib/auth-helpers.ts` to include the new role
+3. The change will automatically apply to both middleware and AuthGuard
 4. Update this documentation
 
 ### Modifying Access Rules
 To change which roles have access:
-1. Update the role checks in `middleware.ts`
-2. Update corresponding checks in `AuthGuard.tsx`
+1. Update the `hasAuthorizedRole()` function in `lib/auth-helpers.ts`
+2. The change will automatically propagate to all usage points
 3. Test thoroughly before deploying to production
 4. Document the changes
+
+### Code Maintenance Benefits
+- **Single point of change**: Update role logic in one place
+- **Consistency**: Same logic applies everywhere
+- **Testability**: Easy to unit test the helper function
+- **Type safety**: TypeScript ensures correct usage
 
 ## Summary
 
