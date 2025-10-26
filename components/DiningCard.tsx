@@ -20,7 +20,7 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
   const handleDelete = async () => {
     if (onDelete) {
       setIsLoading(true);
-      onDelete(dining._id);
+      await onDelete(dining._id);
       setIsLoading(false);
     }
   };

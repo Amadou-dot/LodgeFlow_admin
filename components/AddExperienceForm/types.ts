@@ -1,5 +1,6 @@
 export interface FormData {
   name: string;
+  title: string;
   description: string;
   category: string;
   duration: string;

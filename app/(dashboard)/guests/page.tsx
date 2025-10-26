@@ -38,7 +38,7 @@ function GuestsContent() {
     sortOrder: filters.sortOrder,
   });
 
-  // Filter out the signed-in user from the customers list
+  // Filter out the signed-in user from the customers list to avoid managing themselves
   const filteredCustomers = useMemo(() => {
     if (!user?.id || !customers) return customers;
     return customers.filter(customer => customer.id !== user.id);
