@@ -69,7 +69,9 @@ export default function GuestInformationCard({
           </>
         ) : (
           <div className='py-4'>
-            <p className='text-default-500 text-left'>Guest information not available</p>
+            <p className='text-default-500 text-left'>
+              Guest information not available
+            </p>
           </div>
         )}
       </CardBody>

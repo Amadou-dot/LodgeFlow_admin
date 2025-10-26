@@ -3,7 +3,7 @@ import connectDB from '../../../../lib/mongodb';
 import { Cabin } from '../../../../models';
 
 export async function GET(
-  request: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -116,7 +116,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

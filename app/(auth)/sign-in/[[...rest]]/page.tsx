@@ -9,6 +9,11 @@ export default function SignInPage() {
           <p className='text-foreground-500 mt-2'>
             Sign in to access your LodgeFlow dashboard
           </p>
+          <p className='flex flex-col text-gray-500 text-sm'>
+            Test account:
+            <span>email: admin@lodgeflow.dev</span>
+            <span>password: lodgeflow</span>
+          </p>
         </div>
         <SignIn />
       </div>

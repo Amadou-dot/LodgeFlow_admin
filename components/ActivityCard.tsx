@@ -90,10 +90,6 @@ export default function ActivityCard({
     }
   };
 
-  const handleView = () => {
-    router.push(`/bookings/${bookingId}`);
-  };
-
   return (
     <div className='bg-content1 rounded-lg border border-divider p-3'>
       {/* Desktop Layout */}

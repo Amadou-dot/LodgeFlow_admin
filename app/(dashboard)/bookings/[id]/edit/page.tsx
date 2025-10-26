@@ -54,7 +54,6 @@ export default function EditBookingPage({ params }: EditBookingPageProps) {
       await updateBooking.mutateAsync(bookingData as any);
       handleSuccess();
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Error updating booking:', error);
       alert('Failed to update booking. Please try again.');
     }

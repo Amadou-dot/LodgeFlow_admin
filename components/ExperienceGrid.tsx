@@ -208,7 +208,7 @@ function ExperienceCard({ item }: { item: Experience }) {
           scrollBehavior='inside'
         >
           <ModalContent>
-            {onClose => (
+            {_onclose => (
               <>
                 <ModalHeader className='flex flex-col gap-1'>
                   Edit Experience: {item.name}

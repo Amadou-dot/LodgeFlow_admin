@@ -23,7 +23,7 @@ const fetcher = (url: string) =>
 
 // Fetch app settings using SWR
 export const useSettings = () => {
-  const { data, error, isLoading, mutate } = useSWR<any>(
+  const { data, error, isLoading, mutate } = useSWR<AppSettings>(
     '/api/settings',
     fetcher,
     {
@@ -67,7 +67,7 @@ export const useUpdateSettings = () => {
 // Reset settings to defaults
 export const useResetSettings = () => {
   return useMutation({
-    mutationFn: async (): Promise<any> => {
+    mutationFn: async (): Promise<AppSettings> => {
       const response = await fetch('/api/settings', {
         method: 'POST',
       });
@@ -75,7 +75,11 @@ export const useResetSettings = () => {
       if (!response.ok) {
         throw new Error('Failed to reset settings');
       }
-      return response.json();
+      const result = await response.json();
+      if (result.success) {
+        return result.data;
+      }
+      throw new Error(result.error || 'Failed to reset settings');
     },
   });
 };

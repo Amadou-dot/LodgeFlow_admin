@@ -18,7 +18,7 @@ async function updateAllCustomerStats() {
 
     // Group bookings by customer (Clerk user ID)
     const customerBookingsMap = new Map<string, IBooking[]>();
-    
+
     for (const booking of allBookings) {
       const clerkUserId = booking.customer;
       if (!customerBookingsMap.has(clerkUserId)) {
@@ -27,12 +27,14 @@ async function updateAllCustomerStats() {
       customerBookingsMap.get(clerkUserId)!.push(booking);
     }
 
-    console.log(`Found ${customerBookingsMap.size} unique customers with bookings`);
+    console.log(
+      `Found ${customerBookingsMap.size} unique customers with bookings`
+    );
 
     // Update stats for each customer
     let updatedCustomers = 0;
     const customerEntries = Array.from(customerBookingsMap.entries());
-    
+
     for (const [clerkUserId, customerBookings] of customerEntries) {
       // Filter out cancelled bookings for revenue calculations
       const validBookings = customerBookings.filter(
@@ -63,27 +65,32 @@ async function updateAllCustomerStats() {
           totalSpent,
           lastBookingDate,
         },
-        { 
+        {
           upsert: true, // Create the record if it doesn't exist
-          new: true // Return the updated document
+          new: true, // Return the updated document
         }
       );
 
       updatedCustomers++;
-      console.log(`✅ Updated stats for customer ${clerkUserId}: ${totalBookings} bookings, $${totalSpent}`);
+      console.log(
+        `✅ Updated stats for customer ${clerkUserId}: ${totalBookings} bookings, $${totalSpent}`
+      );
     }
 
-    console.log(`🎉 Successfully updated stats for ${updatedCustomers} customers`);
-    
+    console.log(
+      `🎉 Successfully updated stats for ${updatedCustomers} customers`
+    );
+
     // Verify the updates
     console.log('\n📈 Verifying updated customer stats...');
     const customers = await Customer.find({ totalBookings: { $gt: 0 } });
     console.log(`Found ${customers.length} customers with booking stats`);
-    
-    for (const customer of customers) {
-      console.log(`Customer ${customer.clerkUserId}: ${customer.totalBookings} bookings, $${customer.totalSpent}`);
-    }
 
+    for (const customer of customers) {
+      console.log(
+        `Customer ${customer.clerkUserId}: ${customer.totalBookings} bookings, $${customer.totalSpent}`
+      );
+    }
   } catch (error) {
     console.error('❌ Error updating customer stats:', error);
   } finally {

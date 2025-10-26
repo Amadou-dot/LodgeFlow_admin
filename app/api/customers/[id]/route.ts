@@ -9,7 +9,7 @@ import connectDB from '../../../../lib/mongodb';
 import { Booking } from '../../../../models';
 
 export async function GET(
-  request: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -105,7 +105,6 @@ export async function PUT(
       data: customer,
     });
   } catch (error: any) {
-     
     console.error('Error updating customer:', error);
 
     if (error.name === 'ValidationError') {
@@ -130,7 +129,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -159,7 +158,6 @@ export async function DELETE(
       message: 'Customer deleted successfully',
     });
   } catch (error) {
-     
     console.error('Error deleting customer:', error);
     return NextResponse.json(
       {

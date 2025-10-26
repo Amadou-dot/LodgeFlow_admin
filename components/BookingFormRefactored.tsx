@@ -4,7 +4,7 @@ import { useCreateBooking } from '@/hooks/useBookings';
 import { useCabins } from '@/hooks/useCabins';
 import { useInfiniteCustomers } from '@/hooks/useInfiniteCustomers';
 import { useSettings } from '@/hooks/useSettings';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   BookingDatesGuests,
   BookingExtras,
@@ -22,8 +22,7 @@ import {
 } from './BookingForm/types';
 
 export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
-  const { customers, hasMore, isLoading, onLoadMore, searchCustomers } =
-    useInfiniteCustomers();
+  const { customers, isLoading, searchCustomers } = useInfiniteCustomers();
   const { data: cabins } = useCabins();
   const { data: settings, isLoading: settingsLoading } = useSettings();
   const createBooking = useCreateBooking();
@@ -231,7 +230,6 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
       await createBooking.mutateAsync(bookingData as any);
       onSuccess?.();
     } catch (error) {
-       
       console.error('Error creating booking:', error);
       alert('Failed to create booking. Please try again.');
     }

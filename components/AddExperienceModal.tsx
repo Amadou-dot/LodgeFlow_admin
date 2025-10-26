@@ -10,19 +10,19 @@ import {
 
 import { useState } from 'react';
 import AddExperienceForm from './AddExperienceForm';
+import { FormData } from './AddExperienceForm/types';
 
 interface AddExperienceModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate?: (formData: Record<string, any>) => void;
 }
-
 export default function AddExperienceModal({
   isOpen,
   onOpenChange,
   onCreate,
 }: AddExperienceModalProps) {
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<FormData>({} as FormData);
   return (
     <Modal
       isOpen={isOpen}

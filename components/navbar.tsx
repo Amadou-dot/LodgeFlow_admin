@@ -84,11 +84,7 @@ export const Navbar = () => {
               <UserButton.Action
                 label='Toggle theme'
                 labelIcon={
-                  theme === 'dark' ? (
-                    <Sun size={16} />
-                  ) : (
-                    <Moon size={16} />
-                  )
+                  theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />
                 }
                 onClick={toggleTheme}
               />

@@ -12,7 +12,7 @@ export async function GET() {
     const today = new Date();
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const sixMonthsAgo = new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000);
+    // const sixMonthsAgo = new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000);
 
     // Parallel queries for efficiency
     const [
@@ -184,30 +184,30 @@ export async function GET() {
                 branches: [
                   {
                     case: { $lte: ['$numNights', 2] },
-                    then: '1-2 nights'
+                    then: '1-2 nights',
                   },
                   {
                     case: { $lte: ['$numNights', 4] },
-                    then: '3-4 nights'
+                    then: '3-4 nights',
                   },
                   {
                     case: { $lte: ['$numNights', 7] },
-                    then: '5-7 nights'
+                    then: '5-7 nights',
                   },
                   {
                     case: { $lte: ['$numNights', 14] },
-                    then: '8-14 nights'
-                  }
+                    then: '8-14 nights',
+                  },
                 ],
-                default: '15+ nights'
-              }
+                default: '15+ nights',
+              },
             },
-            count: { $sum: 1 }
-          }
+            count: { $sum: 1 },
+          },
         },
         {
-          $sort: { '_id': 1 }
-        }
+          $sort: { _id: 1 },
+        },
       ]),
     ]);
 
@@ -259,14 +259,21 @@ export async function GET() {
       recentActivity: await Promise.all(
         recentBookings.map(async (booking: any) => {
           let customerName = 'Customer';
-          
+
           // Fetch customer name from Clerk
           if (booking.customer) {
             try {
               const clerkUser = await getClerkUser(booking.customer);
-              customerName = clerkUser?.name || `${clerkUser?.first_name || ''} ${clerkUser?.last_name || ''}`.trim() || 'Customer';
+              customerName =
+                clerkUser?.name ||
+                `${clerkUser?.first_name || ''} ${clerkUser?.last_name || ''}`.trim() ||
+                'Customer';
             } catch (error) {
-              console.warn('Failed to fetch customer name for:', booking.customer, error);
+              console.warn(
+                'Failed to fetch customer name for:',
+                booking.customer,
+                error
+              );
             }
           }
 
@@ -305,18 +312,20 @@ export async function GET() {
             '#ef4444', // red
             '#8b5cf6', // violet
           ];
-          
+
           const categories = [
             '1-2 nights',
-            '3-4 nights', 
+            '3-4 nights',
             '5-7 nights',
             '8-14 nights',
             '15+ nights',
           ];
-          
+
           return categories
             .map((category, index) => {
-              const found = durationData.find((item: any) => item._id === category);
+              const found = durationData.find(
+                (item: any) => item._id === category
+              );
               return {
                 name: category,
                 value: found ? found.count : 0,

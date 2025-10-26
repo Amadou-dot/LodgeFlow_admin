@@ -15,7 +15,7 @@ interface DiningCardProps {
 }
 
 export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
 
   const handleDelete = async () => {
     if (onDelete) {

@@ -126,9 +126,7 @@ export default function AddExperienceForm({
               radius='sm'
               selectionMode='multiple'
               selectedKeys={
-                formData.seasonalAvailability
-                  ? new Set(formData.seasonalAvailability)
-                  : new Set()
+                new Set(formData.seasonalAvailability ?? [])
               }
               onSelectionChange={keys => {
                 const selectedKeys = Array.from(keys) as string[];

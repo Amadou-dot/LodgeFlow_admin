@@ -79,10 +79,10 @@ export default function AddGuestForm({
     const keys = field.split('.');
     setFormData(prev => {
       const updated = { ...prev };
-      let current: any = updated;
+      let current: Record<string, unknown> = updated as Record<string, unknown>;
 
       for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]];
+        current = current[keys[i]] as Record<string, unknown>;
       }
 
       current[keys[keys.length - 1]] = value;
@@ -172,8 +172,10 @@ export default function AddGuestForm({
       }
       setErrors({});
       onSuccess?.();
-    } catch (error: any) {
-      setErrors({ general: error.message });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An error occurred';
+      setErrors({ general: errorMessage });
     }
   };
 

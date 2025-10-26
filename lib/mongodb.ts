@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
 
-if (!process.env.MONGODB_URI) {
-  console.warn('MONGODB_URI environment variable not found, will use fallback');
-}
+import { DB_CONFIG } from './config';
+import { logger } from './logger';
 
 interface GlobalMongoose {
   conn: typeof mongoose | null;
@@ -13,45 +12,57 @@ declare global {
   var mongoose: GlobalMongoose | undefined;
 }
 
-let cached = global.mongoose;
+const cached =
+  global.mongoose || (global.mongoose = { conn: null, promise: null });
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
-async function connectDB() {
-  if (cached!.conn) {
-    return cached!.conn;
+/**
+ * Connect to MongoDB with connection caching and proper error handling
+ * @returns Cached or new MongoDB connection
+ */
+async function connectDB(): Promise<typeof mongoose> {
+  // Return existing connection if available
+  if (cached.conn) {
+    return cached.conn;
   }
 
-  if (!cached!.promise) {
-    // Get the MongoDB URI at runtime, not at module load time
-    const MONGODB_URI =
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/lodgeflow';
+  // Check for MongoDB URI
+  const MONGODB_URI = process.env.MONGODB_URI;
 
-    if (!process.env.MONGODB_URI) {
-      throw new Error('Please define the MONGODB_URI environment variable');
-    }
+  if (!MONGODB_URI) {
+    throw new Error(
+      'Please define the MONGODB_URI environment variable inside .env.local'
+    );
+  }
 
+  // Create new connection promise if not already pending
+  if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      family: 4,
+      maxPoolSize: DB_CONFIG.MAX_POOL_SIZE,
+      serverSelectionTimeoutMS: DB_CONFIG.SERVER_SELECTION_TIMEOUT,
+      socketTimeoutMS: DB_CONFIG.SOCKET_TIMEOUT,
+      family: 4, // Use IPv4
     };
 
-    cached!.promise = mongoose.connect(MONGODB_URI, opts);
+    logger.debug('Initiating MongoDB connection', {
+      uri: MONGODB_URI.replace(/\/\/.*@/, '//***@'),
+    });
+
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then(mongoose => {
+      logger.info('MongoDB connected successfully');
+      return mongoose;
+    });
   }
 
   try {
-    cached!.conn = await cached!.promise;
-  } catch (e) {
-    cached!.promise = null;
-    throw e;
+    cached.conn = await cached.promise;
+  } catch (error) {
+    cached.promise = null; // Reset promise on failure
+    logger.error('Failed to connect to MongoDB', error);
+    throw error;
   }
 
-  return cached!.conn;
+  return cached.conn;
 }
 
 export default connectDB;

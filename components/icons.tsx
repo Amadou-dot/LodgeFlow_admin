@@ -1,18 +1,13 @@
 'use client';
-import * as React from 'react';
+import { ArrowLeft, Edit, Moon, Plus, Search, Sun, Trash2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Moon, Sun, Search, Plus, ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import * as React from 'react';
+import { useEffect, useState } from 'react';
 
 import { IconSvgProps } from '@/types';
 
-export const Logo: React.FC<IconSvgProps> = ({
-  size = 36,
-  width,
-  height,
-  ...props
-}) => {
+export const Logo: React.FC<IconSvgProps> = ({ size = 36, width, height }) => {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 

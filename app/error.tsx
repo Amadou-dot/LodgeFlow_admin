@@ -12,14 +12,10 @@ const ErrorIcon = () => (
 );
 
 // Refresh Icon Component
-const RefreshIcon = () => (
-  <RefreshCw className='w-4 h-4' />
-);
+const RefreshIcon = () => <RefreshCw className='w-4 h-4' />;
 
 // Home Icon Component
-const HomeIcon = () => (
-  <Home className='w-4 h-4' />
-);
+const HomeIcon = () => <Home className='w-4 h-4' />;
 
 export default function Error({
   error,
@@ -30,7 +26,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-     
+
     console.error('Application Error:', error);
   }, [error]);
   const router = useRouter();

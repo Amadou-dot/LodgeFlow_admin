@@ -95,7 +95,7 @@ export function useURLFilters<T extends Record<string, any>>({
       });
 
       const queryString = params.toString();
-      
+
       const currentPath = basePath || pathName;
       return queryString ? `${currentPath}?${queryString}` : currentPath;
     },
