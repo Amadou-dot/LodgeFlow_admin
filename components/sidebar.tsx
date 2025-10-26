@@ -55,7 +55,6 @@ export const Sidebar = () => {
             alt='LodgeFlow'
             width={120}
             height={120}
-            className='rounded-lg'
           />
         </Link>
       </div>
