@@ -1,11 +1,9 @@
 'use client';
 
 import clsx from 'clsx';
-import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
 const sidebarItems = [
   {
@@ -47,31 +45,18 @@ const sidebarItems = [
 
 export const Sidebar = () => {
   const pathname = usePathname();
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // Only render logo after component has mounted to avoid hydration issues
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <aside className='hidden md:flex w-64 bg-background border-r border-default-200 h-full flex-col'>
       <div className='p-6 '>
         <Link href='/' className='flex justify-center'>
-          {mounted ? (
-            <Image
-              src={
-                resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo-light.png'
-              }
-              alt='LodgeFlow'
-              width={140}
-              height={140}
-              className='rounded-lg'
-            />
-          ) : (
-            <div className='w-20 h-20 bg-default-200 rounded-lg animate-pulse' />
-          )}
+          <Image
+            src='/logo.svg'
+            alt='LodgeFlow'
+            width={120}
+            height={120}
+            className='rounded-lg'
+          />
         </Link>
       </div>
 
