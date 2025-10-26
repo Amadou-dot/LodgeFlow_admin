@@ -60,7 +60,7 @@ export default function AddExperienceForm({
               // placeholder='Experience Title'
               aria-label='Experience Title'
               radius='sm'
-              value={formData.title || ''}
+              value={(formData.title as string) || ''}
               onValueChange={value => handleInputChange('title', value)}
             />
             <NumberInput
@@ -126,7 +126,7 @@ export default function AddExperienceForm({
               radius='sm'
               selectionMode='multiple'
               selectedKeys={
-                formData.seasonalAvailability
+                Array.isArray(formData.seasonalAvailability)
                   ? new Set(formData.seasonalAvailability)
                   : new Set()
               }

@@ -1111,12 +1111,14 @@ async function seedDatabase() {
     const bookings: IBooking[] = [];
     const today = new Date();
     const sixtyDaysAgo = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000);
-    const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-    
+    const thirtyDaysFromNow = new Date(
+      today.getTime() + 30 * 24 * 60 * 60 * 1000
+    );
+
     for (let i = 0; i < 150; i++) {
       const cabin = faker.helpers.arrayElement(cabins);
       const clerkUserId = faker.helpers.arrayElement(clerkUserIds);
-      
+
       // Generate check-in dates from 30 days ago to 30 days in the future
       const checkInDate = faker.date.between({
         from: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),

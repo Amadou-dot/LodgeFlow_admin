@@ -34,15 +34,16 @@ class Logger {
    */
   error(message: string, error?: Error | unknown, context?: LogContext): void {
     if (this.isTest) return;
-    
-    const errorContext = error instanceof Error 
-      ? { 
-          ...context,
-          error: error.message, 
-          stack: this.isDevelopment ? error.stack : undefined 
-        }
-      : { ...context, error: String(error) };
-    
+
+    const errorContext =
+      error instanceof Error
+        ? {
+            ...context,
+            error: error.message,
+            stack: this.isDevelopment ? error.stack : undefined,
+          }
+        : { ...context, error: String(error) };
+
     this.log('error', message, errorContext);
   }
 

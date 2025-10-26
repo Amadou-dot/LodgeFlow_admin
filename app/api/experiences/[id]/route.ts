@@ -6,7 +6,7 @@ type ParamProps = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(request: Request, { params }: ParamProps) {
+export async function GET(_request: Request, { params }: ParamProps) {
   const { id } = await params;
   await connectToDatabase();
   try {
@@ -49,7 +49,7 @@ export async function PUT(request: Request, { params }: ParamProps) {
   }
 }
 
-export async function DELETE(request: Request, { params }: ParamProps) {
+export async function DELETE(_request: Request, { params }: ParamProps) {
   await connectToDatabase();
 
   const { id } = await params;

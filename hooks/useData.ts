@@ -43,20 +43,30 @@ export function useActivities() {
 
       // Transform recent activity data
       const { recentActivity } = result.data;
-      return recentActivity.slice(0, 4).map((booking: any) => {
-        const checkIn = new Date(booking.checkInDate);
-        const checkOut = new Date(booking.checkOutDate);
-        const nights = Math.ceil(
-          (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
-        );
+      return recentActivity
+        .slice(0, 4)
+        .map(
+          (booking: {
+            id: string;
+            customerName: string;
+            status: string;
+            checkInDate: string;
+            checkOutDate: string;
+          }) => {
+            const checkIn = new Date(booking.checkInDate);
+            const checkOut = new Date(booking.checkOutDate);
+            const nights = Math.ceil(
+              (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
+            );
 
-        return {
-          id: booking.id,
-          name: booking.customerName,
-          status: booking.status,
-          stayDuration: `${nights} night${nights === 1 ? '' : 's'}`,
-        };
-      });
+            return {
+              id: booking.id,
+              name: booking.customerName,
+              status: booking.status,
+              stayDuration: `${nights} night${nights === 1 ? '' : 's'}`,
+            };
+          }
+        );
     },
   });
 }

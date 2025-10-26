@@ -1,4 +1,4 @@
-import { formatDistanceToNow, format, isAfter, isBefore } from 'date-fns';
+import { format, formatDistanceToNow, isAfter } from 'date-fns';
 
 export const formatBookingDates = (
   checkIn: string,

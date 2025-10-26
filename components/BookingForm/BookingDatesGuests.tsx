@@ -81,7 +81,6 @@ export default function BookingDatesGuests({
 
     // Convert the date to CalendarDate if it's not already
     const calendarDate = 'calendar' in date ? toCalendarDate(date) : date;
-    const dateString = calendarDate.toString();
 
     return availabilityData.data.unavailableDates.some(range => {
       const startDate = parseDate(range.start);
@@ -91,40 +90,6 @@ export default function BookingDatesGuests({
         calendarDate.compare(endDate) < 0
       );
     });
-  };
-
-  // Custom validation function
-  const validateDateRange = (value: RangeValue<CalendarDate> | null) => {
-    if (!value) return 'Please select your stay dates';
-
-    if (value.start.compare(todayDate) < 0) {
-      return 'Check-in date cannot be in the past';
-    }
-
-    if (value.end.compare(value.start) <= 0) {
-      return 'Check-out date must be after check-in date';
-    }
-
-    // Check if any date in the range is unavailable
-    if (availabilityData?.success && availabilityData.data.unavailableDates) {
-      const hasUnavailableDate = availabilityData.data.unavailableDates.some(
-        range => {
-          const startDate = parseDate(range.start);
-          const endDate = parseDate(range.end);
-
-          // Check if the selected range overlaps with any unavailable range
-          return (
-            value.start.compare(endDate) < 0 && value.end.compare(startDate) > 0
-          );
-        }
-      );
-
-      if (hasUnavailableDate) {
-        return 'Selected dates conflict with existing bookings. Please choose different dates.';
-      }
-    }
-
-    return null;
   };
 
   return (

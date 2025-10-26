@@ -161,7 +161,7 @@ await updateCustomerStats(clerkUserId);
 
 ## Documentation Updates Needed
 
-The `/home/yzel/github/LodgeFlow_admin/.github/copilot-instructions.md` file contains a misleading statement:
+The `.github/copilot-instructions.md` file contains a misleading statement:
 
 **Current (Incorrect):**
 ```
@@ -191,5 +191,5 @@ This needs to be updated to reflect the actual architecture.
 
 ## Related Documentation
 
-- See `/home/yzel/github/LodgeFlow/CUSTOMER_MODEL_REMOVAL.md` for customer portal changes
+- See `CUSTOMER_MODEL_REMOVAL.md` for customer portal changes
 - See `/BOOKING_CONFIRMATION_FEATURE.md` for booking flow documentation

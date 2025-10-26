@@ -2,14 +2,28 @@ import { CURRENCY, LOYALTY_TIERS } from '@/lib/config';
 
 type LoyaltyColor = 'secondary' | 'warning' | 'default' | 'primary';
 
-export const getLoyaltyTier = (totalSpent: number): { tier: string; color: LoyaltyColor } => {
+export const getLoyaltyTier = (
+  totalSpent: number
+): { tier: string; color: LoyaltyColor } => {
   if (totalSpent >= LOYALTY_TIERS.DIAMOND.threshold)
-    return { tier: LOYALTY_TIERS.DIAMOND.name, color: LOYALTY_TIERS.DIAMOND.color as LoyaltyColor };
-  if (totalSpent >= LOYALTY_TIERS.GOLD.threshold) 
-    return { tier: LOYALTY_TIERS.GOLD.name, color: LOYALTY_TIERS.GOLD.color as LoyaltyColor };
-  if (totalSpent >= LOYALTY_TIERS.SILVER.threshold) 
-    return { tier: LOYALTY_TIERS.SILVER.name, color: LOYALTY_TIERS.SILVER.color as LoyaltyColor };
-  return { tier: LOYALTY_TIERS.BRONZE.name, color: LOYALTY_TIERS.BRONZE.color as LoyaltyColor };
+    return {
+      tier: LOYALTY_TIERS.DIAMOND.name,
+      color: LOYALTY_TIERS.DIAMOND.color as LoyaltyColor,
+    };
+  if (totalSpent >= LOYALTY_TIERS.GOLD.threshold)
+    return {
+      tier: LOYALTY_TIERS.GOLD.name,
+      color: LOYALTY_TIERS.GOLD.color as LoyaltyColor,
+    };
+  if (totalSpent >= LOYALTY_TIERS.SILVER.threshold)
+    return {
+      tier: LOYALTY_TIERS.SILVER.name,
+      color: LOYALTY_TIERS.SILVER.color as LoyaltyColor,
+    };
+  return {
+    tier: LOYALTY_TIERS.BRONZE.name,
+    color: LOYALTY_TIERS.BRONZE.color as LoyaltyColor,
+  };
 };
 
 export const getInitials = (name: string) => {
@@ -47,7 +61,10 @@ export const calcNumNights = (checkInDate: string, checkOutDate: string) => {
     : 0;
 };
 
-export const formatCurrency = (amount: number, currency: string = CURRENCY.DEFAULT): string => {
+export const formatCurrency = (
+  amount: number,
+  currency: string = CURRENCY.DEFAULT
+): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currency || CURRENCY.DEFAULT,

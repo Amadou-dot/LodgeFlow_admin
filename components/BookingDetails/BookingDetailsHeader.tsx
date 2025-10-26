@@ -17,7 +17,6 @@ interface BookingDetailsHeaderProps {
 export default function BookingDetailsHeader({
   booking,
   onBack,
-  onBookingUpdated,
   onDeleteSuccess,
   deleteMutation,
   isCancelable,

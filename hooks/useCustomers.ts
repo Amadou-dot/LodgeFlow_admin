@@ -1,14 +1,14 @@
 'use client';
 
 import { SWR_CONFIG } from '@/lib/config';
-import type { 
-  Customer, 
-  CustomersFilters, 
+import type {
+  Customer,
+  CustomersFilters,
   CustomersResponse,
   CustomerResponse,
   CustomerWithStats,
   CustomerPaginationMeta,
-  ApiResponse
+  ApiResponse,
 } from '@/types';
 import { useMutation } from '@tanstack/react-query';
 import useSWR from 'swr';
@@ -134,7 +134,9 @@ export const useCreateCustomer = () => {
 // Update customer
 export const useUpdateCustomer = () => {
   return useMutation<Customer, Error, Partial<Customer> & { id: string }>({
-    mutationFn: async (customerData: Partial<Customer> & { id: string }): Promise<Customer> => {
+    mutationFn: async (
+      customerData: Partial<Customer> & { id: string }
+    ): Promise<Customer> => {
       const response = await fetch(`/api/customers/${customerData.id}`, {
         method: 'PUT',
         headers: {

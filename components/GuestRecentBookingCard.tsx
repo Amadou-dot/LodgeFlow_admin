@@ -55,10 +55,19 @@ export default function GuestRecentBookingCard({
           </span>
           <div className='mt-1'>
             <p className='text-sm text-foreground'>
-              {formatDate(typeof booking.checkInDate === 'string' ? booking.checkInDate : booking.checkInDate.toISOString())}
+              {formatDate(
+                typeof booking.checkInDate === 'string'
+                  ? booking.checkInDate
+                  : booking.checkInDate.toISOString()
+              )}
             </p>
             <p className='text-xs text-default-600'>
-              to {formatDate(typeof booking.checkOutDate === 'string' ? booking.checkOutDate : booking.checkOutDate.toISOString())}
+              to{' '}
+              {formatDate(
+                typeof booking.checkOutDate === 'string'
+                  ? booking.checkOutDate
+                  : booking.checkOutDate.toISOString()
+              )}
             </p>
           </div>
         </div>

@@ -34,7 +34,7 @@ export default function GuestRecentBookingsMobile({
 
   return (
     <div>
-      {recentBookings.map((booking) => (
+      {recentBookings.map(booking => (
         <GuestRecentBookingCard
           key={booking._id}
           booking={booking}

@@ -7,10 +7,10 @@ type HasFunction = (params: { role: string }) => boolean;
  */
 export function hasAuthorizedRole(has: HasFunction | undefined): boolean {
   if (!has) return false;
-  
+
   const isAdmin = has({ role: 'org:admin' });
   const isStaff = has({ role: 'org:staff' });
-  
+
   return isAdmin || isStaff;
 }
 
@@ -23,4 +23,5 @@ export const AUTHORIZED_ROLES = {
   CUSTOMER: 'org:customer',
 } as const;
 
-export type AuthorizedRole = typeof AUTHORIZED_ROLES[keyof typeof AUTHORIZED_ROLES];
+export type AuthorizedRole =
+  (typeof AUTHORIZED_ROLES)[keyof typeof AUTHORIZED_ROLES];

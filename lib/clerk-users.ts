@@ -4,7 +4,10 @@ import { clerkClient, User } from '@clerk/nextjs/server';
 import connectDB from './mongodb';
 
 // In-memory cache for Clerk user data
-const userCache = new Map<string, { data: Customer | null; timestamp: number }>();
+const userCache = new Map<
+  string,
+  { data: Customer | null; timestamp: number }
+>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 // Rate limiting variables
@@ -50,10 +53,18 @@ async function retryWithBackoff<T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
-    } catch (error: any) {
-      if (error?.status === 429 && attempt < maxRetries) {
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'status' in error &&
+        error.status === 429 &&
+        attempt < maxRetries
+      ) {
         const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
-        console.warn(`Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries + 1})`);
+        console.warn(
+          `Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries + 1})`
+        );
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -157,7 +168,21 @@ export async function getClerkUsers(params: ClerkUserListParams = {}): Promise<{
     const response = await client.users.getUserList({
       limit: params.limit || 10,
       offset: params.offset || 0,
-      orderBy: (params.orderBy as any) || '-created_at',
+      orderBy: (params.orderBy || '-created_at') as
+        | '+created_at'
+        | '-created_at'
+        | '+updated_at'
+        | '-updated_at'
+        | '+email_address'
+        | '-email_address'
+        | '+phone_number'
+        | '-phone_number'
+        | '+username'
+        | '-username'
+        | '+first_name'
+        | '-first_name'
+        | '+last_name'
+        | '-last_name',
       emailAddress: params.emailAddress,
       phoneNumber: params.phoneNumber,
       userId: params.userId,
@@ -188,7 +213,6 @@ export async function getClerkUsers(params: ClerkUserListParams = {}): Promise<{
       totalCount: response.totalCount,
     };
   } catch (error) {
-     
     console.error('Error fetching users from Clerk:', error);
     throw new Error('Failed to fetch users from Clerk');
   }
@@ -219,32 +243,45 @@ export async function getClerkUser(userId: string): Promise<Customer | null> {
 
       return convertClerkUserToCustomer(clerkUser, extendedData);
     });
-    
+
     // Cache the result
     setCachedUser(userId, customer);
-    
+
     return customer;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching user from Clerk:', error);
-    
+
     // Handle different types of errors gracefully
-    if (error?.status === 404 || error?.errors?.[0]?.code === 'resource_not_found') {
-      setCachedUser(userId, null); // Cache the null result
-      return null; // User not found - this is expected for some cases
+    if (error && typeof error === 'object') {
+      const typedError = error as {
+        status?: number;
+        errors?: Array<{ code?: string }>;
+      };
+
+      if (
+        typedError.status === 404 ||
+        typedError.errors?.[0]?.code === 'resource_not_found'
+      ) {
+        setCachedUser(userId, null); // Cache the null result
+        return null; // User not found - this is expected for some cases
+      }
+
+      if (typedError.status === 429) {
+        console.warn(
+          'Rate limited by Clerk API after retries, returning null for user:',
+          userId
+        );
+        // Don't cache rate limit errors, but return null
+        return null; // Rate limited - return null to prevent hanging
+      }
+
+      if (typedError.status && typedError.status >= 500) {
+        console.warn('Clerk server error, returning null for user:', userId);
+        // Don't cache server errors, but return null
+        return null; // Server error - return null to prevent hanging
+      }
     }
-    
-    if (error?.status === 429) {
-      console.warn('Rate limited by Clerk API after retries, returning null for user:', userId);
-      // Don't cache rate limit errors, but return null
-      return null; // Rate limited - return null to prevent hanging
-    }
-    
-    if (error?.status >= 500) {
-      console.warn('Clerk server error, returning null for user:', userId);
-      // Don't cache server errors, but return null
-      return null; // Server error - return null to prevent hanging
-    }
-    
+
     // For other errors, return null instead of throwing to prevent search from hanging
     console.warn('Unknown Clerk error, returning null for user:', userId);
     return null;
@@ -263,7 +300,6 @@ export async function getClerkUserCount(): Promise<number> {
     });
     return response.totalCount;
   } catch (error) {
-     
     console.error('Error fetching user count from Clerk:', error);
     throw new Error('Failed to fetch user count from Clerk');
   }
@@ -307,7 +343,6 @@ export async function upsertCustomerExtendedData(
     );
     return extendedData;
   } catch (error) {
-     
     console.error('Error upserting customer extended data:', error);
     throw new Error('Failed to update customer extended data');
   }
@@ -323,7 +358,6 @@ export async function getCustomerExtendedData(
     await connectDB();
     return await CustomerModel.findOne({ clerkUserId });
   } catch (error) {
-     
     console.error('Error fetching customer extended data:', error);
     throw new Error('Failed to fetch customer extended data');
   }
@@ -343,7 +377,16 @@ export async function createClerkUser(userData: {
   try {
     const client = await clerkClient();
 
-    const createParams: any = {
+    interface ClerkCreateUserParams {
+      emailAddress: string[];
+      password: string;
+      firstName: string;
+      lastName: string;
+      phoneNumber?: string[];
+      username?: string;
+    }
+
+    const createParams: ClerkCreateUserParams = {
       emailAddress: [userData.email],
       password: userData.password,
       firstName: userData.firstName,
@@ -361,14 +404,14 @@ export async function createClerkUser(userData: {
 
     const clerkUser = await client.users.createUser(createParams);
     return clerkUser;
-  } catch (error: any) {
-     
+  } catch (error: unknown) {
     console.error('Error creating user in Clerk:', error);
 
     // Handle specific Clerk errors
-    if (error?.errors) {
-      const errorMessages = error.errors
-        .map((err: any) => err.message)
+    if (error && typeof error === 'object' && 'errors' in error) {
+      const clerkError = error as { errors: Array<{ message: string }> };
+      const errorMessages = clerkError.errors
+        .map(err => err.message)
         .join(', ');
       throw new Error(`Failed to create user: ${errorMessages}`);
     }
@@ -391,7 +434,13 @@ export async function updateClerkUser(
   try {
     const client = await clerkClient();
 
-    const updateParams: any = {};
+    interface ClerkUpdateUserParams {
+      firstName?: string;
+      lastName?: string;
+      username?: string;
+    }
+
+    const updateParams: ClerkUpdateUserParams = {};
 
     // Only include fields that are provided
     if (userData.firstName !== undefined) {
@@ -406,14 +455,14 @@ export async function updateClerkUser(
 
     const clerkUser = await client.users.updateUser(userId, updateParams);
     return clerkUser;
-  } catch (error: any) {
-     
+  } catch (error: unknown) {
     console.error('Error updating user in Clerk:', error);
 
     // Handle specific Clerk errors
-    if (error?.errors) {
-      const errorMessages = error.errors
-        .map((err: any) => err.message)
+    if (error && typeof error === 'object' && 'errors' in error) {
+      const clerkError = error as { errors: Array<{ message: string }> };
+      const errorMessages = clerkError.errors
+        .map(err => err.message)
         .join(', ');
       throw new Error(`Failed to update user: ${errorMessages}`);
     }
@@ -430,11 +479,15 @@ export async function deleteClerkUser(userId: string): Promise<User> {
     const client = await clerkClient();
     const deletedUser = await client.users.deleteUser(userId);
     return deletedUser;
-  } catch (error: any) {
-     
+  } catch (error: unknown) {
     console.error('Error deleting user from Clerk:', error);
 
-    if (error?.status === 404) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'status' in error &&
+      error.status === 404
+    ) {
       throw new Error('User not found');
     }
 
@@ -450,11 +503,15 @@ export async function lockClerkUser(userId: string): Promise<User> {
     const client = await clerkClient();
     const lockedUser = await client.users.lockUser(userId);
     return lockedUser;
-  } catch (error: any) {
-     
+  } catch (error: unknown) {
     console.error('Error locking user in Clerk:', error);
 
-    if (error?.status === 404) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'status' in error &&
+      error.status === 404
+    ) {
       throw new Error('User not found');
     }
 
@@ -470,11 +527,10 @@ export async function unlockClerkUser(userId: string): Promise<User> {
     const client = await clerkClient();
     const unlockedUser = await client.users.unlockUser(userId);
     return unlockedUser;
-  } catch (error: any) {
-     
+  } catch (error: unknown) {
     console.error('Error unlocking user in Clerk:', error);
 
-    if (error?.status === 404) {
+    if (error instanceof Error && error.message.includes('not found')) {
       throw new Error('User not found');
     }
 
@@ -528,7 +584,20 @@ export async function createCompleteCustomer(userData: {
     });
 
     // 2. Create extended data in our database
-    const extendedDataToSave: any = {
+    type ExtendedDataToSave = Partial<
+      Omit<
+        CustomerExtendedData,
+        | 'clerkUserId'
+        | 'totalBookings'
+        | 'totalSpent'
+        | 'createdAt'
+        | 'updatedAt'
+      >
+    > & {
+      clerkUserId: string;
+    };
+
+    const extendedDataToSave: ExtendedDataToSave = {
       clerkUserId: clerkUser.id,
     };
 
@@ -539,9 +608,11 @@ export async function createCompleteCustomer(userData: {
       extendedDataToSave.nationalId = userData.nationalId;
     if (userData.address) extendedDataToSave.address = userData.address;
     if (userData.emergencyContact)
-      extendedDataToSave.emergencyContact = userData.emergencyContact;
+      extendedDataToSave.emergencyContact =
+        userData.emergencyContact as CustomerExtendedData['emergencyContact'];
     if (userData.preferences)
-      extendedDataToSave.preferences = userData.preferences;
+      extendedDataToSave.preferences =
+        userData.preferences as CustomerExtendedData['preferences'];
 
     const extendedData = await upsertCustomerExtendedData(
       clerkUser.id,
@@ -551,7 +622,6 @@ export async function createCompleteCustomer(userData: {
     // 3. Return combined customer object
     return convertClerkUserToCustomer(clerkUser, extendedData);
   } catch (error) {
-     
     console.error('Error creating complete customer:', error);
     throw error; // Re-throw to preserve the original error message
   }
@@ -571,7 +641,6 @@ export async function deleteCompleteCustomer(
     // 2. Delete user from Clerk
     await deleteClerkUser(clerkUserId);
   } catch (error) {
-     
     console.error('Error deleting complete customer:', error);
     throw error; // Re-throw to preserve the original error message
   }
@@ -634,7 +703,19 @@ export async function updateCompleteCustomer(
     }
 
     // 2. Update extended data in our database
-    const extendedDataToUpdate: any = {};
+    type ExtendedDataToUpdate = Partial<
+      Omit<
+        CustomerExtendedData,
+        | 'clerkUserId'
+        | 'totalBookings'
+        | 'totalSpent'
+        | 'createdAt'
+        | 'updatedAt'
+        | 'lastBookingDate'
+      >
+    >;
+
+    const extendedDataToUpdate: ExtendedDataToUpdate = {};
 
     // Add optional extended data fields if provided
     if (userData.nationality !== undefined)
@@ -644,9 +725,11 @@ export async function updateCompleteCustomer(
     if (userData.address !== undefined)
       extendedDataToUpdate.address = userData.address;
     if (userData.emergencyContact !== undefined)
-      extendedDataToUpdate.emergencyContact = userData.emergencyContact;
+      extendedDataToUpdate.emergencyContact =
+        userData.emergencyContact as CustomerExtendedData['emergencyContact'];
     if (userData.preferences !== undefined)
-      extendedDataToUpdate.preferences = userData.preferences;
+      extendedDataToUpdate.preferences =
+        userData.preferences as CustomerExtendedData['preferences'];
 
     let extendedData;
     if (Object.keys(extendedDataToUpdate).length > 0) {
@@ -665,7 +748,6 @@ export async function updateCompleteCustomer(
 
     return convertClerkUserToCustomer(clerkUser, extendedData || undefined);
   } catch (error) {
-     
     console.error('Error updating complete customer:', error);
     throw error; // Re-throw to preserve the original error message
   }

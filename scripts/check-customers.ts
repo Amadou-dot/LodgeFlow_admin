@@ -17,18 +17,23 @@ async function checkCustomerCollection() {
 
     // Show first few customers
     for (const customer of allCustomers.slice(0, 5)) {
-      console.log(`Customer: ${customer.clerkUserId || 'NO_CLERK_ID'}, totalBookings: ${customer.totalBookings}, totalSpent: ${customer.totalSpent}`);
+      console.log(
+        `Customer: ${customer.clerkUserId || 'NO_CLERK_ID'}, totalBookings: ${customer.totalBookings}, totalSpent: ${customer.totalSpent}`
+      );
     }
 
     // Check for any customers without clerkUserId
-    const customersWithoutClerkId = await Customer.find({ clerkUserId: { $exists: false } });
-    console.log(`\nCustomers without clerkUserId: ${customersWithoutClerkId.length}`);
+    const customersWithoutClerkId = await Customer.find({
+      clerkUserId: { $exists: false },
+    });
+    console.log(
+      `\nCustomers without clerkUserId: ${customersWithoutClerkId.length}`
+    );
 
     // Check indexes
     const indexes = await Customer.collection.getIndexes();
     console.log('\nIndexes on Customer collection:');
     console.log(JSON.stringify(indexes, null, 2));
-
   } catch (error) {
     console.error('❌ Error checking customer collection:', error);
   } finally {

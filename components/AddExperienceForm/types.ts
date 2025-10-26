@@ -1,9 +1,44 @@
+export interface FormData {
+  name: string;
+  description: string;
+  category: string;
+  duration: string;
+  price: number;
+  capacity: number;
+  location: string;
+  difficulty?: string;
+  includes?: string; // Comma-separated includes
+  requirements?: string; // Comma-separated requirements
+  imageUrl?: string;
+  imageGallery?: string; // Comma-separated image URLs
+  tags?: string; // Comma-separated tags
+  seasonalAvailability?: string; // Comma-separated seasonal availability
+  shortDescription?: string;
+  longDescription?: string;
+  highlights?: string;
+  whatToBring?: string; // Comma-separated what to bring
+  availableTimes?: string; // Comma-separated available times. Ex: Weekends, Weekdays, Mornings, Afternoons
+  callToAction?: string;
+  cancellationPolicy?: string;
+  maxParticipants?: number;
+  minimumAge?: number;
+  isPopular?: boolean;
+  availability?: {
+    days: string[];
+    times: string[];
+  };
+  image?: string;
+  featured?: boolean;
+  active?: boolean;
+  [key: string]: unknown;
+}
+
 export interface FormProps {
-  formData: Record<string, any>;
-  setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>;
+  formData: FormData;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
 }
 
 export interface AddExperienceSectionProps {
-  formData: Record<string, any>;
-  onInputChange: (name: string, value: any) => void;
+  formData: FormData;
+  onInputChange: (name: string, value: unknown) => void;
 }

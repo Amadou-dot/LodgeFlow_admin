@@ -1,6 +1,10 @@
 'use client';
 
-import type { BookingFormData } from '@/hooks/useBookingForm';
+import type {
+  BookingFormData,
+  PriceBreakdown as PriceBreakdownType,
+} from '@/hooks/useBookingForm';
+import type { Cabin, Customer, AppSettings } from '@/types';
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import {
   BookingDatesGuests,
@@ -14,19 +18,22 @@ import {
 
 interface BookingFormFieldsProps {
   // Hook return values passed from parent
-  formData: any;
+  formData: BookingFormData;
   specialRequestInput: string;
-  priceBreakdown: any;
-  selectedCabin: any;
+  priceBreakdown: PriceBreakdownType;
+  selectedCabin: Cabin | undefined;
   numNights: number;
-  cabins: any[];
-  customers: any[];
+  cabins: Cabin[];
+  customers: Customer[];
   customersLoading: boolean;
-  settings: any;
-  scrollerRef: any;
+  settings: AppSettings | undefined;
+  scrollerRef: React.RefObject<HTMLElement>;
   isCustomerOpen: boolean;
   setIsCustomerOpen: (open: boolean) => void;
-  handleInputChange: (field: keyof BookingFormData, value: any) => void;
+  handleInputChange: (
+    field: keyof BookingFormData,
+    value: string | number | boolean | string[]
+  ) => void;
   handleCustomerSearch: (searchValue: string) => void;
   addSpecialRequest: () => void;
   removeSpecialRequest: (index: number) => void;
@@ -47,7 +54,6 @@ export default function BookingFormFields({
   customersLoading,
   settings,
   scrollerRef,
-  isCustomerOpen,
   setIsCustomerOpen,
   handleInputChange,
   handleCustomerSearch,

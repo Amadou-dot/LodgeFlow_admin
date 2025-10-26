@@ -178,7 +178,12 @@ export interface Customer {
     checkInDate: string | Date;
     checkOutDate: string | Date;
     numNights: number;
-    status: 'unconfirmed' | 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled';
+    status:
+      | 'unconfirmed'
+      | 'confirmed'
+      | 'checked-in'
+      | 'checked-out'
+      | 'cancelled';
     totalPrice: number;
   }>;
 

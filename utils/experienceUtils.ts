@@ -1,3 +1,5 @@
+import type { Experience } from '@/types';
+
 // Test your booking utility functions
 export const calculateTotalPrice = (
   basePrice: number,
@@ -9,7 +11,10 @@ export const calculateTotalPrice = (
   return subtotal - discount;
 };
 
-export const isExperienceAvailable = (experience: any, date: Date): boolean => {
+export const isExperienceAvailable = (
+  experience: Experience,
+  _date: Date
+): boolean => {
   // Check if experience is available on given date
   if (!experience.available || experience.available.length === 0) {
     return false;
@@ -18,15 +23,22 @@ export const isExperienceAvailable = (experience: any, date: Date): boolean => {
   // Simple availability check - you can expand this logic
   return (
     experience.available.includes('All seasons') ||
-    experience.available.some((season: string) => {
+    experience.available.some((_season: string) => {
       // Add season date logic here
       return true;
     })
   );
 };
 
+interface ExperienceValidationData {
+  name?: string;
+  price?: number;
+  description?: string;
+  [key: string]: unknown;
+}
+
 export const validateExperienceData = (
-  data: any
+  data: ExperienceValidationData
 ): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 

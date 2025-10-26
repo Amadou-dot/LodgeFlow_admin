@@ -12,7 +12,7 @@ async function fixCustomerIndexes() {
     await connectDB();
 
     console.log('📊 Dropping problematic email index...');
-    
+
     try {
       await Customer.collection.dropIndex('email_1');
       console.log('✅ Successfully dropped email_1 index');
@@ -30,7 +30,9 @@ async function fixCustomerIndexes() {
       console.log('✅ Successfully dropped name_text_email_text index');
     } catch (error: any) {
       if (error.code === 27) {
-        console.log('ℹ️  name_text_email_text index does not exist (already dropped)');
+        console.log(
+          'ℹ️  name_text_email_text index does not exist (already dropped)'
+        );
       } else {
         console.error('❌ Error dropping name_text_email_text index:', error);
       }
@@ -40,7 +42,6 @@ async function fixCustomerIndexes() {
     const indexes = await Customer.collection.getIndexes();
     console.log('\n📋 Remaining indexes on Customer collection:');
     console.log(JSON.stringify(indexes, null, 2));
-
   } catch (error) {
     console.error('❌ Error fixing customer indexes:', error);
   } finally {

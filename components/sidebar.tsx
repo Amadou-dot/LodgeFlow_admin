@@ -47,7 +47,7 @@ const sidebarItems = [
 
 export const Sidebar = () => {
   const pathname = usePathname();
-  const { theme, resolvedTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // Only render logo after component has mounted to avoid hydration issues

@@ -78,13 +78,12 @@ export default function DeletionModal({
     }
 
     try {
-      let result;
       if (typeof onDelete === 'function') {
         // Handle simple async function
-        result = await onDelete();
+        await onDelete();
       } else {
         // Handle React Query mutation
-        result = await onDelete.mutateAsync(resourceId);
+        await onDelete.mutateAsync(resourceId);
       }
 
       onOpenChange(false); // Close modal

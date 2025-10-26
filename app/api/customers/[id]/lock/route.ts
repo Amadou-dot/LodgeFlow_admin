@@ -3,7 +3,7 @@ import { lockClerkUser, unlockClerkUser } from '@/lib/clerk-users';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
-  request: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -11,7 +11,7 @@ export async function POST(
     const { id } = await params; // This is the Clerk user ID
 
     // Lock the user in Clerk
-    const lockedUser = await lockClerkUser(id);
+    await lockClerkUser(id);
 
     return NextResponse.json({
       success: true,
@@ -22,7 +22,6 @@ export async function POST(
       },
     });
   } catch (error: any) {
-     
     console.error('Error locking user:', error);
 
     if (error.message === 'User not found') {
@@ -46,7 +45,7 @@ export async function POST(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -54,7 +53,7 @@ export async function DELETE(
     const { id } = await params; // This is the Clerk user ID
 
     // Unlock the user in Clerk
-    const unlockedUser = await unlockClerkUser(id);
+    await unlockClerkUser(id);
 
     return NextResponse.json({
       success: true,
@@ -65,7 +64,6 @@ export async function DELETE(
       },
     });
   } catch (error: any) {
-     
     console.error('Error unlocking user:', error);
 
     if (error.message === 'User not found') {

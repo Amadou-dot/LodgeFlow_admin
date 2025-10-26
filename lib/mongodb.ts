@@ -12,7 +12,8 @@ declare global {
   var mongoose: GlobalMongoose | undefined;
 }
 
-const cached = global.mongoose || (global.mongoose = { conn: null, promise: null });
+const cached =
+  global.mongoose || (global.mongoose = { conn: null, promise: null });
 
 /**
  * Connect to MongoDB with connection caching and proper error handling
@@ -26,7 +27,7 @@ async function connectDB(): Promise<typeof mongoose> {
 
   // Check for MongoDB URI
   const MONGODB_URI = process.env.MONGODB_URI;
-  
+
   if (!MONGODB_URI) {
     throw new Error(
       'Please define the MONGODB_URI environment variable inside .env.local'
@@ -43,9 +44,11 @@ async function connectDB(): Promise<typeof mongoose> {
       family: 4, // Use IPv4
     };
 
-    logger.debug('Initiating MongoDB connection', { uri: MONGODB_URI.replace(/\/\/.*@/, '//***@') });
-    
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+    logger.debug('Initiating MongoDB connection', {
+      uri: MONGODB_URI.replace(/\/\/.*@/, '//***@'),
+    });
+
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then(mongoose => {
       logger.info('MongoDB connected successfully');
       return mongoose;
     });

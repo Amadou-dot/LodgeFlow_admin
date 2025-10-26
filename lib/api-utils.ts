@@ -31,11 +31,11 @@ export function createSuccessResponse<T>(
     success: true,
     data,
   };
-  
+
   if (message) {
     response.message = message;
   }
-  
+
   return NextResponse.json(response, { status });
 }
 
@@ -48,7 +48,7 @@ export function createErrorResponse(
   details?: unknown
 ): NextResponse<ApiErrorResponse> {
   const errorMessage = error instanceof Error ? error.message : error;
-  
+
   logger.error('API Error', error instanceof Error ? error : undefined, {
     status,
     message: errorMessage,
@@ -59,7 +59,7 @@ export function createErrorResponse(
     success: false,
     error: errorMessage,
   };
-  
+
   if (details !== undefined) {
     response.details = details;
   }
@@ -94,16 +94,25 @@ export function handleApiError(error: unknown): NextResponse<ApiErrorResponse> {
     if (error.message.includes('not found')) {
       return createErrorResponse(error, HTTP_STATUS.NOT_FOUND);
     }
-    if (error.message.includes('unauthorized') || error.message.includes('authentication')) {
+    if (
+      error.message.includes('unauthorized') ||
+      error.message.includes('authentication')
+    ) {
       return createErrorResponse(error, HTTP_STATUS.UNAUTHORIZED);
     }
-    if (error.message.includes('forbidden') || error.message.includes('permission')) {
+    if (
+      error.message.includes('forbidden') ||
+      error.message.includes('permission')
+    ) {
       return createErrorResponse(error, HTTP_STATUS.FORBIDDEN);
     }
-    if (error.message.includes('validation') || error.message.includes('invalid')) {
+    if (
+      error.message.includes('validation') ||
+      error.message.includes('invalid')
+    ) {
       return createErrorResponse(error, HTTP_STATUS.BAD_REQUEST);
     }
-    
+
     // Default to internal server error
     return createErrorResponse(error, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
@@ -124,7 +133,8 @@ export function validateRequiredFields<T extends Record<string, unknown>>(
   requiredFields: (keyof T)[]
 ): { isValid: boolean; missingFields: string[] } {
   const missingFields = requiredFields.filter(
-    field => body[field] === undefined || body[field] === null || body[field] === ''
+    field =>
+      body[field] === undefined || body[field] === null || body[field] === ''
   );
 
   return {

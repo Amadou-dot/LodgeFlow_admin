@@ -3,7 +3,7 @@ import connectDB from '@/lib/mongodb';
 import { Booking } from '@/models';
 import { IdParam } from '@/types';
 
-export async function GET(req: Request, { params }: IdParam) {
+export async function GET(_req: Request, { params }: IdParam) {
   const bookingId = (await params).id;
   try {
     await connectDB();

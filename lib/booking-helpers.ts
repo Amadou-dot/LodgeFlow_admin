@@ -17,7 +17,9 @@ export async function populateBookingWithClerkCustomer(
 ): Promise<PopulatedBooking> {
   if (!booking.customer) {
     return {
-      ...(typeof booking.toObject === 'function' ? booking.toObject() : booking),
+      ...(typeof booking.toObject === 'function'
+        ? booking.toObject()
+        : booking),
       customer: null,
     } as PopulatedBooking;
   }
@@ -25,14 +27,17 @@ export async function populateBookingWithClerkCustomer(
   try {
     const customer = await getClerkUser(booking.customer);
     return {
-      ...(typeof booking.toObject === 'function' ? booking.toObject() : booking),
+      ...(typeof booking.toObject === 'function'
+        ? booking.toObject()
+        : booking),
       customer: customer || null,
     } as PopulatedBooking;
   } catch (error) {
-     
     console.error('Error fetching customer for booking:', error);
     return {
-      ...(typeof booking.toObject === 'function' ? booking.toObject() : booking),
+      ...(typeof booking.toObject === 'function'
+        ? booking.toObject()
+        : booking),
       customer: null,
     } as PopulatedBooking;
   }

@@ -43,7 +43,8 @@ export default function GuestDetailPage() {
   const unlockCustomerMutation = useUnlockCustomer();
 
   const formatDate = (dateInput: string | Date) => {
-    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    const date =
+      typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -138,7 +139,7 @@ export default function GuestDetailPage() {
     );
   }
 
-    const loyalty = getLoyaltyTier(customer.totalSpent || 0);
+  const loyalty = getLoyaltyTier(customer.totalSpent || 0);
 
   return (
     <div className='container mx-auto p-4 md:p-6'>
@@ -413,7 +414,7 @@ export default function GuestDetailPage() {
                         <TableColumn>TOTAL</TableColumn>
                       </TableHeader>
                       <TableBody>
-                        {customer.recentBookings.map((booking) => (
+                        {customer.recentBookings.map(booking => (
                           <TableRow key={booking._id}>
                             <TableCell>
                               <div className='flex items-center gap-2'>

@@ -20,10 +20,6 @@ async function updateCustomerStats(clerkUserId: string) {
       (sum, booking) => sum + (booking.totalPrice || 0),
       0
     );
-    const completedBookings = customerBookings.filter(
-      booking => booking.status === 'checked-out'
-    ).length;
-
     // Find the most recent booking
     const sortedBookings = customerBookings.sort(
       (a, b) =>
@@ -34,16 +30,16 @@ async function updateCustomerStats(clerkUserId: string) {
 
     // Update customer record by clerkUserId, create if it doesn't exist
     await Customer.findOneAndUpdate(
-      { clerkUserId }, 
+      { clerkUserId },
       {
         clerkUserId, // Include this in case we're creating a new record
         totalBookings,
         totalSpent,
         lastBookingDate,
       },
-      { 
+      {
         upsert: true, // Create the record if it doesn't exist
-        new: true // Return the updated document
+        new: true, // Return the updated document
       }
     );
   } catch (error) {
@@ -72,14 +68,14 @@ async function populateBookingsWithClerkCustomers(bookings: any[]) {
   // Get unique customer IDs to avoid duplicate API calls
   const customerIds = bookings.map(booking => booking.customer);
   const uniqueCustomerIds = Array.from(new Set(customerIds));
-  
+
   // Pre-fetch all unique customers with limited concurrency
   const CONCURRENT_LIMIT = Number(process.env.CLERK_API_CONCURRENT_LIMIT) || 3; // Max 3 concurrent Clerk API calls
-  
+
   const customers = await mapWithLimit(
     uniqueCustomerIds,
     CONCURRENT_LIMIT,
-    async (customerId) => {
+    async customerId => {
       try {
         return { id: customerId, data: await getClerkUser(customerId) };
       } catch (error) {
@@ -90,7 +86,7 @@ async function populateBookingsWithClerkCustomers(bookings: any[]) {
             id: customerId,
             name: 'Unknown User',
             email: 'N/A',
-          }
+          },
         };
       }
     }
@@ -102,7 +98,7 @@ async function populateBookingsWithClerkCustomers(bookings: any[]) {
   // Populate bookings with customer data
   const populatedBookings = bookings.map(booking => {
     const customer = customerMap.get(booking.customer);
-    
+
     return {
       ...booking.toObject(),
       customer: customer,
