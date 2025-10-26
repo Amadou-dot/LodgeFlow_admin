@@ -29,7 +29,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
     // If user is a customer or doesn't have admin/staff role, redirect to unauthorized
     if (isCustomer || (!isAdmin && !isStaff)) {
-      router.push('/unauthorized');
+      router.replace('/unauthorized');
       return;
     }
   }, [isLoaded, isSignedIn, has, router]);
