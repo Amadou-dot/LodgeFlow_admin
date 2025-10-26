@@ -4,6 +4,8 @@ import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+import { hasAuthorizedRole } from '@/lib/auth-helpers';
+
 interface AuthGuardProps {
   children: React.ReactNode;
 }
@@ -23,12 +25,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
 
     // Check user role - only allow admin and staff
-    const isCustomer = has?.({ role: 'org:customer' });
-    const isAdmin = has?.({ role: 'org:admin' });
-    const isStaff = has?.({ role: 'org:staff' });
-
-    // If user is a customer or doesn't have admin/staff role, redirect to unauthorized
-    if (isCustomer || (!isAdmin && !isStaff)) {
+    if (!hasAuthorizedRole(has)) {
       router.replace('/unauthorized');
       return;
     }
@@ -59,11 +56,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   }
 
   // Check role before rendering
-  const isCustomer = has?.({ role: 'org:customer' });
-  const isAdmin = has?.({ role: 'org:admin' });
-  const isStaff = has?.({ role: 'org:staff' });
-
-  if (isCustomer || (!isAdmin && !isStaff)) {
+  if (!hasAuthorizedRole(has)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
