@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const sidebarItems = [
   {
@@ -45,8 +46,8 @@ const sidebarItems = [
 
 export const Sidebar = () => {
   const pathname = usePathname();
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  // const { resolvedTheme } = useTheme();
+  const [_mounted, setMounted] = useState(false);
 
   // Only render logo after component has mounted to avoid hydration issues
   useEffect(() => {

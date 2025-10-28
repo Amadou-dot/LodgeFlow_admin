@@ -1,6 +1,5 @@
 'use client';
 import { ArrowLeft, Edit, Moon, Plus, Search, Sun, Trash2 } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
@@ -8,8 +7,7 @@ import { useEffect, useState } from 'react';
 import { IconSvgProps } from '@/types';
 
 export const Logo: React.FC<IconSvgProps> = ({ size = 36, width, height }) => {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [_mounted, setMounted] = useState(false);
 
   // Only render logo after component has mounted to avoid hydration issues
   useEffect(() => {
