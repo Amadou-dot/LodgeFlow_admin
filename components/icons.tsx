@@ -18,19 +18,9 @@ export const Logo: React.FC<IconSvgProps> = ({ size = 36, width, height }) => {
 
   const logoSize = Number(size || width || height || 36);
 
-  if (!mounted) {
-    // Return a placeholder during SSR/hydration
-    return (
-      <div
-        style={{ width: logoSize, height: logoSize }}
-        className='bg-default-200 rounded animate-pulse'
-      />
-    );
-  }
-
   return (
     <Image
-      src={resolvedTheme === 'dark' ? '/logo-dark.png' : '/logo-light.png'}
+      src='/logo.svg'
       alt='LodgeFlow'
       width={logoSize}
       height={logoSize}
