@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IBooking extends Document {
-  _id: string;
   cabin: mongoose.Types.ObjectId;
   customer: string; // Changed to string to store Clerk user ID
   checkInDate: Date;

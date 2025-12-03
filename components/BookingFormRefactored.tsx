@@ -130,7 +130,9 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
     }
 
     // Base cabin price calculation - should get from selected cabin
-    const selectedCabin = cabins?.find(cabin => cabin._id === formData.cabin);
+    const selectedCabin = cabins?.find(
+      cabin => cabin._id.toString() === formData.cabin
+    );
     const baseCabinPrice = selectedCabin?.price || 150;
     const cabinPrice = baseCabinPrice * numNights;
 

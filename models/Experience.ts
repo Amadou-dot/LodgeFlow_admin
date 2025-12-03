@@ -1,7 +1,7 @@
 import { Schema, model, models } from 'mongoose';
 
 export interface IExperience {
-  _id: string;
+  _id?: string;
   name: string;
   price: number;
   duration: string;

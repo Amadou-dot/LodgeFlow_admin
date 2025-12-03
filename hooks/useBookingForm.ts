@@ -40,7 +40,9 @@ const getInitialFormData = (booking?: PopulatedBooking): BookingFormData => {
   if (booking) {
     return {
       cabin:
-        typeof booking.cabin === 'string' ? booking.cabin : booking.cabin._id,
+        typeof booking.cabin === 'string'
+          ? booking.cabin
+          : booking.cabin._id.toString(),
       customer:
         typeof booking.customer === 'string'
           ? booking.customer
@@ -151,7 +153,9 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
   }, [searchTimeout]);
 
   // Derived values
-  const selectedCabin = cabins?.find(cabin => cabin._id === formData.cabin);
+  const selectedCabin = cabins?.find(
+    cabin => cabin._id.toString() === formData.cabin
+  );
   const numNights = calcNumNights(formData.checkInDate, formData.checkOutDate);
 
   // Price calculation effect

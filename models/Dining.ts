@@ -1,7 +1,7 @@
 import { Schema, model, models } from 'mongoose';
 
 export interface IDining {
-  _id: string;
+  _id?: string;
   name: string;
   description: string;
   type: 'menu' | 'experience';

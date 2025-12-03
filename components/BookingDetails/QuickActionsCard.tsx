@@ -51,7 +51,9 @@ export default function QuickActionsCard({
     booking.customer.email
   );
   const { data: cabinData, isLoading: cabinLoading } = useCabin(
-    bookingData?.cabin?._id || bookingData?.cabin?.toString() || ''
+    (typeof bookingData?.cabin === 'object' && bookingData?.cabin?._id
+      ? bookingData.cabin._id.toString()
+      : bookingData?.cabin?.toString()) || ''
   );
 
   // Initialize print functionality
@@ -96,7 +98,7 @@ export default function QuickActionsCard({
     setPaymentLoading(true);
     try {
       await recordPaymentMutation.mutateAsync({
-        bookingId: booking._id,
+        bookingId: booking._id.toString(),
         ...paymentData,
       });
 
@@ -237,7 +239,7 @@ export default function QuickActionsCard({
         onRecordPayment={handleRecordPayment}
         totalAmount={booking.totalPrice}
         remainingAmount={booking.remainingAmount}
-        bookingId={booking._id}
+        bookingId={booking._id.toString()}
         guestName={firstName}
       />
 

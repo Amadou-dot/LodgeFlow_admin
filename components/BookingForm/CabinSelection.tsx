@@ -30,7 +30,7 @@ export default function CabinSelection({
     >
       {cabin => (
         <AutocompleteItem
-          key={cabin._id}
+          key={cabin._id.toString()}
           textValue={cabin.name}
           classNames={{
             base: 'py-2',

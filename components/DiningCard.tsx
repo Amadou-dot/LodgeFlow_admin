@@ -20,7 +20,7 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
   const handleDelete = async () => {
     if (onDelete) {
       setIsLoading(true);
-      await onDelete(dining._id);
+      await onDelete(dining._id || '');
       setIsLoading(false);
     }
   };
@@ -221,7 +221,7 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
           </Button>
           {onDelete && (
             <DeletionModal
-              resourceId={dining._id}
+              resourceId={dining._id || ''}
               resourceName='Dining Item'
               itemName={dining.name}
               onDelete={handleDelete}

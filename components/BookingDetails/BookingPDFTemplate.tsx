@@ -185,7 +185,7 @@ export default function BookingPDFTemplate({
         <div style={printStyles.row}>
           <span style={printStyles.label}>Booking ID:</span>
           <span style={printStyles.value}>
-            #{booking._id.slice(-8).toUpperCase()}
+            #{booking._id.toString().slice(-8).toUpperCase()}
           </span>
         </div>
         <div style={printStyles.row}>

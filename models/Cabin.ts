@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ICabin extends Document {
-  _id: string;
   name: string;
   image: string;
   capacity: number;

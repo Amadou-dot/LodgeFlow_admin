@@ -90,11 +90,13 @@ function BookingsContent() {
   };
 
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
-    const booking = bookingsData?.bookings.find(b => b._id === bookingId);
+    const booking = bookingsData?.bookings.find(
+      b => b._id.toString() === bookingId
+    );
     if (booking) {
       try {
         await updateBooking.mutateAsync({
-          _id: booking._id,
+          _id: booking._id.toString() as any,
           status: newStatus as any,
         });
         // Manually revalidate SWR data
@@ -122,7 +124,7 @@ function BookingsContent() {
       confirmColor: 'danger',
       onConfirm: async () => {
         try {
-          await deleteBooking.mutateAsync(booking._id);
+          await deleteBooking.mutateAsync(booking._id.toString());
           // Manually revalidate SWR data
           mutate();
         } catch (error) {
