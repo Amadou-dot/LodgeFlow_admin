@@ -30,10 +30,10 @@ interface QuickActionsCardProps {
  * Handles both populated cabin objects and unpopulated ObjectId references.
  */
 function extractCabinId(
-  cabin: { _id?: unknown } | string | null | undefined
+  cabin: { _id?: string | object } | string | null | undefined
 ): string {
   if (!cabin) return '';
-  if (typeof cabin === 'object' && cabin._id) {
+  if (typeof cabin === 'object' && cabin._id !== undefined) {
     return String(cabin._id);
   }
   return String(cabin);
