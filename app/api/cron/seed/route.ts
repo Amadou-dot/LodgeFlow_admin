@@ -74,6 +74,10 @@ export async function GET(request: Request) {
     }
 
     // 3. Create New Bookings
+    // Cleanup: Delete bookings older than 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    await Booking.deleteMany({ date: { $lt: thirtyDaysAgo } });
     // Create 5-10 new bookings
     const numBookings = faker.number.int({ min: 5, max: 10 });
     const cabins = await Cabin.find();
