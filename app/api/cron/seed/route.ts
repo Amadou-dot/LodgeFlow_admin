@@ -12,15 +12,13 @@ import {
 
 export const dynamic = 'force-dynamic'; // Ensure the route is not cached
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Verify authentication (optional, but recommended for cron jobs)
-    // For Vercel Cron, we can check the Authorization header if we set it up,
-    // but for now we'll rely on the secret path or Vercel's internal protection if configured.
-    // const authHeader = request.headers.get('authorization');
-    // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    //   return new Response('Unauthorized', { status: 401 });
-    // }
+    // Verify authentication (recommended for cron jobs)
+    const authHeader = request.headers.get('authorization');
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return new Response('Unauthorized', { status: 401 });
+    }
 
     await connectDB();
 
