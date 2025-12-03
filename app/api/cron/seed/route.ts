@@ -159,7 +159,7 @@ export async function GET() {
           hasLateCheckOut: false,
           lateCheckOutFee: 0,
         },
-        depositPaid: depositAmount > 0 ? true : false, // Assume deposit is paid for confirmed bookings
+        depositPaid: depositAmount > 0, // Assume deposit is paid for confirmed bookings
         depositAmount,
         createdAt: new Date(),
       });
