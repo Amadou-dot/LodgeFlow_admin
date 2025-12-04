@@ -1,7 +1,8 @@
 'use client';
 
 import { SWR_CONFIG } from '@/lib/config';
-import type { Booking, BookingsFilters, PopulatedBooking } from '@/types';
+import type { BookingsFilters, PopulatedBooking } from '@/types';
+import type { CreateBookingInput, UpdateBookingInput } from '@/types/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useSWR from 'swr';
 
@@ -131,7 +132,9 @@ export const useCreateBooking = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (bookingData: Partial<Booking>): Promise<Booking> => {
+    mutationFn: async (
+      bookingData: CreateBookingInput
+    ): Promise<PopulatedBooking> => {
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -141,7 +144,8 @@ export const useCreateBooking = () => {
       if (!response.ok) {
         throw new Error('Failed to create booking');
       }
-      return response.json();
+      const result = await response.json();
+      return result.success ? result.data : result;
     },
     onSuccess: () => {
       // Invalidate React Query cache and revalidate SWR
@@ -194,7 +198,7 @@ export const useUpdateBooking = () => {
 
   return useMutation({
     mutationFn: async (
-      updateData: Partial<Booking> & { _id: string }
+      updateData: UpdateBookingInput
     ): Promise<PopulatedBooking> => {
       const response = await fetch('/api/bookings', {
         method: 'PUT',

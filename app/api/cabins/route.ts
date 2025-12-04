@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../lib/mongodb';
 import { Cabin } from '../../../models';
+import type { CabinQueryFilter, MongoSortOrder } from '@/types/api';
+import { isMongooseValidationError } from '@/types/errors';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +17,7 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'asc';
 
     // Build query
-    const query: any = {};
+    const query: CabinQueryFilter = {};
 
     // Apply search
     if (search) {
@@ -71,7 +73,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build sort object
-    const sort: any = {};
+    const sort: MongoSortOrder = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const cabins = await Cabin.find(query).sort(sort);
@@ -118,11 +120,11 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating cabin:', error);
 
     // Handle validation errors
-    if (error.name === 'ValidationError') {
+    if (isMongooseValidationError(error)) {
       return NextResponse.json(
         {
           success: false,
@@ -179,10 +181,10 @@ export async function PUT(request: NextRequest) {
       success: true,
       data: cabin,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating cabin:', error);
 
-    if (error.name === 'ValidationError') {
+    if (isMongooseValidationError(error)) {
       return NextResponse.json(
         {
           success: false,

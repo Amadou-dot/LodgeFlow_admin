@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ISettings extends Document {
-  _id: string;
   minBookingLength: number;
   maxBookingLength: number;
   maxGuestsPerBooking: number;

@@ -25,6 +25,20 @@ interface QuickActionsCardProps {
   onPaymentRecorded?: () => void;
 }
 
+/**
+ * Extracts the cabin ID from a booking's cabin field.
+ * Handles both populated cabin objects and unpopulated ObjectId references.
+ */
+function extractCabinId(
+  cabin: { _id?: string | object } | string | null | undefined
+): string {
+  if (!cabin) return '';
+  if (typeof cabin === 'object' && cabin._id !== undefined) {
+    return String(cabin._id);
+  }
+  return String(cabin);
+}
+
 export default function QuickActionsCard({
   booking,
   onCheckIn,
@@ -51,7 +65,7 @@ export default function QuickActionsCard({
     booking.customer.email
   );
   const { data: cabinData, isLoading: cabinLoading } = useCabin(
-    bookingData?.cabin?._id || bookingData?.cabin?.toString() || ''
+    extractCabinId(bookingData?.cabin)
   );
 
   // Initialize print functionality
@@ -96,7 +110,7 @@ export default function QuickActionsCard({
     setPaymentLoading(true);
     try {
       await recordPaymentMutation.mutateAsync({
-        bookingId: booking._id,
+        bookingId: booking._id.toString(),
         ...paymentData,
       });
 
@@ -237,7 +251,7 @@ export default function QuickActionsCard({
         onRecordPayment={handleRecordPayment}
         totalAmount={booking.totalPrice}
         remainingAmount={booking.remainingAmount}
-        bookingId={booking._id}
+        bookingId={booking._id.toString()}
         guestName={firstName}
       />
 

@@ -32,7 +32,7 @@ export const usePrintBooking = (
     (customFilename?: string) => {
       if (customFilename) return customFilename;
 
-      const bookingId = booking._id.slice(-8).toUpperCase();
+      const bookingId = booking._id.toString().slice(-8).toUpperCase();
       const guestName =
         `${booking.customer.first_name}-${booking.customer.last_name}`.replace(
           /\s+/g,
@@ -150,7 +150,7 @@ export const usePrintBooking = (
         <!DOCTYPE html>
         <html>
           <head>
-            <title>Booking Details - ${booking._id.slice(-8).toUpperCase()}</title>
+            <title>Booking Details - ${booking._id.toString().slice(-8).toUpperCase()}</title>
             <meta charset="utf-8">
             <style>
               @media print {

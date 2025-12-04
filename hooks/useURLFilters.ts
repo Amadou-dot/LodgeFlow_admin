@@ -3,10 +3,13 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
+// Filter value types that can be stored in URL
+type FilterValue = string | number | boolean | undefined;
+
 export interface URLFilterConfig {
   [key: string]: {
     type: 'string' | 'number' | 'boolean';
-    defaultValue?: any;
+    defaultValue?: FilterValue;
     validValues?: string[]; // For enum-like validation
   };
 }
@@ -18,7 +21,11 @@ export interface UseURLFiltersOptions {
 
 export interface UseURLFiltersReturn<T> {
   filters: T;
-  updateFilter: (key: keyof T, value: any, addToHistory?: boolean) => void;
+  updateFilter: <K extends keyof T>(
+    key: K,
+    value: T[K],
+    addToHistory?: boolean
+  ) => void;
   updateFilters: (updates: Partial<T>, addToHistory?: boolean) => void;
   resetFilters: () => void;
   clearFilter: (key: keyof T) => void;
@@ -28,7 +35,7 @@ export interface UseURLFiltersReturn<T> {
  * Custom hook for managing filter state in URL query parameters
  * Provides persistent filter state that survives page refreshes and is shareable
  */
-export function useURLFilters<T extends Record<string, any>>({
+export function useURLFilters<T extends Record<string, FilterValue>>({
   filterConfig,
   basePath,
 }: UseURLFiltersOptions): UseURLFiltersReturn<T> {
@@ -38,7 +45,7 @@ export function useURLFilters<T extends Record<string, any>>({
 
   // Parse current URL parameters into filter values
   const filters = useMemo(() => {
-    const result: any = {};
+    const result: Record<string, FilterValue> = {};
 
     Object.entries(filterConfig).forEach(([key, config]) => {
       const urlValue = searchParams.get(key);
@@ -104,8 +111,8 @@ export function useURLFilters<T extends Record<string, any>>({
 
   // Update a single filter
   const updateFilter = useCallback(
-    (key: keyof T, value: any, addToHistory: boolean = false) => {
-      const updates = { [key]: value } as Partial<T>;
+    <K extends keyof T>(key: K, value: T[K], addToHistory: boolean = false) => {
+      const updates = { [key]: value } as unknown as Partial<T>;
       const newURL = buildURL(updates);
 
       if (addToHistory) {
@@ -133,11 +140,11 @@ export function useURLFilters<T extends Record<string, any>>({
 
   // Reset all filters to default values
   const resetFilters = useCallback(() => {
-    const defaults: any = {};
+    const defaults: Record<string, FilterValue> = {};
     Object.entries(filterConfig).forEach(([key, config]) => {
       defaults[key] = config.defaultValue;
     });
-    const newURL = buildURL(defaults);
+    const newURL = buildURL(defaults as Partial<T>);
     router.replace(newURL, { scroll: false });
   }, [router, buildURL, filterConfig]);
 
@@ -146,7 +153,7 @@ export function useURLFilters<T extends Record<string, any>>({
     (key: keyof T) => {
       const updates = {
         [key]: filterConfig[key as string]?.defaultValue,
-      } as Partial<T>;
+      } as unknown as Partial<T>;
       const newURL = buildURL(updates);
       router.replace(newURL, { scroll: false });
     },

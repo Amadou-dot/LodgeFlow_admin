@@ -200,7 +200,7 @@ export function BookingConfirmationEmail({
           <div style={emailStyles.row}>
             <span style={emailStyles.label}>Booking ID:</span>
             <span style={emailStyles.value}>
-              #{bookingData._id.slice(-8).toUpperCase()}
+              #{bookingData._id.toString().slice(-8).toUpperCase()}
             </span>
           </div>
           <div style={emailStyles.row}>

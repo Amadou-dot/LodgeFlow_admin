@@ -56,7 +56,7 @@ export default function BookingTableMobile({
     <div className='space-y-3'>
       {bookings.map(booking => (
         <BookingCard
-          key={booking._id}
+          key={booking._id.toString()}
           booking={booking}
           onStatusChange={onStatusChange}
           onViewDetails={onViewDetails}

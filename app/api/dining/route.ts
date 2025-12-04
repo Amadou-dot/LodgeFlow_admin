@@ -1,4 +1,5 @@
 import { connectDB, Dining } from '@/models';
+import type { DiningQueryFilter, MongoSortOrder } from '@/types/api';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'asc';
 
     // Build filter object
-    const filter: any = {};
+    const filter: DiningQueryFilter = {};
     if (type) filter.type = type;
     if (mealType) filter.mealType = mealType;
     if (category) filter.category = category;
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build sort object
-    const sort: any = {};
+    const sort: MongoSortOrder = {};
     sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
     const dining = await Dining.find(filter).sort(sort);

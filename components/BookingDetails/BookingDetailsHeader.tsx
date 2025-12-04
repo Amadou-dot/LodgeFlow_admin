@@ -35,7 +35,9 @@ export default function BookingDetailsHeader({
         </Button>
         <div>
           <h1 className='text-2xl font-bold'>Booking Details</h1>
-          <p className='text-default-500'>Booking ID: {booking._id}</p>
+          <p className='text-default-500'>
+            Booking ID: {booking._id.toString()}
+          </p>
         </div>
       </div>
       <div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto'>
@@ -51,7 +53,7 @@ export default function BookingDetailsHeader({
           </Button>
         )}
         <DeletionModal
-          resourceId={booking._id}
+          resourceId={booking._id.toString()}
           resourceName={`booking for ${booking.customer?.name || 'Unknown Guest'}`}
           onDelete={deleteMutation}
           onResourceDeleted={onDeleteSuccess}

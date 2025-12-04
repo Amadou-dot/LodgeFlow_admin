@@ -47,7 +47,7 @@ export default function BookingActionsMenu({
     menuItems.push(
       <DropdownItem
         key='checkin'
-        onPress={() => onStatusChange(booking._id, 'checked-in')}
+        onPress={() => onStatusChange(booking._id.toString(), 'checked-in')}
       >
         Check In
       </DropdownItem>
@@ -58,7 +58,7 @@ export default function BookingActionsMenu({
     menuItems.push(
       <DropdownItem
         key='checkout'
-        onPress={() => onStatusChange(booking._id, 'checked-out')}
+        onPress={() => onStatusChange(booking._id.toString(), 'checked-out')}
       >
         Check Out
       </DropdownItem>
@@ -71,7 +71,7 @@ export default function BookingActionsMenu({
         key='cancel'
         className='text-danger'
         color='danger'
-        onPress={() => onStatusChange(booking._id, 'cancelled')}
+        onPress={() => onStatusChange(booking._id.toString(), 'cancelled')}
       >
         Cancel Booking
       </DropdownItem>

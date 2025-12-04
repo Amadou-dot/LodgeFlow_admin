@@ -2,9 +2,11 @@ import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Select, SelectItem } from '@heroui/select';
 import { Switch } from '@heroui/switch';
 import { BookingFormFieldProps, PriceBreakdown } from './types';
+import type { ISettings } from '@/models/Settings';
+import type { SharedSelection } from '@heroui/system';
 
 interface PaymentInformationProps extends BookingFormFieldProps {
-  settings: any;
+  settings?: ISettings | null;
   priceBreakdown: PriceBreakdown;
 }
 
@@ -24,7 +26,7 @@ export default function PaymentInformation({
           label='Payment Method'
           placeholder='Select payment method'
           selectedKeys={formData.paymentMethod ? [formData.paymentMethod] : []}
-          onSelectionChange={(keys: any) =>
+          onSelectionChange={(keys: SharedSelection) =>
             onInputChange('paymentMethod', Array.from(keys)[0] as string)
           }
         >

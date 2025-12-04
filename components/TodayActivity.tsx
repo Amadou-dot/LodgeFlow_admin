@@ -3,6 +3,13 @@
 import { useActivities } from '@/hooks/useData';
 import ActivityCard from './ActivityCard';
 
+interface Activity {
+  id: string;
+  name: string;
+  status: "unconfirmed" | "confirmed" | "checked-in" | "checked-out" | "cancelled";
+  stayDuration: string;
+}
+
 export default function TodayActivity() {
   const { data: activities, isLoading, error } = useActivities();
 
@@ -48,7 +55,7 @@ export default function TodayActivity() {
 
         {activities &&
           activities.length > 0 &&
-          activities.map((activity: any) => (
+          activities.map((activity: Activity) => (
             <ActivityCard
               key={activity.id}
               bookingId={activity.id}
@@ -57,6 +64,7 @@ export default function TodayActivity() {
               stayDuration={activity.stayDuration}
             />
           ))}
+
 
         {activities && activities.length === 0 && !isLoading && !error && (
           <div className='flex-1 flex items-center justify-center'>

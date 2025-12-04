@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IBooking extends Document {
-  _id: string;
   cabin: mongoose.Types.ObjectId;
   customer: string; // Changed to string to store Clerk user ID
   checkInDate: Date;
@@ -201,7 +200,17 @@ BookingSchema.statics.findOverlapping = function (
   checkOutDate: Date,
   excludeBookingId?: mongoose.Types.ObjectId
 ) {
-  const query: any = {
+  interface OverlapQuery {
+    cabin: mongoose.Types.ObjectId;
+    status: { $nin: string[] };
+    $or: Array<{
+      checkInDate: { $lt: Date };
+      checkOutDate: { $gt: Date };
+    }>;
+    _id?: { $ne: mongoose.Types.ObjectId };
+  }
+
+  const query: OverlapQuery = {
     cabin: cabinId,
     status: { $nin: ['cancelled'] },
     $or: [

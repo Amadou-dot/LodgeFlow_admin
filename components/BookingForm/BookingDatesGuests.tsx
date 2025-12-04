@@ -7,6 +7,7 @@ import {
   toCalendarDate,
   today,
   type CalendarDate,
+  type DateValue,
 } from '@internationalized/date';
 import type { RangeValue } from '@react-types/shared';
 import useSWR from 'swr';
@@ -74,7 +75,7 @@ export default function BookingDatesGuests({
   const todayDate = today(getLocalTimeZone());
 
   // Create a function to check if a date is unavailable
-  const isDateUnavailable = (date: any) => {
+  const isDateUnavailable = (date: DateValue) => {
     if (!availabilityData?.success || !availabilityData.data.unavailableDates) {
       return false;
     }

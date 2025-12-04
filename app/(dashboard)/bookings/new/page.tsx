@@ -9,10 +9,17 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Suspense, useEffect, useState } from 'react';
 
+interface BookingPrefillData {
+  customer: string;
+  customerSearchTerm: string;
+}
+
 function NewBookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [prefillData, setPrefillData] = useState<any>(null);
+  const [prefillData, setPrefillData] = useState<BookingPrefillData | undefined>(
+    undefined
+  );
 
   // Extract prefill data from URL parameters
   useEffect(() => {

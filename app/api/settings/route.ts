@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../lib/mongodb';
 import { Settings } from '../../../models';
+import { isMongooseValidationError } from '@/types/errors';
 
 export async function GET() {
   try {
@@ -10,7 +11,7 @@ export async function GET() {
     let settings = await Settings.findOne();
 
     if (!settings) {
-      // Clear any invalid settings first (in case there are partial documents)
+      // Clear invalid settings first (in case there are partial documents)
       await Settings.deleteMany({});
 
       // Create default settings if none exist
@@ -106,10 +107,10 @@ export async function PUT(request: NextRequest) {
       success: true,
       data: settings,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating settings:', error);
 
-    if (error.name === 'ValidationError') {
+    if (isMongooseValidationError(error)) {
       return NextResponse.json(
         {
           success: false,

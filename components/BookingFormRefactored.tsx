@@ -74,7 +74,10 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
     depositPaid: false,
   });
 
-  const handleInputChange = (field: keyof BookingFormData, value: any) => {
+  const handleInputChange = (
+    field: keyof BookingFormData,
+    value: BookingFormData[keyof BookingFormData]
+  ) => {
     setFormData((prev: BookingFormData) => ({ ...prev, [field]: value }));
   };
 
@@ -92,7 +95,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
     setFormData((prev: BookingFormData) => ({
       ...prev,
       specialRequests: prev.specialRequests.filter(
-        (_: any, i: number) => i !== index
+        (_, i: number) => i !== index
       ),
     }));
   };
@@ -130,7 +133,9 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
     }
 
     // Base cabin price calculation - should get from selected cabin
-    const selectedCabin = cabins?.find(cabin => cabin._id === formData.cabin);
+    const selectedCabin = cabins?.find(
+      cabin => cabin._id.toString() === formData.cabin
+    );
     const baseCabinPrice = selectedCabin?.price || 150;
     const cabinPrice = baseCabinPrice * numNights;
 
@@ -196,14 +201,24 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
     }
 
     try {
+      // Base cabin price calculation - should get from selected cabin
+      const selectedCabin = cabins?.find(
+        cabin => cabin._id.toString() === formData.cabin
+      );
+      const baseCabinPrice = selectedCabin?.price || 150;
+      const cabinPrice = baseCabinPrice * numNights;
+
       const bookingData = {
-        cabinId: formData.cabin,
-        customerId: formData.customer,
+        cabin: formData.cabin,
+        customer: formData.customer,
         checkInDate: new Date(formData.checkInDate),
         checkOutDate: new Date(formData.checkOutDate),
+        numNights,
         numGuests: formData.numGuests,
+        cabinPrice,
+        extrasPrice: priceBreakdown.extrasPrice,
         totalPrice: priceBreakdown.totalPrice,
-        status: 'unconfirmed',
+        status: 'unconfirmed' as const,
         paymentMethod: formData.paymentMethod,
         isPaid: formData.isPaid,
         extras: {
@@ -227,7 +242,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
           (formData.depositPaid ? priceBreakdown.depositAmount : 0),
       };
 
-      await createBooking.mutateAsync(bookingData as any);
+      await createBooking.mutateAsync(bookingData);
       onSuccess?.();
     } catch (error) {
       console.error('Error creating booking:', error);

@@ -3,13 +3,19 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useDurationData } from '@/hooks/useData';
 
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: { name: string; value: number }[];
+}
+
 export default function DurationChart() {
   const { data, isLoading, error } = useDurationData();
 
   // Sort data by value in descending order for legend
   const sortedData = data ? [...data].sort((a, b) => b.value - a.value) : [];
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  // Recharts custom tooltip
+  const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0];
       const total = sortedData.reduce((sum, item) => sum + item.value, 0);

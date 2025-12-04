@@ -90,12 +90,19 @@ function BookingsContent() {
   };
 
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
-    const booking = bookingsData?.bookings.find(b => b._id === bookingId);
+    const booking = bookingsData?.bookings.find(
+      b => b._id.toString() === bookingId
+    );
     if (booking) {
       try {
         await updateBooking.mutateAsync({
-          _id: booking._id,
-          status: newStatus as any,
+          _id: booking._id.toString(),
+          status: newStatus as
+            | 'unconfirmed'
+            | 'confirmed'
+            | 'checked-in'
+            | 'checked-out'
+            | 'cancelled',
         });
         // Manually revalidate SWR data
         mutate();
@@ -122,7 +129,7 @@ function BookingsContent() {
       confirmColor: 'danger',
       onConfirm: async () => {
         try {
-          await deleteBooking.mutateAsync(booking._id);
+          await deleteBooking.mutateAsync(booking._id.toString());
           // Manually revalidate SWR data
           mutate();
         } catch (error) {

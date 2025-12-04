@@ -136,11 +136,7 @@ function GuestsContent() {
           onSortChange={handleSortChange}
           sortOrder={filters.sortOrder || 'asc'}
           onSortOrderChange={handleSortOrderChange}
-          totalCount={
-            (pagination as any)?.totalCustomers ||
-            filteredCustomers?.length ||
-            0
-          }
+          totalCount={pagination?.totalItems || filteredCustomers?.length || 0}
           itemName='guest'
         />
       </div>

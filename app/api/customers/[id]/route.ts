@@ -4,6 +4,7 @@ import {
   getClerkUser,
   updateCompleteCustomer,
 } from '@/lib/clerk-users';
+import { isMongooseValidationError } from '@/types/errors';
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../../lib/mongodb';
 import { Booking } from '../../../../models';
@@ -104,10 +105,10 @@ export async function PUT(
       success: true,
       data: customer,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating customer:', error);
 
-    if (error.name === 'ValidationError') {
+    if (isMongooseValidationError(error)) {
       return NextResponse.json(
         {
           success: false,

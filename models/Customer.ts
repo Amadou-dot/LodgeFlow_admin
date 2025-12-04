@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ICustomer extends Document {
-  _id: string;
   clerkUserId: string;
   nationality?: string;
   nationalId?: string;

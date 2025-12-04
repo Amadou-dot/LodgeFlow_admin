@@ -92,7 +92,11 @@ export default function CabinModal({
       if (mode === 'create') {
         await createCabin.mutateAsync(formData);
       } else if (mode === 'edit' && cabin) {
-        await updateCabin.mutateAsync({ ...cabin, ...formData });
+        await updateCabin.mutateAsync({
+          ...cabin,
+          ...formData,
+          _id: cabin._id.toString(),
+        });
       }
       onClose();
     } catch (error) {

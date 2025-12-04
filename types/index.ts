@@ -132,7 +132,11 @@ export interface PaginationMeta {
   hasPreviousPage: boolean;
 }
 
+// Base type for URL-storable filter values
+type FilterValue = string | number | boolean | undefined;
+
 export interface CabinFilters {
+  [key: string]: FilterValue;
   filter?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
@@ -142,6 +146,7 @@ export interface CabinFilters {
 }
 
 export interface BookingsFilters {
+  [key: string]: FilterValue;
   page?: number;
   limit?: number;
   status?: string;
@@ -151,6 +156,7 @@ export interface BookingsFilters {
 }
 
 export interface CustomersFilters {
+  [key: string]: FilterValue;
   page?: number;
   limit?: number;
   search?: string;
