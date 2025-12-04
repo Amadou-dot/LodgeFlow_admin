@@ -3,10 +3,14 @@ import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import { Input } from '@heroui/input';
 import { Select, SelectItem } from '@heroui/select';
+import type { SharedSelection } from '@heroui/system';
 
 interface SettingsBookingSectionProps {
   formData: Partial<AppSettings>;
-  onInputChange: (field: keyof AppSettings, value: any) => void;
+  onInputChange: (
+    field: keyof AppSettings,
+    value: AppSettings[keyof AppSettings]
+  ) => void;
 }
 
 export default function SettingsBookingSection({
@@ -69,7 +73,7 @@ export default function SettingsBookingSection({
             selectedKeys={
               formData.cancellationPolicy ? [formData.cancellationPolicy] : []
             }
-            onSelectionChange={(keys: any) => {
+            onSelectionChange={(keys: SharedSelection) => {
               const value = Array.from(keys)[0] as string;
               onInputChange('cancellationPolicy', value);
             }}

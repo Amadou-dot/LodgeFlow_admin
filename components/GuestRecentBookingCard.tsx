@@ -32,7 +32,7 @@ export default function GuestRecentBookingCard({
             </p>
             <div className='flex items-center gap-2 mt-1'>
               <Chip
-                color={getStatusColor(booking.status) as any}
+                color={getStatusColor(booking.status)}
                 size='sm'
                 variant='flat'
                 className='text-xs'

@@ -18,7 +18,7 @@ export default function AddExperienceForm({
   const expandAll = () => setIsExpanded(new Set(keys));
   const collapseAll = () => setIsExpanded(new Set());
 
-  const handleInputChange = (name: string, value: any) => {
+  const handleInputChange = (name: string, value: unknown) => {
     setFormData(prev => ({
       ...prev,
       [name]: value,

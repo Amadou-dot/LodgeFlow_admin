@@ -1,11 +1,12 @@
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Divider } from '@heroui/divider';
 import { PriceBreakdown as PriceBreakdownType } from './types';
+import type { ISettings } from '@/models/Settings';
 
 interface PriceBreakdownProps {
   priceBreakdown: PriceBreakdownType;
   numNights: number;
-  settings: any;
+  settings?: ISettings | null;
 }
 
 const formatCurrency = (amount: number) => {

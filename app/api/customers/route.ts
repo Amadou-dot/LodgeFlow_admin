@@ -4,6 +4,7 @@ import {
   getClerkUsers,
   searchClerkUsers,
 } from '@/lib/clerk-users';
+import { getErrorMessage } from '@/types/errors';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -124,11 +125,11 @@ export async function POST(request: NextRequest) {
       data: customer,
       message: 'Customer created successfully',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating customer:', error);
 
-    const errorMessage = error.message || 'Failed to create customer';
-    const statusCode = error.message?.includes('already exists') ? 409 : 500;
+    const errorMessage = getErrorMessage(error, 'Failed to create customer');
+    const statusCode = errorMessage.includes('already exists') ? 409 : 500;
 
     return NextResponse.json(
       { success: false, error: errorMessage },

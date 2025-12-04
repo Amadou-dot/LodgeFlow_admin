@@ -1,5 +1,3 @@
-'use client';
-
 import type { PopulatedBooking } from '@/types';
 import {
   formatBookingDates,
@@ -78,7 +76,7 @@ export default function BookingCard({
         {/* Status Row */}
         <div className='flex items-center justify-between mb-3'>
           <Chip
-            color={getStatusColor(booking.status) as any}
+            color={getStatusColor(booking.status)}
             variant='flat'
             size='sm'
             className='text-xs'

@@ -230,7 +230,7 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
   ]);
 
   // Form handlers
-  const handleInputChange = (field: keyof BookingFormData, value: any) => {
+  const handleInputChange = (field: keyof BookingFormData, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

@@ -96,8 +96,13 @@ function BookingsContent() {
     if (booking) {
       try {
         await updateBooking.mutateAsync({
-          _id: booking._id.toString() as any,
-          status: newStatus as any,
+          _id: booking._id.toString(),
+          status: newStatus as
+            | 'unconfirmed'
+            | 'confirmed'
+            | 'checked-in'
+            | 'checked-out'
+            | 'cancelled',
         });
         // Manually revalidate SWR data
         mutate();

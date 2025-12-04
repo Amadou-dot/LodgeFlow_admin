@@ -42,7 +42,10 @@ export default function SettingsForm({
     setHasChanges(isChanged);
   }, [formData, settings]);
 
-  const handleInputChange = (field: keyof AppSettings, value: any) => {
+  const handleInputChange = (
+    field: keyof AppSettings,
+    value: AppSettings[keyof AppSettings]
+  ) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,

@@ -47,11 +47,11 @@ export default function EditBookingPage({ params }: EditBookingPageProps) {
     try {
       const bookingData = {
         ...buildBookingData(),
-        _id: booking!._id,
+        _id: booking!._id.toString(),
         status: booking!.status, // Preserve existing status
       };
 
-      await updateBooking.mutateAsync(bookingData as any);
+      await updateBooking.mutateAsync(bookingData);
       handleSuccess();
     } catch (error) {
       console.error('Error updating booking:', error);

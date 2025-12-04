@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
 
 export default [
   {
@@ -16,6 +17,8 @@ export default [
       "scripts/**",
       "public/**",
       "**/.vercel/**",
+      "**/.github/**",
+      "**/__tests__/**",
     ],
   },
   js.configs.recommended,
@@ -50,6 +53,9 @@ export default [
         URLSearchParams: "readonly",
       },
     },
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+    },
     rules: {
       // General rules
       "no-console": [
@@ -61,6 +67,7 @@ export default [
       "prefer-const": "warn",
       "no-unused-vars": "off", // Turn off for TypeScript files
       "no-undef": "off", // Turn off for TypeScript files (TypeScript handles this)
+      "@typescript-eslint/no-explicit-any": "error",
     },
   },
   {

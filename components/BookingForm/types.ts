@@ -35,6 +35,9 @@ export interface BookingFormProps {
 
 export interface BookingFormFieldProps {
   formData: BookingFormData;
-  onInputChange: (field: keyof BookingFormData, value: any) => void;
+  onInputChange: (
+    field: keyof BookingFormData,
+    value: BookingFormData[keyof BookingFormData]
+  ) => void;
   priceBreakdown?: PriceBreakdown;
 }

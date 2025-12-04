@@ -93,7 +93,7 @@ export default function BookingTableCell({
     case 'status': {
       return (
         <Chip
-          color={getStatusColor(booking.status) as any}
+          color={getStatusColor(booking.status)}
           variant='flat'
           size='sm'
         >
