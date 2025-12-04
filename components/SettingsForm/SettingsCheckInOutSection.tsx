@@ -5,7 +5,10 @@ import { Input } from '@heroui/input';
 
 interface SettingsCheckInOutSectionProps {
   formData: Partial<AppSettings>;
-  onInputChange: (field: keyof AppSettings, value: any) => void;
+  onInputChange: (
+    field: keyof AppSettings,
+    value: AppSettings[keyof AppSettings]
+  ) => void;
 }
 
 export default function SettingsCheckInOutSection({

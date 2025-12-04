@@ -17,7 +17,7 @@ interface ModalProps {
   resourceName: string;
   note?: string;
   onDelete:
-    | UseMutationResult<any, Error, string, unknown>
+    | UseMutationResult<unknown, Error, string, unknown>
     | (() => Promise<void>);
   onResourceDeleted?: () => void;
   itemName?: string;
@@ -93,7 +93,7 @@ export default function DeletionModal({
         description: `The ${resourceName.toLowerCase()} has been successfully deleted.`,
         color: 'success',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       addToast({
         title: 'Error',
         description: 'Delete error occurred',
@@ -102,7 +102,7 @@ export default function DeletionModal({
 
       // Handle specific error messages from the API
       let errorMessage = 'Unknown error occurred';
-      if (error.message) {
+      if (error instanceof Error) {
         errorMessage = error.message;
       }
 

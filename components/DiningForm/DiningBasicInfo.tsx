@@ -83,8 +83,12 @@ export default function DiningBasicInfo({
           placeholder='Select meal type'
           selectedKeys={formData.mealType ? [formData.mealType] : []}
           onSelectionChange={keys => {
-            const selected = Array.from(keys)[0] as string;
-            onFormDataChange({ ...formData, mealType: selected as any });
+            const selected = Array.from(keys)[0] as
+              | 'breakfast'
+              | 'lunch'
+              | 'dinner'
+              | 'all-day';
+            onFormDataChange({ ...formData, mealType: selected });
           }}
           isRequired
         >

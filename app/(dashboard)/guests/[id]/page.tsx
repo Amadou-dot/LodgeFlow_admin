@@ -441,7 +441,7 @@ export default function GuestDetailPage() {
                             <TableCell>{booking.numNights}</TableCell>
                             <TableCell>
                               <Chip
-                                color={getStatusColor(booking.status) as any}
+                                color={getStatusColor(booking.status)}
                                 size='sm'
                                 variant='flat'
                               >

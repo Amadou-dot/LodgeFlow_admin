@@ -158,13 +158,33 @@ export default function DiningPage() {
           category={filters.category}
           isAvailable={filters.isAvailable}
           onTypeChange={(type: string) =>
-            setFilters({ ...filters, type: type as any })
+            setFilters({
+              ...filters,
+              type: type as '' | 'menu' | 'experience',
+            })
           }
           onMealTypeChange={(mealType: string) =>
-            setFilters({ ...filters, mealType: mealType as any })
+            setFilters({
+              ...filters,
+              mealType: mealType as
+                | ''
+                | 'breakfast'
+                | 'lunch'
+                | 'dinner'
+                | 'all-day',
+            })
           }
           onCategoryChange={(category: string) =>
-            setFilters({ ...filters, category: category as any })
+            setFilters({
+              ...filters,
+              category: category as
+                | ''
+                | 'regular'
+                | 'craft-beer'
+                | 'wine'
+                | 'spirits'
+                | 'non-alcoholic',
+            })
           }
           onAvailabilityChange={(isAvailable: boolean | null) =>
             setFilters({ ...filters, isAvailable })

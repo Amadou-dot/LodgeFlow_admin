@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { lockClerkUser, unlockClerkUser } from '@/lib/clerk-users';
+import { getErrorMessage } from '@/types/errors';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
@@ -21,10 +22,11 @@ export async function POST(
         lockedAt: new Date().toISOString(),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error locking user:', error);
 
-    if (error.message === 'User not found') {
+    const errorMessage = getErrorMessage(error);
+    if (errorMessage === 'User not found') {
       return NextResponse.json(
         {
           success: false,
@@ -37,7 +39,7 @@ export async function POST(
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Failed to lock user',
+        error: errorMessage || 'Failed to lock user',
       },
       { status: 500 }
     );
@@ -63,10 +65,11 @@ export async function DELETE(
         unlockedAt: new Date().toISOString(),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error unlocking user:', error);
 
-    if (error.message === 'User not found') {
+    const errorMessage = getErrorMessage(error);
+    if (errorMessage === 'User not found') {
       return NextResponse.json(
         {
           success: false,
@@ -79,7 +82,7 @@ export async function DELETE(
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Failed to unlock user',
+        error: errorMessage || 'Failed to unlock user',
       },
       { status: 500 }
     );

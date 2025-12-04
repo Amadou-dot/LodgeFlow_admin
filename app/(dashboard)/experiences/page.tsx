@@ -4,6 +4,7 @@ import AddExperienceModal from '@/components/AddExperienceModal';
 import { ExperienceGrid } from '@/components/ExperienceGrid';
 import { PlusIcon } from '@/components/icons';
 import { useCreateExperience, useExperiences } from '@/hooks/useExperiences';
+import type { FormData } from '@/components/AddExperienceForm/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { useDisclosure } from '@heroui/modal';
@@ -15,7 +16,7 @@ export default function ExperiencesPage() {
   const { createExperience } = useCreateExperience();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const handleCreateExperience = async (formData: Record<string, any>) => {
+  const handleCreateExperience = async (formData: FormData) => {
     try {
       // Basic validation
       const requiredFields = [
@@ -43,11 +44,14 @@ export default function ExperiencesPage() {
         name: formData.title,
         price: Number(formData.price) || 0,
         duration: formData.duration,
-        difficulty: formData.difficulty || 'Easy',
+        difficulty: (formData.difficulty || 'Easy') as
+          | 'Easy'
+          | 'Moderate'
+          | 'Challenging',
         category: formData.category,
-        description: formData.shortDescription,
+        description: formData.shortDescription || '',
         longDescription: formData.longDescription,
-        image: formData.imageUrl,
+        image: formData.imageUrl || '',
         gallery: formData.imageGallery
           ? formData.imageGallery.split(',').map((url: string) => url.trim())
           : [],
@@ -159,7 +163,7 @@ export default function ExperiencesPage() {
                 </p>
                 <Button
                   color='primary'
-                  onPress={handleCreateExperience}
+                  onPress={() => onOpen()}
                   startContent={<PlusIcon size={18} />}
                 >
                   Create Your First Experience

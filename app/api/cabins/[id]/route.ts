@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../../lib/mongodb';
 import { Cabin } from '../../../../models';
+import { isMongooseValidationError } from '@/types/errors';
 
 export async function GET(
   _req: NextRequest,
@@ -93,8 +94,8 @@ export async function PUT(
       success: true,
       data: cabin,
     });
-  } catch (error: any) {
-    if (error.name === 'ValidationError') {
+  } catch (error: unknown) {
+    if (isMongooseValidationError(error)) {
       return NextResponse.json(
         {
           success: false,

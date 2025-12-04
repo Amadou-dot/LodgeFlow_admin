@@ -3,6 +3,12 @@ import connectDB from '../../../lib/mongodb';
 import { Booking, Cabin } from '../../../models';
 import { getClerkUser } from '../../../lib/clerk-users';
 import { clerkClient } from '@clerk/nextjs/server';
+import type {
+  OccupancyDataItem,
+  RevenueDataItem,
+  DurationDataItem,
+  RecentBookingPopulated,
+} from '@/types/api';
 
 export async function GET() {
   try {
@@ -257,7 +263,7 @@ export async function GET() {
         checkOutsToday,
       },
       recentActivity: await Promise.all(
-        recentBookings.map(async (booking: any) => {
+        (recentBookings as RecentBookingPopulated[]).map(async booking => {
           let customerName = 'Customer';
 
           // Fetch customer name from Clerk
@@ -290,7 +296,7 @@ export async function GET() {
         })
       ),
       charts: {
-        occupancy: occupancyData.map((item: any) => ({
+        occupancy: (occupancyData as OccupancyDataItem[]).map(item => ({
           date: item._id,
           occupancyRate:
             item.totalCapacity > 0
@@ -299,7 +305,7 @@ export async function GET() {
           totalGuests: item.totalGuests,
           totalCapacity: item.totalCapacity,
         })),
-        revenue: revenueData.map((item: any) => ({
+        revenue: (revenueData as RevenueDataItem[]).map(item => ({
           week: `Week ${item._id.week}`,
           revenue: item.totalRevenue,
           bookings: item.bookingCount,
@@ -323,8 +329,8 @@ export async function GET() {
 
           return categories
             .map((category, index) => {
-              const found = durationData.find(
-                (item: any) => item._id === category
+              const found = (durationData as DurationDataItem[]).find(
+                item => item._id === category
               );
               return {
                 name: category,

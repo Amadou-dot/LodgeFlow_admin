@@ -1,7 +1,11 @@
 import { getClerkUser } from '@/lib/clerk-users';
 import connectDB from '@/lib/mongodb';
+import type { IBooking } from '@/models/Booking';
+import type { ICabin } from '@/models/Cabin';
+import { getErrorMessage, isMongooseValidationError } from '@/types/errors';
+import type { BookingQueryFilter, MongoSortOrder } from '@/types/api';
 import { NextRequest, NextResponse } from 'next/server';
-import { Booking, Customer } from '../../../models';
+import { Booking, Customer as CustomerModel } from '../../../models';
 
 // Helper function to update customer statistics
 async function updateCustomerStats(clerkUserId: string) {
@@ -29,7 +33,7 @@ async function updateCustomerStats(clerkUserId: string) {
       sortedBookings.length > 0 ? sortedBookings[0].createdAt : null;
 
     // Update customer record by clerkUserId, create if it doesn't exist
-    await Customer.findOneAndUpdate(
+    await CustomerModel.findOneAndUpdate(
       { clerkUserId },
       {
         clerkUserId, // Include this in case we're creating a new record
@@ -64,10 +68,12 @@ async function mapWithLimit<T, R>(
 }
 
 // Helper function to populate bookings with Clerk customer data
-async function populateBookingsWithClerkCustomers(bookings: any[]) {
+async function populateBookingsWithClerkCustomers(
+  bookings: Array<IBooking & { cabin?: Pick<ICabin, 'name' | 'image' | 'capacity' | 'price' | 'discount'> }>
+) {
   // Get unique customer IDs to avoid duplicate API calls
   const customerIds = bookings.map(booking => booking.customer);
-  const uniqueCustomerIds = Array.from(new Set(customerIds));
+  const uniqueCustomerIds = Array.from(new Set(customerIds)) as string[];
 
   // Pre-fetch all unique customers with limited concurrency
   const CONCURRENT_LIMIT = Number(process.env.CLERK_API_CONCURRENT_LIMIT) || 3; // Max 3 concurrent Clerk API calls
@@ -123,13 +129,13 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'desc';
 
     // Build query for status filter only
-    const query: any = {};
+    const query: BookingQueryFilter = {};
     if (status && status !== 'all') {
       query.status = status;
     }
 
     // Build sort object
-    const sort: any = {};
+    const sort: MongoSortOrder = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     // If there's a search term, we need to get all bookings and filter after population
@@ -145,7 +151,7 @@ export async function GET(request: NextRequest) {
 
       // Filter by search term after population
       const searchLower = search.toLowerCase();
-      const filteredBookings = populatedBookings.filter((booking: any) => {
+      const filteredBookings = populatedBookings.filter(booking => {
         const cabin = booking.cabin;
         const customer = booking.customer || booking.guest;
 
@@ -245,9 +251,9 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle validation errors
-    if (error.name === 'ValidationError') {
+    if (isMongooseValidationError(error)) {
       return NextResponse.json(
         {
           success: false,
@@ -259,11 +265,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle date overlap errors
-    if (error.message && error.message.includes('overlap')) {
+    const errorMessage = getErrorMessage(error);
+    if (errorMessage.includes('overlap')) {
       return NextResponse.json(
         {
           success: false,
-          error: error.message,
+          error: errorMessage,
         },
         { status: 409 } // Conflict
       );
@@ -323,8 +330,8 @@ export async function PUT(request: NextRequest) {
       success: true,
       data: populatedWithClerk,
     });
-  } catch (error: any) {
-    if (error.name === 'ValidationError') {
+  } catch (error: unknown) {
+    if (isMongooseValidationError(error)) {
       return NextResponse.json(
         {
           success: false,
@@ -335,11 +342,12 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    if (error.message && error.message.includes('overlap')) {
+    const errorMessage = getErrorMessage(error);
+    if (errorMessage.includes('overlap')) {
       return NextResponse.json(
         {
           success: false,
-          error: error.message,
+          error: errorMessage,
         },
         { status: 409 }
       );

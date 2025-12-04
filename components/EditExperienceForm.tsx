@@ -11,6 +11,7 @@ import {
   MediaVisualsSection,
   type EditExperienceFormProps,
 } from './EditExperienceForm/';
+import { Experience } from '@/types';
 
 export default function EditExperienceForm({
   experience,
@@ -25,7 +26,10 @@ export default function EditExperienceForm({
   const expandAll = () => setIsExpanded(new Set(keys));
   const collapseAll = () => setIsExpanded(new Set());
 
-  const handleInputChange = (field: keyof typeof experience, value: any) => {
+  const handleInputChange = (
+    field: keyof typeof experience,
+    value: Experience[keyof Experience]
+  ) => {
     setEditedItem(prev => ({ ...prev, [field]: value }));
   };
 

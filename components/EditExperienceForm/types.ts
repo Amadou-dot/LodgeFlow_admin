@@ -9,5 +9,8 @@ export interface EditExperienceFormProps {
 
 export interface ExperienceSectionProps {
   editedItem: Experience;
-  onInputChange: (field: keyof Experience, value: any) => void;
+  onInputChange: (
+    field: keyof Experience,
+    value: Experience[keyof Experience]
+  ) => void;
 }

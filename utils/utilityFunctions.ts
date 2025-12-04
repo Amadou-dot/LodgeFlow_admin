@@ -35,7 +35,10 @@ export const getInitials = (name: string) => {
     .slice(0, 2);
 };
 
-export const getStatusColor = (status: string) => {
+// HeroUI Chip color type
+type ChipColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
+
+export const getStatusColor = (status: string): ChipColor => {
   switch (status) {
     case 'confirmed':
       return 'success';

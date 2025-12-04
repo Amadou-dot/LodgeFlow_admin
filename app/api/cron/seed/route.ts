@@ -176,10 +176,10 @@ export async function GET(request: Request) {
       message: 'Database seeded successfully',
       results,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error seeding database:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

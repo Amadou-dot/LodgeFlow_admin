@@ -6,10 +6,14 @@ import { useEffect } from 'react';
 import { FormActions } from './BookingForm/index';
 import BookingFormFields from './BookingFormFields';
 
+interface BookingPrefillData {
+  customer?: string;
+}
+
 interface BookingFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-  prefillData?: any;
+  prefillData?: BookingPrefillData;
 }
 
 export default function BookingForm({
@@ -41,7 +45,7 @@ export default function BookingForm({
 
     try {
       const bookingData = buildBookingData();
-      await createBooking.mutateAsync(bookingData as any);
+      await createBooking.mutateAsync(bookingData);
       onSuccess?.();
     } catch (error) {
       console.error('Error creating booking:', error);

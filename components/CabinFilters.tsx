@@ -3,6 +3,7 @@
 import type { CabinFilters } from '@/types';
 import { Button } from '@heroui/button';
 import { Select, SelectItem } from '@heroui/select';
+import type { SharedSelection } from '@heroui/system';
 import StandardFilters, { FilterOption } from './StandardFilters';
 
 interface CabinFiltersProps {
@@ -66,7 +67,7 @@ export default function CabinFiltersComponent({
       <Select
         placeholder='All capacities'
         selectedKeys={filters.capacity ? [filters.capacity] : []}
-        onSelectionChange={(keys: any) => {
+        onSelectionChange={(keys: SharedSelection) => {
           const value = Array.from(keys)[0] as string;
           handleCapacityChange(value);
         }}
@@ -82,7 +83,7 @@ export default function CabinFiltersComponent({
       <Select
         placeholder='All discounts'
         selectedKeys={filters.discount ? [filters.discount] : []}
-        onSelectionChange={(keys: any) => {
+        onSelectionChange={(keys: SharedSelection) => {
           const value = Array.from(keys)[0] as string;
           handleDiscountChange(value);
         }}

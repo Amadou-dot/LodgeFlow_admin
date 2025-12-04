@@ -2,6 +2,11 @@ import connectDB from '@/lib/mongodb';
 import Booking from '@/models/Booking';
 import { NextRequest, NextResponse } from 'next/server';
 
+interface BookingDateRange {
+  checkInDate: Date;
+  checkOutDate: Date;
+}
+
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -37,7 +42,8 @@ export async function GET(
       .lean();
 
     // Create array of unavailable date ranges
-    const unavailableDates = bookings.map((booking: any) => ({
+    const unavailableDates = (bookings as unknown as BookingDateRange[]).map(
+      booking => ({
       start: booking.checkInDate.toISOString().split('T')[0],
       end: booking.checkOutDate.toISOString().split('T')[0],
     }));

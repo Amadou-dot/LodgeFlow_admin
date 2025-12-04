@@ -2,6 +2,7 @@
 
 import { Button } from '@heroui/button';
 import { Select, SelectItem } from '@heroui/select';
+import type { SharedSelection } from '@heroui/system';
 import StandardFilters, { FilterOption } from './StandardFilters';
 
 export interface BookingsFiltersData {
@@ -67,7 +68,7 @@ export default function BookingsFilters({
       <Select
         placeholder='All statuses'
         selectedKeys={filters.status ? [filters.status] : []}
-        onSelectionChange={(keys: any) => {
+        onSelectionChange={(keys: SharedSelection) => {
           const value = Array.from(keys)[0] as string;
           handleStatusChange(value);
         }}

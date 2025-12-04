@@ -56,7 +56,10 @@ export const formatBookingDates = (
   };
 };
 
-export const getStatusColor = (status: string) => {
+// HeroUI Chip color type
+export type ChipColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
+
+export const getStatusColor = (status: string): ChipColor => {
   switch (status) {
     case 'unconfirmed':
       return 'warning';

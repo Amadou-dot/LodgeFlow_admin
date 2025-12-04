@@ -15,7 +15,7 @@ import { FormData } from './AddExperienceForm/types';
 interface AddExperienceModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate?: (formData: Record<string, any>) => void;
+  onCreate?: (formData: FormData) => void;
 }
 export default function AddExperienceModal({
   isOpen,

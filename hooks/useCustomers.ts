@@ -172,7 +172,7 @@ export const useDeleteCustomer = () => {
         throw new Error(error.error || 'Failed to delete customer');
       }
 
-      const result: ApiResponse<any> = await response.json();
+      const result: ApiResponse<null> = await response.json();
       if (result.success) {
         return { success: true };
       }
@@ -194,7 +194,7 @@ export const useLockCustomer = () => {
         throw new Error(error.error || 'Failed to lock customer');
       }
 
-      const result: ApiResponse<any> = await response.json();
+      const result: ApiResponse<null> = await response.json();
       if (result.success) {
         return { success: true };
       }
@@ -216,7 +216,7 @@ export const useUnlockCustomer = () => {
         throw new Error(error.error || 'Failed to unlock customer');
       }
 
-      const result: ApiResponse<any> = await response.json();
+      const result: ApiResponse<null> = await response.json();
       if (result.success) {
         return { success: true };
       }
