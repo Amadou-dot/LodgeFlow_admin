@@ -17,6 +17,8 @@ export default [
       "scripts/**",
       "public/**",
       "**/.vercel/**",
+      "**/.github/**",
+      "**/__tests__/**",
     ],
   },
   js.configs.recommended,
