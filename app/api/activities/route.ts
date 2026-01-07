@@ -1,3 +1,4 @@
+import { requireApiAuth } from '@/lib/api-utils';
 import { faker } from '@faker-js/faker';
 import { NextResponse } from 'next/server';
 
@@ -9,6 +10,10 @@ export interface Activity {
 }
 
 export async function GET() {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     // Generate fake activity data
     const activities: Activity[] = [];

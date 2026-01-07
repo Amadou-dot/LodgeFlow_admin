@@ -1,20 +1,23 @@
-import { requireAuth } from '@/lib/auth';
+import { requireApiAuth } from '@/lib/api-utils';
 import {
   deleteCompleteCustomer,
   getClerkUser,
   updateCompleteCustomer,
 } from '@/lib/clerk-users';
+import connectDB from '@/lib/mongodb';
 import { isMongooseValidationError } from '@/types/errors';
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '../../../../lib/mongodb';
 import { Booking } from '../../../../models';
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
-    await requireAuth();
     const { id } = await params;
 
     // Get customer from Clerk with extended data
@@ -30,38 +33,68 @@ export async function GET(
       );
     }
 
-    // Get customer's bookings from our database
+    // Get all customer stats in a single aggregation pipeline
     await connectDB();
-    const bookings = await Booking.find({ customer: id })
-      .populate('cabin', 'name image capacity price')
-      .sort({ createdAt: -1 })
-      .limit(10);
 
-    // Calculate additional stats that aren't stored in the database
-    const completedBookings = await Booking.countDocuments({
-      customer: id,
-      status: 'checked-out',
-    });
-
-    const revenueResult = await Booking.aggregate([
-      { $match: { customer: id, isPaid: true } },
-      { $group: { _id: null, total: { $sum: '$totalPrice' } } },
+    // Run aggregation and recent bookings query in parallel
+    const [statsResult, recentBookings] = await Promise.all([
+      // Single aggregation for all stats
+      Booking.aggregate([
+        { $match: { customer: id } },
+        {
+          $group: {
+            _id: null,
+            totalBookings: { $sum: 1 },
+            completedBookings: {
+              $sum: { $cond: [{ $eq: ['$status', 'checked-out'] }, 1, 0] },
+            },
+            totalRevenue: {
+              $sum: {
+                $cond: [{ $eq: ['$isPaid', true] }, '$totalPrice', 0],
+              },
+            },
+            totalNights: { $sum: '$numNights' },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            totalBookings: 1,
+            completedBookings: 1,
+            totalRevenue: 1,
+            averageStayLength: {
+              $cond: [
+                { $gt: ['$totalBookings', 0] },
+                { $divide: ['$totalNights', '$totalBookings'] },
+                0,
+              ],
+            },
+          },
+        },
+      ]),
+      // Recent bookings with populated cabin
+      Booking.find({ customer: id })
+        .populate('cabin', 'name image capacity price')
+        .sort({ createdAt: -1 })
+        .limit(10),
     ]);
 
-    const totalRevenue = revenueResult[0]?.total || 0;
+    // Extract stats with defaults
+    const stats = statsResult[0] || {
+      totalBookings: 0,
+      completedBookings: 0,
+      totalRevenue: 0,
+      averageStayLength: 0,
+    };
 
     // Flatten the customer data - use database values for core stats, calculated values for display-only stats
     const customerData = {
       ...customer,
       // Additional calculated stats for display purposes
-      completedBookings,
-      totalRevenue,
-      averageStayLength:
-        bookings.length > 0
-          ? bookings.reduce((sum, booking) => sum + booking.numNights, 0) /
-            bookings.length
-          : 0,
-      recentBookings: bookings,
+      completedBookings: stats.completedBookings,
+      totalRevenue: stats.totalRevenue,
+      averageStayLength: stats.averageStayLength,
+      recentBookings,
     };
 
     return NextResponse.json({
@@ -80,8 +113,11 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
-    await requireAuth();
     const { id } = await params; // This is the Clerk user ID
 
     const body = await request.json();
@@ -133,8 +169,11 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
-    await requireAuth();
     await connectDB();
     const { id } = await params; // This is the Clerk user ID
 

@@ -1,12 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '../../../../lib/mongodb';
-import { Cabin } from '../../../../models';
+import { requireApiAuth } from '@/lib/api-utils';
+import connectDB from '@/lib/mongodb';
 import { isMongooseValidationError } from '@/types/errors';
+import { NextRequest, NextResponse } from 'next/server';
+import { Cabin } from '../../../../models';
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
     const { id } = await params;
@@ -42,6 +47,10 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
     const { id } = await params;
@@ -120,6 +129,10 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
     const { id } = await params;

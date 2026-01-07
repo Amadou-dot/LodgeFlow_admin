@@ -322,6 +322,90 @@ export async function searchClerkUsers(
 }
 
 /**
+ * Batch fetch multiple Clerk users with optimized caching
+ * This is more efficient than calling getClerkUser for each ID
+ */
+export async function getClerkUsersBatch(
+  userIds: string[]
+): Promise<Map<string, Customer | null>> {
+  const results = new Map<string, Customer | null>();
+  const uncachedIds: string[] = [];
+
+  // Check cache first for all IDs
+  for (const userId of userIds) {
+    const cached = getCachedUser(userId);
+    if (cached !== undefined) {
+      results.set(userId, cached);
+    } else {
+      uncachedIds.push(userId);
+    }
+  }
+
+  // If all users were cached, return immediately
+  if (uncachedIds.length === 0) {
+    return results;
+  }
+
+  // Fetch extended data for all uncached users in one query
+  await connectDB();
+  const extendedDataList = await CustomerModel.find({
+    clerkUserId: { $in: uncachedIds },
+  });
+
+  const extendedDataMap = new Map<string, CustomerExtendedData>();
+  extendedDataList.forEach(data => {
+    extendedDataMap.set(data.clerkUserId, data);
+  });
+
+  // Fetch Clerk users in batches with concurrency limit
+  const CONCURRENT_LIMIT = Number(process.env.CLERK_API_CONCURRENT_LIMIT) || 3;
+  const chunks: string[][] = [];
+
+  for (let i = 0; i < uncachedIds.length; i += CONCURRENT_LIMIT) {
+    chunks.push(uncachedIds.slice(i, i + CONCURRENT_LIMIT));
+  }
+
+  for (const chunk of chunks) {
+    const clerkResults = await Promise.all(
+      chunk.map(async (userId) => {
+        try {
+          await waitForRateLimit();
+          const client = await clerkClient();
+          const clerkUser = await client.users.getUser(userId);
+          const extendedData = extendedDataMap.get(userId);
+          const customer = convertClerkUserToCustomer(clerkUser, extendedData);
+
+          // Cache the result
+          setCachedUser(userId, customer);
+          return { userId, customer };
+        } catch (error: unknown) {
+          console.error(`Error fetching user ${userId}:`, error);
+
+          // Handle user not found - cache null
+          if (
+            error &&
+            typeof error === 'object' &&
+            'status' in error &&
+            (error.status === 404 || error.status === 429)
+          ) {
+            setCachedUser(userId, null);
+          }
+
+          return { userId, customer: null };
+        }
+      })
+    );
+
+    // Add results to map
+    for (const { userId, customer } of clerkResults) {
+      results.set(userId, customer);
+    }
+  }
+
+  return results;
+}
+
+/**
  * Create or update extended customer data in our database
  */
 export async function upsertCustomerExtendedData(

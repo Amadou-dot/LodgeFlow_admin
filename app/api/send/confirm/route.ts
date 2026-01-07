@@ -1,3 +1,5 @@
+import { createRateLimitResponse, requireApiAuth } from '@/lib/api-utils';
+import { checkRateLimit, createRateLimitKey, RATE_LIMIT_CONFIGS } from '@/lib/rate-limit';
 import { BookingConfirmationEmail } from '@/components/EmailTemplates';
 import { validateEmail } from '@/utils/utilityFunctions';
 import { Resend } from 'resend';
@@ -5,6 +7,17 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
+  // Require authentication - prevents email spam abuse
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
+  // Rate limit email sending (stricter limits)
+  const rateLimitKey = createRateLimitKey(authResult.userId, 'send-confirm');
+  const rateLimitResult = checkRateLimit(rateLimitKey, RATE_LIMIT_CONFIGS.EMAIL);
+  if (!rateLimitResult.success) {
+    return createRateLimitResponse(rateLimitResult.resetTime);
+  }
+
   const { firstName, email, bookingData, cabinData } = await request.json();
   const emailValid = validateEmail(email);
   try {

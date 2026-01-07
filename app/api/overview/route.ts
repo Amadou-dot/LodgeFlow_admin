@@ -1,7 +1,12 @@
+import { requireApiAuth } from '@/lib/api-utils';
 import { faker } from '@faker-js/faker';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     // Generate fake overview data
     const data = {

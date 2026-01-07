@@ -1,8 +1,19 @@
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  escapeRegex,
+  HTTP_STATUS,
+  requireApiAuth,
+} from '@/lib/api-utils';
 import { connectDB, Dining } from '@/models';
 import type { DiningQueryFilter, MongoSortOrder } from '@/types/api';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 
@@ -23,16 +34,17 @@ export async function GET(request: NextRequest) {
     if (isAvailable !== null && isAvailable !== undefined)
       filter.isAvailable = isAvailable === 'true';
 
-    // Add search functionality
+    // Add search functionality (sanitize to prevent regex injection)
     if (search) {
+      const safeSearch = escapeRegex(search);
       // If we have other filters, we need to combine them with $and
       const searchFilter = {
         $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-          { type: { $regex: search, $options: 'i' } },
-          { category: { $regex: search, $options: 'i' } },
-          { mealType: { $regex: search, $options: 'i' } },
+          { name: { $regex: safeSearch, $options: 'i' } },
+          { description: { $regex: safeSearch, $options: 'i' } },
+          { type: { $regex: safeSearch, $options: 'i' } },
+          { category: { $regex: safeSearch, $options: 'i' } },
+          { mealType: { $regex: safeSearch, $options: 'i' } },
         ],
       };
 
@@ -54,21 +66,18 @@ export async function GET(request: NextRequest) {
 
     const dining = await Dining.find(filter).sort(sort);
 
-    return NextResponse.json({
-      success: true,
-      data: dining,
-      count: dining.length,
-    });
+    return createSuccessResponse(dining);
   } catch (error) {
     console.error('Error fetching dining:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch dining items' },
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to fetch dining items', HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }
 
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 
@@ -89,12 +98,9 @@ export async function POST(request: NextRequest) {
     const missingFields = requiredFields.filter(field => !body[field]);
 
     if (missingFields.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Missing required fields: ${missingFields.join(', ')}`,
-        },
-        { status: 400 }
+      return createErrorResponse(
+        `Missing required fields: ${missingFields.join(', ')}`,
+        HTTP_STATUS.BAD_REQUEST
       );
     }
 
@@ -104,33 +110,27 @@ export async function POST(request: NextRequest) {
       !timeRegex.test(body.servingTime.start) ||
       !timeRegex.test(body.servingTime.end)
     ) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid time format. Use HH:MM format.' },
-        { status: 400 }
+      return createErrorResponse(
+        'Invalid time format. Use HH:MM format.',
+        HTTP_STATUS.BAD_REQUEST
       );
     }
 
     const dining = new Dining(body);
     await dining.save();
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: dining,
-        message: 'Dining item created successfully',
-      },
-      { status: 201 }
-    );
+    return createSuccessResponse(dining, 'Dining item created successfully', HTTP_STATUS.CREATED);
   } catch (error) {
     console.error('Error creating dining item:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to create dining item' },
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to create dining item', HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }
 
 export async function PUT(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 
@@ -138,10 +138,7 @@ export async function PUT(request: NextRequest) {
     const { _id, ...updateData } = body;
 
     if (!_id) {
-      return NextResponse.json(
-        { success: false, error: 'Dining item ID is required' },
-        { status: 400 }
-      );
+      return createErrorResponse('Dining item ID is required', HTTP_STATUS.BAD_REQUEST);
     }
 
     // Validate serving time format if provided
@@ -151,9 +148,9 @@ export async function PUT(request: NextRequest) {
         !timeRegex.test(updateData.servingTime.start) ||
         !timeRegex.test(updateData.servingTime.end)
       ) {
-        return NextResponse.json(
-          { success: false, error: 'Invalid time format. Use HH:MM format.' },
-          { status: 400 }
+        return createErrorResponse(
+          'Invalid time format. Use HH:MM format.',
+          HTTP_STATUS.BAD_REQUEST
         );
       }
     }
@@ -164,27 +161,21 @@ export async function PUT(request: NextRequest) {
     });
 
     if (!dining) {
-      return NextResponse.json(
-        { success: false, error: 'Dining item not found' },
-        { status: 404 }
-      );
+      return createErrorResponse('Dining item not found', HTTP_STATUS.NOT_FOUND);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: dining,
-      message: 'Dining item updated successfully',
-    });
+    return createSuccessResponse(dining, 'Dining item updated successfully');
   } catch (error) {
     console.error('Error updating dining item:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to update dining item' },
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to update dining item', HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }
 
 export async function DELETE(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 
@@ -192,30 +183,18 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json(
-        { success: false, error: 'Dining item ID is required' },
-        { status: 400 }
-      );
+      return createErrorResponse('Dining item ID is required', HTTP_STATUS.BAD_REQUEST);
     }
 
     const dining = await Dining.findByIdAndDelete(id);
 
     if (!dining) {
-      return NextResponse.json(
-        { success: false, error: 'Dining item not found' },
-        { status: 404 }
-      );
+      return createErrorResponse('Dining item not found', HTTP_STATUS.NOT_FOUND);
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Dining item deleted successfully',
-    });
+    return createSuccessResponse(null, 'Dining item deleted successfully');
   } catch (error) {
     console.error('Error deleting dining item:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to delete dining item' },
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to delete dining item', HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }

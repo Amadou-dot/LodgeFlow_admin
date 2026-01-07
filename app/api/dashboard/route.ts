@@ -1,16 +1,21 @@
-import { NextResponse } from 'next/server';
-import connectDB from '../../../lib/mongodb';
-import { Booking, Cabin } from '../../../models';
-import { getClerkUser } from '../../../lib/clerk-users';
-import { clerkClient } from '@clerk/nextjs/server';
+import { requireApiAuth } from '@/lib/api-utils';
+import { getClerkUsersBatch } from '@/lib/clerk-users';
+import connectDB from '@/lib/mongodb';
 import type {
-  OccupancyDataItem,
-  RevenueDataItem,
   DurationDataItem,
+  OccupancyDataItem,
   RecentBookingPopulated,
+  RevenueDataItem,
 } from '@/types/api';
+import { clerkClient } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+import { Booking, Cabin } from '../../../models';
 
 export async function GET() {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 
@@ -20,7 +25,7 @@ export async function GET() {
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     // const sixMonthsAgo = new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000);
 
-    // Parallel queries for efficiency
+    // Parallel queries for efficiency - all queries run at once
     const [
       totalBookings,
       totalRevenue,
@@ -33,6 +38,8 @@ export async function GET() {
       occupancyData,
       revenueData,
       durationData,
+      totalCapacity,
+      currentOccupancy,
     ] = await Promise.all([
       // Total bookings in last 30 days
       Booking.countDocuments({
@@ -215,34 +222,36 @@ export async function GET() {
           $sort: { _id: 1 },
         },
       ]),
+
+      // Total cabin capacity
+      Cabin.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalCapacity: { $sum: '$capacity' },
+          },
+        },
+      ]),
+
+      // Current occupancy
+      Booking.aggregate([
+        {
+          $match: {
+            checkInDate: { $lte: today },
+            checkOutDate: { $gt: today },
+            status: { $in: ['confirmed', 'checked-in'] },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            occupiedCapacity: { $sum: '$numGuests' },
+          },
+        },
+      ]),
     ]);
 
-    // Calculate occupancy rate
-    const totalCapacity = await Cabin.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalCapacity: { $sum: '$capacity' },
-        },
-      },
-    ]);
-
-    const currentOccupancy = await Booking.aggregate([
-      {
-        $match: {
-          checkInDate: { $lte: today },
-          checkOutDate: { $gt: today },
-          status: { $in: ['confirmed', 'checked-in'] },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          occupiedCapacity: { $sum: '$numGuests' },
-        },
-      },
-    ]);
-
+    // Calculate occupancy rate from parallel results
     const occupancyRate =
       totalCapacity[0] && currentOccupancy[0]
         ? (currentOccupancy[0].occupiedCapacity /
@@ -262,24 +271,24 @@ export async function GET() {
         checkInsToday,
         checkOutsToday,
       },
-      recentActivity: await Promise.all(
-        (recentBookings as RecentBookingPopulated[]).map(async booking => {
+      recentActivity: await (async () => {
+        // Batch fetch all customer names at once
+        const bookingsList = recentBookings as RecentBookingPopulated[];
+        const customerIds = bookingsList
+          .map(b => b.customer)
+          .filter((id): id is string => !!id);
+        const customerMap = await getClerkUsersBatch(customerIds);
+
+        return bookingsList.map(booking => {
           let customerName = 'Customer';
 
-          // Fetch customer name from Clerk
           if (booking.customer) {
-            try {
-              const clerkUser = await getClerkUser(booking.customer);
+            const clerkUser = customerMap.get(booking.customer);
+            if (clerkUser) {
               customerName =
-                clerkUser?.name ||
-                `${clerkUser?.first_name || ''} ${clerkUser?.last_name || ''}`.trim() ||
+                clerkUser.name ||
+                `${clerkUser.first_name || ''} ${clerkUser.last_name || ''}`.trim() ||
                 'Customer';
-            } catch (error) {
-              console.warn(
-                'Failed to fetch customer name for:',
-                booking.customer,
-                error
-              );
             }
           }
 
@@ -293,8 +302,8 @@ export async function GET() {
             status: booking.status,
             createdAt: booking.createdAt,
           };
-        })
-      ),
+        });
+      })(),
       charts: {
         occupancy: (occupancyData as OccupancyDataItem[]).map(item => ({
           date: item._id,
