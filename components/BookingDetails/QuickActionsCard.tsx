@@ -60,9 +60,9 @@ export default function QuickActionsCard({
   } = useDisclosure();
   const [paymentLoading, setPaymentLoading] = useState(false);
 
-  // Get data for email functionality
+  // Get data for email functionality - guard against null customer
   const { data: bookingData, isLoading: bookingLoading } = useBookingByEmail(
-    booking.customer.email
+    booking.customer?.email ?? ''
   );
   const { data: cabinData, isLoading: cabinLoading } = useCabin(
     extractCabinId(bookingData?.cabin)
@@ -78,16 +78,17 @@ export default function QuickActionsCard({
   } = usePrintBooking(booking);
 
   const handleSendConfirmation = async () => {
-    if (!bookingData || !cabinData) {
+    if (!bookingData || !cabinData || !booking.customer) {
       addToast({
         color: 'danger',
-        description: 'Booking or cabin data not available',
+        description: 'Booking, cabin, or customer data not available',
       });
       return;
     }
 
     try {
-      const firstName = booking.customer.first_name || booking.customer.name;
+      const firstName =
+        booking.customer.first_name || booking.customer.name || 'Guest';
       await sendConfirmationEmail(
         firstName,
         booking.customer.email,
@@ -158,7 +159,8 @@ export default function QuickActionsCard({
   };
 
   const isDataLoading = bookingLoading || cabinLoading;
-  const firstName = booking.customer.first_name || booking.customer.name;
+  const firstName =
+    booking.customer?.first_name || booking.customer?.name || 'Guest';
   const isPaymentButtonVisible =
     !booking.isPaid && booking.status !== 'cancelled';
 

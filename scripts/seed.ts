@@ -1115,7 +1115,7 @@ async function seedDatabase() {
       today.getTime() + 30 * 24 * 60 * 60 * 1000
     );
 
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < 500; i++) {
       const cabin = faker.helpers.arrayElement(cabins);
       const clerkUserId = faker.helpers.arrayElement(clerkUserIds);
 
