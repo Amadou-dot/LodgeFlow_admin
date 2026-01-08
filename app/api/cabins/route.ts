@@ -1,10 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '../../../lib/mongodb';
-import { Cabin } from '../../../models';
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  escapeRegex,
+  HTTP_STATUS,
+  requireApiAuth,
+} from '@/lib/api-utils';
+import connectDB from '@/lib/mongodb';
 import type { CabinQueryFilter, MongoSortOrder } from '@/types/api';
 import { isMongooseValidationError } from '@/types/errors';
+import { NextRequest } from 'next/server';
+import { Cabin } from '../../../models';
 
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 
@@ -19,9 +30,9 @@ export async function GET(request: NextRequest) {
     // Build query
     const query: CabinQueryFilter = {};
 
-    // Apply search
+    // Apply search (sanitize to prevent regex injection)
     if (search) {
-      query.name = { $regex: search, $options: 'i' };
+      query.name = { $regex: escapeRegex(search), $options: 'i' };
     }
 
     // Apply capacity filter
@@ -78,23 +89,18 @@ export async function GET(request: NextRequest) {
 
     const cabins = await Cabin.find(query).sort(sort);
 
-    return NextResponse.json({
-      success: true,
-      data: cabins,
-    });
+    return createSuccessResponse(cabins);
   } catch (error) {
     console.error('Error fetching cabins:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch cabins',
-      },
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to fetch cabins', HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }
 
 export async function POST(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 
@@ -102,50 +108,32 @@ export async function POST(request: NextRequest) {
 
     // Validate discount vs price
     if (body.discount && body.discount >= body.price) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Discount cannot be greater than or equal to the price',
-        },
-        { status: 400 }
+      return createErrorResponse(
+        'Discount cannot be greater than or equal to the price',
+        HTTP_STATUS.BAD_REQUEST
       );
     }
 
     const cabin = await Cabin.create(body);
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: cabin,
-      },
-      { status: 201 }
-    );
+    return createSuccessResponse(cabin, undefined, HTTP_STATUS.CREATED);
   } catch (error: unknown) {
     console.error('Error creating cabin:', error);
 
     // Handle validation errors
     if (isMongooseValidationError(error)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Validation failed',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
+      return createErrorResponse('Validation failed', HTTP_STATUS.BAD_REQUEST, error.errors);
     }
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to create cabin',
-      },
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to create cabin', HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }
 
 export async function PUT(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 
@@ -153,13 +141,7 @@ export async function PUT(request: NextRequest) {
     const { _id, ...updateData } = body;
 
     if (!_id) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Cabin ID is required',
-        },
-        { status: 400 }
-      );
+      return createErrorResponse('Cabin ID is required', HTTP_STATUS.BAD_REQUEST);
     }
 
     const cabin = await Cabin.findByIdAndUpdate(_id, updateData, {
@@ -168,44 +150,26 @@ export async function PUT(request: NextRequest) {
     });
 
     if (!cabin) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Cabin not found',
-        },
-        { status: 404 }
-      );
+      return createErrorResponse('Cabin not found', HTTP_STATUS.NOT_FOUND);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: cabin,
-    });
+    return createSuccessResponse(cabin);
   } catch (error: unknown) {
     console.error('Error updating cabin:', error);
 
     if (isMongooseValidationError(error)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Validation failed',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
+      return createErrorResponse('Validation failed', HTTP_STATUS.BAD_REQUEST, error.errors);
     }
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to update cabin',
-      },
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to update cabin', HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }
 
 export async function DELETE(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 
@@ -213,39 +177,18 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Cabin ID is required',
-        },
-        { status: 400 }
-      );
+      return createErrorResponse('Cabin ID is required', HTTP_STATUS.BAD_REQUEST);
     }
 
     const cabin = await Cabin.findByIdAndDelete(id);
 
     if (!cabin) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Cabin not found',
-        },
-        { status: 404 }
-      );
+      return createErrorResponse('Cabin not found', HTTP_STATUS.NOT_FOUND);
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Cabin deleted successfully',
-    });
+    return createSuccessResponse(null, 'Cabin deleted successfully');
   } catch (error) {
     console.error('Error deleting cabin:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to delete cabin',
-      },
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to delete cabin', HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 }

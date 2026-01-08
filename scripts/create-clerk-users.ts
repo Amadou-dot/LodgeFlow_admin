@@ -41,29 +41,11 @@ async function createClerkUsers(count: number = 50): Promise<ClerkUserData[]> {
       const lastName = faker.person.lastName();
       const email = faker.internet.email({ firstName, lastName });
       const password = faker.internet.password({ length: 12, memorable: true });
-      // Generate a valid E.164 format phone number (US format with safe area codes)
-      const areaCodes = [
-        '555',
-        '201',
-        '212',
-        '310',
-        '415',
-        '617',
-        '703',
-        '713',
-        '818',
-        '917',
-      ];
-      const areaCode = areaCodes[Math.floor(Math.random() * areaCodes.length)];
-      const exchangeCode = Math.floor(Math.random() * 900) + 100; // 100-999
-      const lineNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
-      const phoneNumber = `+1${areaCode}${exchangeCode}${lineNumber}`;
 
       try {
-        // Create user in Clerk
+        // Create user in Clerk (without phone number - not enabled in Clerk Dashboard)
         const user = await client.users.createUser({
           emailAddress: [email],
-          phoneNumber: [phoneNumber],
           firstName: firstName,
           lastName: lastName,
           password: password,
@@ -118,7 +100,7 @@ export { createClerkUsers, createSampleBookings };
 if (require.main === module) {
   (async () => {
     try {
-      const users = await createClerkUsers(10); // Test with 10 users
+      const users = await createClerkUsers(50); // Create 50 users
       const sampleBookings = await createSampleBookings(users);
 
       console.log('\n📋 Created users summary:');

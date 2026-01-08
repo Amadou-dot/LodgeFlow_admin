@@ -1,3 +1,4 @@
+import { requireApiAuth } from '@/lib/api-utils';
 import connectDB from '@/lib/mongodb';
 import Booking from '@/models/Booking';
 import { NextRequest, NextResponse } from 'next/server';
@@ -11,6 +12,10 @@ export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 

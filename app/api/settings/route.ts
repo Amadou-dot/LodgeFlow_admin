@@ -1,9 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '../../../lib/mongodb';
-import { Settings } from '../../../models';
+import { requireApiAuth } from '@/lib/api-utils';
+import connectDB from '@/lib/mongodb';
 import { isMongooseValidationError } from '@/types/errors';
+import { NextRequest, NextResponse } from 'next/server';
+import { Settings } from '../../../models';
 
 export async function GET() {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 
@@ -86,6 +91,10 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 

@@ -3,13 +3,18 @@
 import { Experience } from '@/types';
 import useSWR from 'swr';
 
-// Fetcher function for SWR
+// Fetcher function for SWR - extracts data from wrapped API response
 const fetcher = (url: string) =>
   fetch(url).then(res => {
     if (!res.ok) {
       throw new Error('Failed to fetch experiences');
     }
-    return res.json();
+    return res.json().then(result => {
+      if (result.success) {
+        return result.data;
+      }
+      throw new Error('Failed to fetch experiences');
+    });
   });
 
 // Fetch app experiences using SWR

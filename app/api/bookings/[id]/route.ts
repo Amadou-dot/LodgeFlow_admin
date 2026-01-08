@@ -1,9 +1,14 @@
+import { requireApiAuth } from '@/lib/api-utils';
 import { getClerkUser } from '@/lib/clerk-users';
 import connectDB from '@/lib/mongodb';
 import { Booking } from '@/models';
 import { IdParam } from '@/types';
 
 export async function GET(_req: Request, { params }: IdParam) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   const bookingId = (await params).id;
   try {
     await connectDB();
@@ -39,6 +44,10 @@ export async function GET(_req: Request, { params }: IdParam) {
 }
 
 export async function PATCH(req: Request, { params }: IdParam) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   const bookingId = (await params).id;
   try {
     await connectDB();

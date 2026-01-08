@@ -1,0 +1,320 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+LodgeFlow is a modern hotel management dashboard built with Next.js 15, featuring comprehensive cabin management, booking system, customer profiles, and business analytics. The application uses MongoDB for business data and Clerk for authentication.
+
+**Tech Stack:**
+- Frontend: Next.js 15 (App Router), HeroUI v2, Tailwind CSS, TypeScript
+- Backend: MongoDB with Mongoose ODM
+- Auth: Clerk (role-based: admin, staff, customer)
+- Data Fetching: SWR for client-side, TanStack Query for mutations
+- Charts: Recharts
+
+## Essential Commands
+
+### Development
+```bash
+pnpm dev              # Start development server with Turbopack
+pnpm build            # Build for production
+pnpm start            # Start production server
+```
+
+### Code Quality
+```bash
+pnpm lint             # Run ESLint with auto-fix
+pnpm format           # Format all files with Prettier
+pnpm format:check     # Check formatting without changes
+pnpm ci:check         # Run all checks (format, lint, test)
+pnpm check:types      # TypeScript type checking via script
+```
+
+### Testing
+```bash
+pnpm test             # Run Jest tests
+pnpm test:watch       # Run tests in watch mode
+pnpm test:coverage    # Generate coverage report
+```
+
+### Database & Seeding
+```bash
+pnpm seed             # Seed database with sample data
+pnpm tsx scripts/test-connection.ts  # Test MongoDB connection
+
+# Data extraction (backup/migration)
+pnpm extract:all      # Extract all data types
+pnpm extract:cabins   # Extract cabin data only
+pnpm extract:dining   # Extract dining data only
+pnpm extract:experiences
+pnpm extract:settings
+
+# User management
+pnpm clerk:list       # Get existing Clerk users
+pnpm clerk:users      # Create new Clerk test users
+```
+
+### Utilities
+```bash
+pnpm verify:bookings       # Verify booking user IDs
+pnpm update:customer-stats # Update customer statistics
+pnpm summary              # Display data summary
+```
+
+## Architecture
+
+### Directory Structure
+
+```
+app/
+├── (auth)/              # Auth routes (sign-in, sign-up)
+├── (dashboard)/         # Protected dashboard routes
+│   ├── bookings/       # Booking management pages
+│   ├── cabins/         # Cabin management
+│   ├── dining/         # Restaurant/menu management
+│   ├── experiences/    # Activities/tours management
+│   ├── guests/         # Customer profiles
+│   └── settings/       # Business configuration
+├── api/                # API route handlers
+│   ├── bookings/
+│   ├── cabins/
+│   ├── customers/
+│   ├── dashboard/
+│   ├── dining/
+│   ├── experiences/
+│   ├── settings/
+│   └── send/          # Email sending endpoints
+└── providers.tsx      # Global providers (HeroUI, Theme, Query)
+
+components/            # Reusable UI components
+hooks/                # Custom React hooks (SWR-based)
+models/               # Mongoose schemas (MongoDB)
+types/                # TypeScript type definitions
+lib/                  # Utilities & configuration
+  ├── mongodb.ts      # DB connection with caching
+  ├── config.ts       # App-wide constants
+  ├── auth-helpers.ts # Role-based access helpers
+  └── clerk-users.ts  # Clerk API utilities
+```
+
+### Authentication Architecture
+
+**Clerk-Based Auth** (Clerk manages users, MongoDB stores business data):
+- Users are stored in Clerk with roles: `org:admin`, `org:staff`, `org:customer`
+- Bookings reference Clerk user IDs (string) instead of MongoDB ObjectIds
+- Customer statistics are calculated on-demand using Clerk user data
+- Protected routes use `AuthGuard` component (client-side)
+- API routes check auth using `@/lib/auth-helpers`
+
+**Key Auth Patterns:**
+```typescript
+// Check authorization in API routes
+import { hasAuthorizedRole } from '@/lib/auth-helpers';
+import { auth } from '@clerk/nextjs/server';
+
+const { has } = await auth();
+if (!hasAuthorizedRole(has)) {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+}
+
+// Get Clerk user data
+import { getClerkUser } from '@/lib/clerk-users';
+const user = await getClerkUser(clerkUserId);
+```
+
+### Data Flow Pattern
+
+**Client → API → Database**
+1. Client components use custom hooks (SWR/TanStack Query)
+2. Hooks call `/api/*` route handlers
+3. API routes connect to MongoDB via `connectDB()`
+4. API routes fetch Clerk user data when needed
+5. Responses follow consistent format:
+```typescript
+{
+  success: boolean;
+  data?: T;
+  error?: string;
+  pagination?: { ... };
+}
+```
+
+**Key Data Fetching Hooks:**
+- `useBookings()` - Fetch bookings with filters/pagination (SWR)
+- `useCabins()` - Fetch cabins with filters (SWR)
+- `useCustomers()` - Fetch Clerk users with customer stats (SWR)
+- `useSettings()` - Fetch app settings (SWR)
+- Mutations use TanStack Query's `useMutation`
+
+### MongoDB Models & Relationships
+
+**Core Collections:**
+- `Booking` - References `Cabin` (ObjectId) and stores `customer` as Clerk user ID (string)
+- `Cabin` - Accommodation inventory with amenities, pricing, capacity
+- `Dining` - Restaurant items with categories, pricing, images
+- `Experience` - Activities/tours with difficulty, duration, participants
+- `Settings` - Business rules, pricing policies (singleton - DO NOT modify directly)
+- `Customer` (legacy) - Minimal collection for stats aggregation only
+
+**Important Indexes:**
+- Bookings: Compound indexes on `{ cabin, checkInDate, checkOutDate }`, `{ customer, createdAt }`
+- Bookings: Single indexes on `status`, `isPaid`, date fields
+
+**Schema Validation:**
+- Mongoose schemas include validation rules and pre-save middleware
+- `Booking` schema auto-calculates `numNights` and `remainingAmount`
+- Static method `Booking.findOverlapping()` prevents double-bookings
+
+### Configuration & Constants
+
+**Centralized Config** (`lib/config.ts`):
+- `SWR_CONFIG` - Deduping intervals, revalidation rules
+- `API_CONFIG` - Pagination defaults, request timeouts
+- `DB_CONFIG` - Connection pool, timeouts
+- `BOOKING_STATUS` - Status enum constants
+- `LOYALTY_TIERS` - Customer tier thresholds
+
+### State Management
+
+- **Server State:** SWR (data fetching) + TanStack Query (mutations)
+- **UI State:** React hooks (useState, useReducer)
+- **Theme:** next-themes provider
+- **Forms:** Controlled components with custom validation
+- **URL State:** Custom `useURLFilters` hook for filters/pagination
+
+### Styling Approach
+
+- **Tailwind CSS** for utility classes
+- **HeroUI v2** component library (customized theme)
+- **CSS-in-JS:** tailwind-variants for component variants
+- Dark mode via `next-themes` with HeroUI integration
+- Responsive design: mobile-first approach
+
+## Important Patterns
+
+### Path Alias
+Use `@/` for absolute imports:
+```typescript
+import { Booking } from '@/models';
+import { useBookings } from '@/hooks/useBookings';
+import { hasAuthorizedRole } from '@/lib/auth-helpers';
+```
+
+### Error Handling
+```typescript
+// API routes
+import { getErrorMessage } from '@/types/errors';
+
+try {
+  // ... operation
+} catch (error) {
+  return NextResponse.json(
+    { success: false, error: getErrorMessage(error) },
+    { status: 500 }
+  );
+}
+```
+
+### MongoDB Connection
+Always use the cached connection:
+```typescript
+import connectDB from '@/lib/mongodb';
+await connectDB();
+// Now use Mongoose models
+```
+
+### Type Safety
+- Use exported types from `@/types` or `@/types/api`
+- Models export interfaces: `IBooking`, `ICabin`, etc.
+- API responses use `ApiResponse<T>` generic
+- Populated documents use `PopulatedBooking`, etc.
+
+### Customer Data Pattern
+```typescript
+// Bookings store Clerk user ID as string
+booking.customer = "user_2abc123def";
+
+// Fetch full customer data via Clerk API
+import { getClerkUser } from '@/lib/clerk-users';
+const customer = await getClerkUser(booking.customer);
+
+// Customer stats are calculated from bookings
+const bookings = await Booking.find({ customer: clerkUserId });
+const totalSpent = bookings.reduce((sum, b) => sum + b.totalPrice, 0);
+```
+
+## Critical Notes
+
+### DO NOT Modify Settings Collection Directly
+The `Settings` collection contains critical business rules and pricing. Only modify through the admin interface or extraction scripts. Use `extract:settings` to backup before any changes.
+
+### Booking Validation
+The `Booking` model includes overlap detection. Always check for conflicts:
+```typescript
+const overlapping = await Booking.findOverlapping(
+  cabinId,
+  checkInDate,
+  checkOutDate,
+  excludeBookingId
+);
+if (overlapping.length > 0) {
+  // Handle conflict
+}
+```
+
+### Clerk Rate Limiting
+API has concurrent call limits. Use `CLERK_CONCURRENT_LIMIT` from config when batching operations.
+
+### Environment Variables Required
+```bash
+MONGODB_URI=mongodb+srv://...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
+CLERK_SECRET_KEY=sk_...
+```
+
+### Date Handling
+- Bookings use ISO date strings in API responses
+- Use `date-fns` for formatting (not moment.js)
+- `@internationalized/date` for HeroUI date pickers
+
+## Testing
+- Tests in `__tests__/` directory
+- Uses Jest + React Testing Library
+- Test utilities in `jest.setup.js`
+- Run tests before committing code changes
+
+## Development Workflow
+
+1. **Feature Development:**
+   - Check existing patterns in similar features
+   - Use custom hooks for data fetching
+   - Follow HeroUI component patterns
+   - Ensure type safety with TypeScript strict mode
+
+2. **Database Changes:**
+   - Update Mongoose model schema
+   - Add indexes for query performance
+   - Test with seed data (`pnpm seed`)
+   - Consider migration scripts for existing data
+
+3. **API Development:**
+   - Follow consistent response format
+   - Include proper error handling
+   - Validate input data
+   - Use auth helpers for access control
+   - Add pagination for list endpoints
+
+4. **Before Committing:**
+   - Run `pnpm ci:check` to verify format, lint, and tests
+   - Test locally with `pnpm dev`
+   - Verify database operations with seed data
+   - Check TypeScript types compile
+
+## Additional Documentation
+
+- `CLERK_SETUP.md` - Clerk authentication configuration
+- `SEEDING_GUIDE.md` - Database seeding and data extraction
+- `ROLE_BASED_ACCESS_CONTROL.md` - RBAC implementation details
+- `PRINTING_FUNCTIONALITY.md` - PDF generation features
+- `DATABASE_SETUP.md` - MongoDB configuration

@@ -4,7 +4,7 @@ import { useSettings } from '@/hooks/useSettings';
 import type { PopulatedBooking } from '@/types';
 import { calcNumNights } from '@/utils/utilityFunctions';
 import { useInfiniteScroll } from '@heroui/use-infinite-scroll';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export interface BookingFormData {
   cabin: string;
@@ -126,37 +126,38 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
     onLoadMore,
   });
 
-  // Customer search with debouncing
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
+  // Customer search with debouncing - use ref to avoid dependency issues
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleCustomerSearch = (searchValue: string) => {
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
+  const handleCustomerSearch = useCallback((searchValue: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
 
-    const timeout = setTimeout(() => {
+    searchTimeoutRef.current = setTimeout(() => {
       searchCustomers(searchValue);
     }, 300);
-
-    setSearchTimeout(timeout);
-  };
+  }, [searchCustomers]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [searchTimeout]);
+  }, []);
 
-  // Derived values
-  const selectedCabin = cabins?.find(
-    cabin => cabin._id.toString() === formData.cabin
+  // Derived values - memoized for performance
+  const selectedCabin = useMemo(
+    () => cabins?.find(cabin => cabin._id.toString() === formData.cabin),
+    [cabins, formData.cabin]
   );
-  const numNights = calcNumNights(formData.checkInDate, formData.checkOutDate);
+
+  const numNights = useMemo(
+    () => calcNumNights(formData.checkInDate, formData.checkOutDate),
+    [formData.checkInDate, formData.checkOutDate]
+  );
 
   // Price calculation effect
   useEffect(() => {
@@ -229,12 +230,15 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
     formData.numGuests,
   ]);
 
-  // Form handlers
-  const handleInputChange = (field: keyof BookingFormData, value: unknown) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  // Form handlers - memoized to prevent unnecessary re-renders
+  const handleInputChange = useCallback(
+    (field: keyof BookingFormData, value: unknown) => {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
-  const addSpecialRequest = () => {
+  const addSpecialRequest = useCallback(() => {
     if (specialRequestInput.trim()) {
       setFormData(prev => ({
         ...prev,
@@ -242,17 +246,17 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
       }));
       setSpecialRequestInput('');
     }
-  };
+  }, [specialRequestInput]);
 
-  const removeSpecialRequest = (index: number) => {
+  const removeSpecialRequest = useCallback((index: number) => {
     setFormData(prev => ({
       ...prev,
       specialRequests: prev.specialRequests.filter((_, i) => i !== index),
     }));
-  };
+  }, []);
 
-  // Validation
-  const validateForm = (): string[] => {
+  // Validation - memoized with dependencies
+  const validateForm = useCallback((): string[] => {
     const errors: string[] = [];
 
     if (!formData.cabin) errors.push('Please select a cabin');
@@ -285,18 +289,21 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
     }
 
     return errors;
-  };
+  }, [formData, selectedCabin, settings, numNights]);
 
-  // Utility functions
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: settings?.currency || 'USD',
-    }).format(amount);
-  };
+  // Utility functions - memoized
+  const formatCurrency = useCallback(
+    (amount: number) => {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: settings?.currency || 'USD',
+      }).format(amount);
+    },
+    [settings?.currency]
+  );
 
-  // Build booking data for API
-  const buildBookingData = () => {
+  // Build booking data for API - memoized
+  const buildBookingData = useCallback(() => {
     return {
       cabin: formData.cabin,
       customer: formData.customer,
@@ -333,7 +340,7 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
         priceBreakdown.totalPrice -
         (formData.depositPaid ? priceBreakdown.depositAmount : 0),
     };
-  };
+  }, [formData, selectedCabin, priceBreakdown, numNights]);
 
   return {
     // State

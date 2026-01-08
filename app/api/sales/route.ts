@@ -1,5 +1,6 @@
+import { requireApiAuth } from '@/lib/api-utils';
+import connectDB from '@/lib/mongodb';
 import { NextResponse } from 'next/server';
-import connectDB from '../../../lib/mongodb';
 import { Booking } from '../../../models';
 
 export interface SalesData {
@@ -10,6 +11,10 @@ export interface SalesData {
 }
 
 export async function GET() {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
     await connectDB();
 

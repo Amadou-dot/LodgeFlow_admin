@@ -1,30 +1,45 @@
+import { requireApiAuth } from '@/lib/api-utils';
 import connectToDatabase from '@/lib/mongodb';
 import { Experience } from '@/models/Experience';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  await connectToDatabase();
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
+    await connectToDatabase();
     const experiences = await Experience.find({});
-    return NextResponse.json(experiences);
+    return NextResponse.json({
+      success: true,
+      data: experiences,
+    });
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to fetch experiences' },
+      { success: false, error: 'Failed to fetch experiences' },
       { status: 500 }
     );
   }
 }
 
 export async function POST(request: Request) {
-  await connectToDatabase();
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
+    await connectToDatabase();
     const data = await request.json();
     const experience = new Experience(data);
     await experience.save();
-    return NextResponse.json(experience, { status: 201 });
+    return NextResponse.json(
+      { success: true, data: experience },
+      { status: 201 }
+    );
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to create experience' },
+      { success: false, error: 'Failed to create experience' },
       { status: 500 }
     );
   }

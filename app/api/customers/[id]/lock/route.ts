@@ -1,4 +1,4 @@
-import { requireAuth } from '@/lib/auth';
+import { requireApiAuth } from '@/lib/api-utils';
 import { lockClerkUser, unlockClerkUser } from '@/lib/clerk-users';
 import { getErrorMessage } from '@/types/errors';
 import { NextRequest, NextResponse } from 'next/server';
@@ -7,8 +7,11 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
-    await requireAuth();
     const { id } = await params; // This is the Clerk user ID
 
     // Lock the user in Clerk
@@ -50,8 +53,11 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
-    await requireAuth();
     const { id } = await params; // This is the Clerk user ID
 
     // Unlock the user in Clerk

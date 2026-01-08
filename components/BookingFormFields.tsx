@@ -16,29 +16,67 @@ import {
   SpecialRequests,
 } from './BookingForm/index';
 
+/**
+ * Props for BookingFormFields component
+ *
+ * The props are organized into logical groups:
+ *
+ * 1. Form State:
+ *    - formData, specialRequestInput, priceBreakdown
+ *
+ * 2. Derived Values:
+ *    - selectedCabin, numNights
+ *
+ * 3. Data Sources:
+ *    - cabins, customers, customersLoading, settings
+ *
+ * 4. Customer Selection UI:
+ *    - scrollerRef, isCustomerOpen, setIsCustomerOpen, handleCustomerSearch
+ *
+ * 5. Form Handlers:
+ *    - handleInputChange, addSpecialRequest, removeSpecialRequest, setSpecialRequestInput
+ *
+ * 6. Utilities:
+ *    - formatCurrency
+ *
+ * 7. Display Options:
+ *    - showPayment, showPricing
+ */
 interface BookingFormFieldsProps {
-  // Hook return values passed from parent
+  // Form State
   formData: BookingFormData;
   specialRequestInput: string;
   priceBreakdown: PriceBreakdownType;
+
+  // Derived Values
   selectedCabin: Cabin | undefined;
   numNights: number;
+
+  // Data Sources
   cabins: Cabin[];
   customers: Customer[];
   customersLoading: boolean;
   settings: AppSettings | undefined;
+
+  // Customer Selection UI
   scrollerRef: React.RefObject<HTMLElement>;
   isCustomerOpen: boolean;
   setIsCustomerOpen: (open: boolean) => void;
+  handleCustomerSearch: (searchValue: string) => void;
+
+  // Form Handlers
   handleInputChange: (
     field: keyof BookingFormData,
     value: string | number | boolean | string[]
   ) => void;
-  handleCustomerSearch: (searchValue: string) => void;
   addSpecialRequest: () => void;
   removeSpecialRequest: (index: number) => void;
   setSpecialRequestInput: (value: string) => void;
+
+  // Utilities
   formatCurrency: (amount: number) => string;
+
+  // Display Options
   showPayment?: boolean;
   showPricing?: boolean;
 }

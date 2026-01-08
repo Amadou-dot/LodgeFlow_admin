@@ -1,5 +1,34 @@
 'use client';
 
+/**
+ * Booking data fetching hooks
+ *
+ * Data Fetching Strategy:
+ * -----------------------
+ * This application uses a dual-library approach for data fetching:
+ *
+ * 1. SWR (for reads):
+ *    - useBookings, useBooking, useBookingByEmail
+ *    - Handles automatic caching, revalidation, and request deduplication
+ *    - Provides keepPreviousData for smooth UI transitions
+ *    - Revalidates on window focus (configurable)
+ *
+ * 2. TanStack Query (for mutations):
+ *    - useCreateBooking, useUpdateBooking, useDeleteBooking, etc.
+ *    - Handles mutation state (isPending, isError, isSuccess)
+ *    - Provides automatic cache invalidation after mutations
+ *    - Enables optimistic updates when needed
+ *
+ * Cache Invalidation Flow:
+ * ------------------------
+ * When a mutation succeeds, we invalidate related React Query caches.
+ * SWR caches are revalidated automatically on focus, or can be manually
+ * triggered via the mutate() function returned by each read hook.
+ *
+ * @see hooks/useCabins.ts - Same pattern for cabin operations
+ * @see hooks/useCustomers.ts - Same pattern for customer operations
+ */
+
 import { SWR_CONFIG } from '@/lib/config';
 import type { BookingsFilters, PopulatedBooking } from '@/types';
 import type { CreateBookingInput, UpdateBookingInput } from '@/types/api';

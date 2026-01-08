@@ -1,3 +1,4 @@
+import { requireApiAuth } from '@/lib/api-utils';
 import connectToDatabase from '@/lib/mongodb';
 import { Experience } from '@/models/Experience';
 import { NextResponse } from 'next/server';
@@ -7,9 +8,13 @@ type ParamProps = {
 };
 
 export async function GET(_request: Request, { params }: ParamProps) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   const { id } = await params;
-  await connectToDatabase();
   try {
+    await connectToDatabase();
     const experience = await Experience.findById(id);
     if (!experience) {
       return NextResponse.json(
@@ -27,9 +32,13 @@ export async function GET(_request: Request, { params }: ParamProps) {
 }
 
 export async function PUT(request: Request, { params }: ParamProps) {
-  await connectToDatabase();
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   const { id } = await params;
   try {
+    await connectToDatabase();
     const data = await request.json();
     const experience = await Experience.findByIdAndUpdate(id, data, {
       new: true,
@@ -50,10 +59,13 @@ export async function PUT(request: Request, { params }: ParamProps) {
 }
 
 export async function DELETE(_request: Request, { params }: ParamProps) {
-  await connectToDatabase();
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
 
   const { id } = await params;
   try {
+    await connectToDatabase();
     const experience = await Experience.findByIdAndDelete(id);
     if (!experience) {
       return NextResponse.json(

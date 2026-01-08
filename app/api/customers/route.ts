@@ -1,15 +1,24 @@
-import { requireAuth } from '@/lib/auth';
+import {
+  createRateLimitResponse,
+  createValidationErrorResponse,
+  requireApiAuth,
+} from '@/lib/api-utils';
 import {
   createCompleteCustomer,
   getClerkUsers,
   searchClerkUsers,
 } from '@/lib/clerk-users';
+import { checkRateLimit, createRateLimitKey, RATE_LIMIT_CONFIGS } from '@/lib/rate-limit';
+import { createCustomerSchema } from '@/lib/validations';
 import { getErrorMessage } from '@/types/errors';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
+
   try {
-    await requireAuth();
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -77,12 +86,26 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    await requireAuth();
+  // Require authentication
+  const authResult = await requireApiAuth();
+  if (!authResult.authenticated) return authResult.error;
 
+  // Rate limit customer creation
+  const rateLimitKey = createRateLimitKey(authResult.userId, 'customer-create');
+  const rateLimitResult = checkRateLimit(rateLimitKey, RATE_LIMIT_CONFIGS.CUSTOMER_CREATE);
+  if (!rateLimitResult.success) {
+    return createRateLimitResponse(rateLimitResult.resetTime);
+  }
+
+  try {
     const body = await request.json();
 
-    // Validate required fields for Clerk user creation
+    // Validate request body with Zod
+    const validationResult = createCustomerSchema.safeParse(body);
+    if (!validationResult.success) {
+      return createValidationErrorResponse(validationResult.error);
+    }
+
     const {
       firstName,
       lastName,
@@ -94,17 +117,7 @@ export async function POST(request: NextRequest) {
       address,
       emergencyContact,
       preferences,
-    } = body;
-
-    if (!firstName || !lastName || !email || !password) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'First name, last name, email, and password are required',
-        },
-        { status: 400 }
-      );
-    }
+    } = validationResult.data;
 
     // Create complete customer (Clerk user + extended data)
     const customer = await createCompleteCustomer({
