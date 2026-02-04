@@ -1,310 +1,824 @@
-# Plan: Technical Debt Reduction - `any` Type Refactoring
+# Plan: LodgeFlow Comprehensive Improvements
 
-**Objective:** Systematically eliminate `any` type usages across the LodgeFlow codebase and replace them with proper TypeScript types to improve type safety and developer experience.
+**Objective:** Address security vulnerabilities, performance issues, outdated packages, and code quality problems identified in the January 2026 codebase audit.
 
-**Author:** Architect Agent  
-**Plan Version:** 1.0  
-**Created:** December 3, 2025
+**Author:** Claude Code
+**Plan Version:** 1.0
+**Created:** January 7, 2026
 
 ---
 
 ## Context
 
-- **Entry Point:** `types/index.ts` and `types/clerk.ts` (existing type definitions)
-- **Key Dependencies:** `models/` (Mongoose schemas with interfaces), `hooks/`, `components/`, `app/api/`
+- **Entry Points:** `app/api/` (API routes), `components/` (UI), `hooks/` (data fetching)
+- **Key Dependencies:** Next.js 16, HeroUI, Clerk, MongoDB/Mongoose, SWR, TanStack Query
+- **Previous Work:** TypeScript `any` refactoring completed (see `current-plan.md`)
 
 ---
 
-## Phase 1: Audit Summary
+## Priority Matrix
 
-### High-Impact Areas by Category
-
-| Category | File Count | `any` Count | Priority |
-|----------|-----------|-------------|----------|
-| **API Routes** | 12 files | ~25 instances | 🔴 Critical |
-| **Hooks** | 2 files | ~6 instances | 🟠 High |
-| **Components** | 15 files | ~20 instances | 🟠 High |
-| **Types (self)** | 1 file | 5 instances | 🟡 Medium |
-| **Tests/Scripts** | 4 files | ~8 instances | 🟢 Low |
-
-### Worst Offenders (Files requiring immediate attention)
-
-1. **`app/api/bookings/route.ts`** — 6 `any` usages
-   - `populateBookingsWithClerkCustomers(bookings: any[])`
-   - `query: any`, `sort: any`
-   - `(booking: any) =>` in filters
-   - `error: any` in catch blocks
-
-2. **`app/api/dashboard/route.ts`** — 5 `any` usages
-   - `(booking: any)` in map callbacks
-   - `(item: any)` in aggregation result handlers
-
-3. **`app/api/cabins/route.ts`** — 4 `any` usages
-   - `query: any`, `sort: any`
-   - `error: any` in catch blocks
-
-4. **`hooks/useURLFilters.ts`** — 6 `any` usages
-   - `defaultValue?: any`
-   - `updateFilter: (key, value: any)` signature
-   - `result: any`, `defaults: any` intermediate objects
-
-5. **`components/SettingsForm.tsx` + subsections** — 6 `any` usages
-   - `handleInputChange(field, value: any)` pattern
-   - Propagated to child components (`SettingsBookingSection`, etc.)
-
-6. **`components/BookingForm/` directory** — 5 `any` usages
-   - `onInputChange: (field, value: any)`
-   - `settings: any` props
-   - `isDateUnavailable(date: any)`
-
-7. **`types/clerk.ts`** — 5 `any` usages in Clerk types
-   - `phone_numbers: any[]`, `web3_wallets: any[]`, `passkeys: any[]`
-   - `saml_accounts: any[]`, `enterprise_accounts: any[]`
+| Priority | Category | Impact | Effort |
+|----------|----------|--------|--------|
+| 🔴 P0 | Security | Critical | Medium |
+| 🟠 P1 | Performance | High | High |
+| 🟡 P2 | Package Updates | Medium | Low |
+| 🟢 P3 | Code Quality | Low | Medium |
 
 ---
 
-## Phase 2: Refactoring Strategy
+## Phase 1: Security Hardening (P0)
 
-### Step 2.1: Create Missing Shared Types (Foundation)
+### 1.1 Add Authentication to All API Routes
 
-1. **Create `types/api.ts`** — Define MongoDB query/sort object types:
-   ```typescript
-   interface CabinQueryFilter {
-     name?: { $regex: string; $options: string };
-     capacity?: { $lte?: number; $gte?: number };
-     discount?: number | { $gt: number };
-   }
+**Problem:** GET endpoints don't verify user authentication, allowing data enumeration.
 
-   interface BookingQueryFilter {
-     status?: string;
-     cabin?: mongoose.Types.ObjectId;
-     customer?: string;
-     checkInDate?: { $gte?: Date; $lte?: Date };
-     checkOutDate?: { $gte?: Date; $lte?: Date };
-   }
+**Files to modify:**
+- `app/api/bookings/route.ts` - GET handler
+- `app/api/bookings/by-email/route.ts` - Entire file (high risk)
+- `app/api/bookings/[id]/route.ts` - GET handler
+- `app/api/cabins/route.ts` - GET handler
+- `app/api/customers/route.ts` - GET handler
+- `app/api/customers/[id]/route.ts` - GET handler
+- `app/api/dashboard/route.ts` - GET handler
+- `app/api/dining/route.ts` - GET handler
+- `app/api/experiences/route.ts` - GET handler
+- `app/api/settings/route.ts` - GET handler
 
-   type MongoSortOrder = Record<string, 1 | -1>;
-   ```
+**Implementation:**
+```typescript
+// Add to top of each GET handler
+import { auth } from '@clerk/nextjs/server';
+import { hasAuthorizedRole } from '@/lib/auth-helpers';
 
-2. **Create `types/errors.ts`** — Define error handling types:
-   ```typescript
-   interface MongooseValidationError extends Error {
-     name: 'ValidationError';
-     errors: Record<string, { message: string }>;
-   }
+export async function GET(request: NextRequest) {
+  const { userId, has } = await auth();
 
-   interface AppError extends Error {
-     name: string;
-     message: string;
-   }
-   ```
+  if (!userId || !hasAuthorizedRole(has)) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+  // ... rest of handler
+}
+```
 
-3. **Extend `types/clerk.ts`** — Replace Clerk `any[]` with proper types or `unknown[]` if Clerk SDK doesn't expose them.
-
-### Step 2.2: Refactor API Routes (High Priority)
-
-1. **`app/api/bookings/route.ts`**:
-   - Replace `bookings: any[]` → `IBooking[]` (from model)
-   - Replace `query: any` → `BookingQueryFilter`
-   - Replace `error: any` → `unknown` with type guard:
-     ```typescript
-     function isMongooseValidationError(error: unknown): error is MongooseValidationError {
-       return error instanceof Error && error.name === 'ValidationError';
-     }
-     ```
-
-2. **`app/api/cabins/route.ts`**:
-   - Same pattern for `query: any`, `sort: any`
-
-3. **`app/api/dashboard/route.ts`**:
-   - Define aggregation result types:
-     ```typescript
-     interface OccupancyDataItem {
-       _id: string;
-       totalGuests: number;
-       totalCapacity: number;
-     }
-
-     interface RevenueDataItem {
-       _id: { week: number; year: number };
-       totalRevenue: number;
-       bookingCount: number;
-     }
-     ```
-   - Replace `booking: any` → `IBooking` with populated cabin type
-
-### Step 2.3: Refactor Hooks (Medium-High Priority)
-
-1. **`hooks/useURLFilters.ts`**:
-   - Replace `defaultValue?: any` → use generic constraint `T[keyof T]`
-   - Replace `value: any` in update functions → same generic approach:
-     ```typescript
-     updateFilter: <K extends keyof T>(key: K, value: T[K], addToHistory?: boolean) => void;
-     ```
-
-### Step 2.4: Refactor Component Props (Medium Priority)
-
-1. **`components/BookingForm/types.ts`** and related:
-   - Replace `value: any` → `BookingFormData[keyof BookingFormData]`
-   - Or use generic pattern:
-     ```typescript
-     onInputChange: <K extends keyof BookingFormData>(field: K, value: BookingFormData[K]) => void;
-     ```
-
-2. **`components/SettingsForm/` sections**:
-   - Replace `value: any` → `AppSettings[keyof AppSettings]`
-
-3. **`components/AreaChart.tsx`, `components/DurationChart.tsx`**:
-   - Import proper Recharts tooltip types:
-     ```typescript
-     import { TooltipProps } from 'recharts';
-     const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => { ... }
-     ```
-
-### Step 2.5: Handle UI Component Callbacks (Lower Priority)
-
-1. **`CabinFilters.tsx`, `BookingsFilters.tsx`**:
-   - Replace `onSelectionChange={(keys: any)}` → `Selection` type from HeroUI/NextUI:
-     ```typescript
-     import { Selection } from '@heroui/react';
-     onSelectionChange={(keys: Selection) => { ... }}
-     ```
-
-2. **`as any` type casts**:
-   - Review and fix legitimate type mismatches (e.g., status color mapping)
-   - Create proper union types for status colors
+**Verification:**
+- [ ] Test unauthenticated requests return 401
+- [ ] Test authenticated requests work correctly
+- [ ] Test role-based access (admin vs staff vs customer)
 
 ---
 
-## Phase 3: Verification
+### 1.2 Sanitize Search Input (Regex Injection)
 
-1. **Run TypeScript Compiler**:
-   ```bash
-   pnpm tsc --noEmit
-   ```
+**Problem:** User input used directly in MongoDB regex queries.
 
-2. **Run ESLint** with `@typescript-eslint/no-explicit-any` rule (if enabled):
-   ```bash
-   pnpm lint
-   ```
+**Files to modify:**
+- `app/api/cabins/route.ts` (line ~24)
+- `app/api/bookings/route.ts` (search handling)
+- `app/api/customers/route.ts` (search handling)
+- `app/api/dining/route.ts` (if search exists)
 
-3. **Run Existing Tests**:
-   ```bash
-   pnpm test
-   ```
+**Implementation:**
+```typescript
+// Create utility in lib/api-utils.ts
+export function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
-4. **Manual Smoke Test**: Verify key flows (create booking, view dashboard, filter cabins).
+// Usage in routes
+import { escapeRegex } from '@/lib/api-utils';
+
+if (search) {
+  const safeSearch = escapeRegex(search);
+  query.name = { $regex: safeSearch, $options: 'i' };
+}
+```
+
+**Verification:**
+- [ ] Test search with special characters: `test.*`, `test$`, `test()`
+- [ ] Verify normal searches still work
 
 ---
 
-## Unknowns / Risks
+### 1.3 Add Request Validation with Zod
+
+**Problem:** POST/PUT endpoints accept body without schema validation.
+
+**Files to create:**
+- `lib/validations/booking.ts`
+- `lib/validations/cabin.ts`
+- `lib/validations/customer.ts`
+- `lib/validations/index.ts`
+
+**Files to modify:**
+- `app/api/bookings/route.ts` - POST handler
+- `app/api/bookings/[id]/route.ts` - PUT handler
+- `app/api/cabins/route.ts` - POST handler
+- `app/api/customers/route.ts` - POST handler
+
+**Implementation:**
+```typescript
+// lib/validations/booking.ts
+import { z } from 'zod';
+
+export const createBookingSchema = z.object({
+  cabin: z.string().min(1, 'Cabin is required'),
+  customer: z.string().min(1, 'Customer is required'),
+  checkInDate: z.string().datetime(),
+  checkOutDate: z.string().datetime(),
+  numGuests: z.number().min(1).max(20),
+  status: z.enum(['unconfirmed', 'confirmed', 'checked-in', 'checked-out', 'cancelled']).optional(),
+  extras: z.object({
+    hasBreakfast: z.boolean().optional(),
+    hasPets: z.boolean().optional(),
+    hasParking: z.boolean().optional(),
+    hasEarlyCheckIn: z.boolean().optional(),
+    hasLateCheckOut: z.boolean().optional(),
+  }).optional(),
+});
+
+export type CreateBookingInput = z.infer<typeof createBookingSchema>;
+
+// Usage in route
+import { createBookingSchema } from '@/lib/validations/booking';
+
+export async function POST(request: NextRequest) {
+  const body = await request.json();
+
+  const result = createBookingSchema.safeParse(body);
+  if (!result.success) {
+    return NextResponse.json(
+      { success: false, error: result.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  // Use result.data (typed and validated)
+}
+```
+
+**Package to add:**
+```bash
+pnpm add zod
+```
+
+**Verification:**
+- [ ] Test invalid payloads rejected with clear errors
+- [ ] Test valid payloads accepted
+- [ ] Test edge cases (empty strings, wrong types)
+
+---
+
+### 1.4 Add Rate Limiting
+
+**Problem:** No rate limiting on mutation endpoints.
+
+**Implementation option 1 - Simple in-memory (dev/small scale):**
+```typescript
+// lib/rate-limit.ts
+const rateLimit = new Map<string, { count: number; resetTime: number }>();
+
+export function checkRateLimit(
+  identifier: string,
+  limit: number = 10,
+  windowMs: number = 60000
+): boolean {
+  const now = Date.now();
+  const record = rateLimit.get(identifier);
+
+  if (!record || now > record.resetTime) {
+    rateLimit.set(identifier, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+
+  if (record.count >= limit) {
+    return false;
+  }
+
+  record.count++;
+  return true;
+}
+```
+
+**Implementation option 2 - Production (Upstash Redis):**
+```bash
+pnpm add @upstash/ratelimit @upstash/redis
+```
+
+**Files to modify:**
+- `app/api/bookings/route.ts` - POST
+- `app/api/customers/route.ts` - POST
+- `app/api/send/*/route.ts` - All email endpoints
+
+**Verification:**
+- [ ] Test rate limit kicks in after threshold
+- [ ] Test different users have separate limits
+- [ ] Test limits reset after window
+
+---
+
+## Phase 2: Performance Optimization (P1)
+
+### 2.1 Fix N+1 Query Problem (Clerk User Fetching)
+
+**Problem:** `populateBookingsWithClerkCustomers` fetches users one-by-one.
+
+**File:** `app/api/bookings/route.ts` (lines 71-117)
+
+**Solution A - Batch Fetching:**
+```typescript
+// lib/clerk-users.ts - Add batch function
+export async function getClerkUsersBatch(
+  userIds: string[]
+): Promise<Map<string, Customer>> {
+  const uniqueIds = [...new Set(userIds)];
+  const results = new Map<string, Customer>();
+
+  // Clerk doesn't support batch fetch, but we can parallelize with limit
+  const chunks = chunkArray(uniqueIds, API_CONFIG.CLERK_CONCURRENT_LIMIT);
+
+  for (const chunk of chunks) {
+    const users = await Promise.all(
+      chunk.map(id => getClerkUser(id).catch(() => null))
+    );
+    chunk.forEach((id, i) => {
+      if (users[i]) results.set(id, users[i]);
+    });
+  }
+
+  return results;
+}
+
+// Usage
+const customerIds = bookings.map(b => b.customer);
+const customerMap = await getClerkUsersBatch(customerIds);
+
+const populatedBookings = bookings.map(booking => ({
+  ...booking.toObject(),
+  customer: customerMap.get(booking.customer) || fallbackCustomer,
+}));
+```
+
+**Solution B - Caching Layer (Recommended for production):**
+```typescript
+// lib/cache.ts
+const userCache = new Map<string, { user: Customer; expiry: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export async function getCachedClerkUser(userId: string): Promise<Customer | null> {
+  const cached = userCache.get(userId);
+  if (cached && cached.expiry > Date.now()) {
+    return cached.user;
+  }
+
+  const user = await getClerkUser(userId);
+  if (user) {
+    userCache.set(userId, { user, expiry: Date.now() + CACHE_TTL });
+  }
+  return user;
+}
+```
+
+**Verification:**
+- [ ] Measure API response time before/after
+- [ ] Verify cache invalidation works
+- [ ] Test with 100+ bookings
+
+---
+
+### 2.2 Move Search Filtering to Database
+
+**Problem:** Search fetches ALL records, filters in memory.
+
+**File:** `app/api/bookings/route.ts` (lines 142-184)
+
+**Current (inefficient):**
+```typescript
+if (search) {
+  const allBookings = await Booking.find(query).populate('cabin');
+  const populated = await populateBookingsWithClerkCustomers(allBookings);
+  const filtered = populated.filter(b =>
+    b.customer?.fullName?.includes(search) ||
+    b.cabin?.name?.includes(search)
+  );
+}
+```
+
+**Solution - Two-phase query:**
+```typescript
+if (search) {
+  // Phase 1: Find matching cabins
+  const matchingCabins = await Cabin.find({
+    name: { $regex: escapeRegex(search), $options: 'i' }
+  }).select('_id');
+
+  // Phase 2: Query bookings with cabin filter
+  const cabinIds = matchingCabins.map(c => c._id);
+  query.$or = [
+    { cabin: { $in: cabinIds } },
+    // For customer search, we need a different approach since they're in Clerk
+  ];
+}
+```
+
+**For customer search (requires Customer collection sync):**
+```typescript
+// Option 1: Create lightweight Customer collection for search
+// This syncs essential fields from Clerk for efficient searching
+
+// models/CustomerIndex.ts
+const CustomerIndexSchema = new Schema({
+  clerkUserId: { type: String, required: true, unique: true, index: true },
+  fullName: { type: String, index: 'text' },
+  email: { type: String, index: true },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+// Sync on Clerk webhook or periodic job
+```
+
+**Verification:**
+- [ ] Test search performance with 1000+ bookings
+- [ ] Verify search results are accurate
+- [ ] Test pagination works with search
+
+---
+
+### 2.3 Consolidate Database Aggregations
+
+**Problem:** Multiple separate queries for related data.
+
+**File:** `app/api/customers/[id]/route.ts` (lines 35-65)
+
+**Current:**
+```typescript
+const totalBookings = await Booking.countDocuments({ customer: clerkUserId });
+const revenueResult = await Booking.aggregate([...]);
+const bookings = await Booking.find({ customer: clerkUserId });
+const avgStay = bookings.reduce(...) / bookings.length;
+```
+
+**Solution - Single aggregation:**
+```typescript
+const [stats] = await Booking.aggregate([
+  { $match: { customer: clerkUserId } },
+  {
+    $group: {
+      _id: null,
+      totalBookings: { $sum: 1 },
+      totalRevenue: {
+        $sum: { $cond: [{ $ne: ['$status', 'cancelled'] }, '$totalPrice', 0] }
+      },
+      totalNights: { $sum: '$numNights' },
+      completedBookings: {
+        $sum: { $cond: [{ $eq: ['$status', 'checked-out'] }, 1, 0] }
+      },
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      totalBookings: 1,
+      totalRevenue: 1,
+      averageStayLength: {
+        $cond: [
+          { $gt: ['$totalBookings', 0] },
+          { $divide: ['$totalNights', '$totalBookings'] },
+          0
+        ]
+      },
+      completedBookings: 1,
+    }
+  }
+]);
+```
+
+**Verification:**
+- [ ] Compare results with current implementation
+- [ ] Measure query time improvement
+- [ ] Test with customers having 0, 1, many bookings
+
+---
+
+### 2.4 Add Component Memoization
+
+**Problem:** Unnecessary re-renders in form components.
+
+**Files to modify:**
+- `components/BookingForm.tsx`
+- `components/BookingFormFields.tsx`
+- `components/AddGuestForm.tsx`
+- `components/SettingsForm.tsx`
+
+**Implementation:**
+```typescript
+// Before
+const handleInputChange = (field: string, value: unknown) => {
+  setFormData(prev => ({ ...prev, [field]: value }));
+};
+
+// After
+const handleInputChange = useCallback((field: string, value: unknown) => {
+  setFormData(prev => ({ ...prev, [field]: value }));
+}, []);
+
+// Memoize expensive computations
+const totalPrice = useMemo(() => {
+  return calculateTotalPrice(formData, settings);
+}, [formData.cabinPrice, formData.numNights, formData.extras, settings]);
+
+// Memoize child components that receive callbacks
+const MemoizedPriceBreakdown = memo(PriceBreakdown);
+```
+
+**Verification:**
+- [ ] Use React DevTools Profiler to measure re-renders
+- [ ] Verify form still works correctly
+- [ ] Test performance with React strict mode
+
+---
+
+## Phase 3: Package Updates (P2)
+
+### 3.1 Safe Updates (No Breaking Changes)
+
+```bash
+# Run all safe updates at once
+pnpm update @heroui/accordion @heroui/autocomplete @heroui/avatar @heroui/button \
+  @heroui/card @heroui/checkbox @heroui/chip @heroui/code @heroui/date-picker \
+  @heroui/divider @heroui/input @heroui/kbd @heroui/link @heroui/listbox \
+  @heroui/modal @heroui/navbar @heroui/number-input @heroui/pagination \
+  @heroui/select @heroui/snippet @heroui/spinner @heroui/switch @heroui/system \
+  @heroui/table @heroui/tabs @heroui/theme @heroui/toast @heroui/user \
+  @heroui/use-infinite-scroll
+
+# Update utility packages
+pnpm update @clerk/backend @clerk/nextjs @clerk/themes \
+  @tanstack/react-query @tanstack/react-query-devtools \
+  recharts resend swr mongoose next lucide-react \
+  tailwindcss @tailwindcss/postcss postcss \
+  prettier typescript eslint @eslint/js \
+  @typescript-eslint/eslint-plugin @typescript-eslint/parser \
+  @testing-library/react @testing-library/jest-dom \
+  date-fns dotenv clsx
+```
+
+**Verification:**
+- [ ] `pnpm build` passes
+- [ ] `pnpm test` passes
+- [ ] Manual smoke test of key flows
+
+---
+
+### 3.2 HeroUI Dropdown Beta → Stable
+
+```bash
+# Update dropdown from beta to stable
+pnpm remove @heroui/dropdown
+pnpm add @heroui/dropdown@latest
+```
+
+**Files to check:**
+- Any component using `@heroui/dropdown`
+- Check for API changes in HeroUI changelog
+
+**Verification:**
+- [ ] All dropdowns render correctly
+- [ ] Selection events work
+- [ ] Styling matches theme
+
+---
+
+### 3.3 Move Faker to DevDependencies
+
+```bash
+pnpm remove @faker-js/faker
+pnpm add -D @faker-js/faker
+```
+
+**Verification:**
+- [ ] `pnpm build` still works (faker not bundled in production)
+- [ ] `pnpm seed` still works
+
+---
+
+### 3.4 Deferred Updates (Breaking Changes - Evaluate Later)
+
+| Package | Current | Latest | Action |
+|---------|---------|--------|--------|
+| `react` | 18.3.1 | 19.x | **Wait** - Evaluate React 19 migration separately |
+| `framer-motion` | 11.x | 12.x | **Wait** - Major API changes |
+| `mongodb` | 6.x | 7.x | **Wait** - Driver breaking changes |
+| `mongoose` | 8.x | 9.x | **Wait** - ORM breaking changes |
+| `tailwind-variants` | 2.x | 3.x | **Wait** - API changes |
+| `jspdf` | 3.x | 4.x | **Evaluate** - Check PDF generation still works |
+
+---
+
+## Phase 4: Code Quality (P3)
+
+### 4.1 Extract Duplicate Code
+
+**Create shared utilities:**
+
+```typescript
+// lib/api-utils.ts - Add these functions
+
+/**
+ * Standard API error response
+ */
+export function apiError(message: string, status: number = 500) {
+  return NextResponse.json(
+    { success: false, error: message },
+    { status }
+  );
+}
+
+/**
+ * Standard API success response
+ */
+export function apiSuccess<T>(data: T, extra?: Record<string, unknown>) {
+  return NextResponse.json({
+    success: true,
+    data,
+    ...extra,
+  });
+}
+
+/**
+ * Parse pagination parameters with defaults
+ */
+export function parsePagination(searchParams: URLSearchParams) {
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+  const limit = Math.min(
+    API_CONFIG.MAX_PAGE_SIZE,
+    Math.max(1, parseInt(searchParams.get('limit') || String(API_CONFIG.DEFAULT_PAGE_SIZE)))
+  );
+  const skip = (page - 1) * limit;
+
+  return { page, limit, skip };
+}
+
+/**
+ * Build pagination metadata
+ */
+export function buildPaginationMeta(
+  total: number,
+  page: number,
+  limit: number
+) {
+  const totalPages = Math.ceil(total / limit);
+  return {
+    currentPage: page,
+    totalPages,
+    totalItems: total,
+    limit,
+    hasNextPage: page < totalPages,
+    hasPrevPage: page > 1,
+  };
+}
+```
+
+**Files to refactor:**
+- `app/api/bookings/route.ts`
+- `app/api/customers/route.ts`
+- `app/api/cabins/route.ts`
+- `app/api/dining/route.ts`
+- `app/api/experiences/route.ts`
+
+---
+
+### 4.2 Standardize API Response Format
+
+**Current inconsistency:**
+```typescript
+// Some routes
+return NextResponse.json({ success: true, data: result });
+
+// Other routes
+return new Response(JSON.stringify({ success: true, data: result }), {
+  status: 200,
+  headers: { 'Content-Type': 'application/json' },
+});
+```
+
+**Standard format:**
+```typescript
+// Always use NextResponse.json() with consistent structure
+return NextResponse.json({
+  success: true,
+  data: result,
+  pagination: paginationMeta, // if applicable
+});
+
+// Errors
+return NextResponse.json({
+  success: false,
+  error: 'Human readable message',
+  code: 'VALIDATION_ERROR', // optional machine-readable code
+}, { status: 400 });
+```
+
+---
+
+### 4.3 Clean Up Unused Code
+
+**Files with unused code:**
+- `app/api/dashboard/route.ts` - Remove unused `clerkClient` import, commented code
+- `app/(dashboard)/layout.tsx` - Fix extra whitespace in className
+
+**Run lint to find more:**
+```bash
+pnpm lint
+```
+
+---
+
+### 4.4 Consolidate Data Fetching Strategy
+
+**Current state:** Mix of SWR (reads) and TanStack Query (mutations)
+
+**Recommendation:** Keep both but document the pattern clearly:
+- SWR: All GET requests (automatic revalidation, deduplication)
+- TanStack Query: All mutations (optimistic updates, cache invalidation)
+
+**Document in code:**
+```typescript
+// hooks/useBookings.ts
+/**
+ * Booking data fetching hook using SWR
+ *
+ * Pattern: SWR for reads, TanStack Query for mutations
+ * - SWR handles caching, revalidation, and deduplication
+ * - Mutations invalidate SWR cache via mutate()
+ */
+```
+
+---
+
+### 4.5 Fix Component Prop Drilling
+
+**File:** `components/BookingFormFields.tsx`
+
+**Current:** 18+ individual props
+
+**Solution - Group related props:**
+```typescript
+// Before
+interface BookingFormFieldsProps {
+  cabinId: string;
+  customerId: string;
+  checkInDate: Date;
+  checkOutDate: Date;
+  numGuests: number;
+  onCabinChange: (id: string) => void;
+  onCustomerChange: (id: string) => void;
+  // ... 12 more props
+}
+
+// After
+interface BookingFormFieldsProps {
+  formData: BookingFormData;
+  handlers: BookingFormHandlers;
+  options: {
+    cabins: Cabin[];
+    customers: Customer[];
+    settings: Settings;
+  };
+  state: {
+    isLoading: boolean;
+    errors: Record<string, string>;
+  };
+}
+
+interface BookingFormHandlers {
+  onFieldChange: <K extends keyof BookingFormData>(
+    field: K,
+    value: BookingFormData[K]
+  ) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+```
+
+---
+
+### 4.6 Add Missing Environment Variable Validation
+
+**Create:** `lib/env.ts`
+
+```typescript
+import { z } from 'zod';
+
+const envSchema = z.object({
+  MONGODB_URI: z.string().url(),
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().startsWith('pk_'),
+  CLERK_SECRET_KEY: z.string().startsWith('sk_'),
+  RESEND_API_KEY: z.string().optional(),
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+});
+
+export const env = envSchema.parse(process.env);
+```
+
+**Usage:**
+```typescript
+// Instead of process.env.MONGODB_URI
+import { env } from '@/lib/env';
+const uri = env.MONGODB_URI; // Typed and validated
+```
+
+---
+
+## Phase 5: Documentation & Testing (P3)
+
+### 5.1 Add API Documentation
+
+**Create:** `docs/api.md` or use OpenAPI spec
+
+Document each endpoint:
+- Method, path
+- Authentication required
+- Request body schema
+- Response schema
+- Example requests/responses
+
+### 5.2 Add Missing Tests
+
+**Priority test coverage:**
+1. API route handlers (unit tests)
+2. Validation schemas (unit tests)
+3. Custom hooks (integration tests)
+4. Critical user flows (e2e tests)
+
+---
+
+## Execution Checklist
+
+### Phase 1: Security (Week 1) ✅ COMPLETED
+- [x] 1.1 Add auth to all API routes
+- [x] 1.2 Sanitize search inputs
+- [x] 1.3 Add Zod validation
+- [x] 1.4 Add rate limiting
+- [x] Verify: TypeScript + Build pass
+
+### Phase 2: Performance (Week 2) ✅ COMPLETED
+- [x] 2.1 Fix N+1 Clerk queries (added getClerkUsersBatch function)
+- [x] 2.2 Move search to database (cabin search, partial customer search)
+- [x] 2.3 Consolidate aggregations (customers/[id], dashboard routes)
+- [x] 2.4 Add memoization (useBookingForm handlers with useCallback/useMemo)
+- [x] Verify: Build passes
+
+### Phase 3: Package Updates (Week 2-3) ✅ COMPLETED
+- [x] 3.1 Run safe updates (HeroUI, Clerk, TanStack, etc.)
+- [x] 3.2 Update HeroUI dropdown (from beta to 2.3.29 stable)
+- [x] 3.3 Move faker to devDeps (also updated to v10.2.0)
+- [x] Verify: Build passes
+
+### Phase 4: Code Quality (Week 3-4) ✅ COMPLETED
+- [x] 4.1 Extract duplicate code (added parsePagination, buildPaginationMeta, createPaginatedResponse)
+- [x] 4.2 Standardize responses (updated cabins, dining routes to use createSuccessResponse/createErrorResponse)
+- [x] 4.3 Clean up unused code (fixed whitespace in dashboard layout)
+- [x] 4.4 Document data fetching (added strategy docs to useBookings.ts)
+- [x] 4.5 Fix prop drilling (added organized interface docs to BookingFormFields)
+- [x] 4.6 Add env validation (created lib/env.ts with type-safe config)
+- [x] Verify: TypeScript + build pass
+
+### Phase 5: Documentation (Ongoing)
+- [ ] 5.1 API documentation
+- [ ] 5.2 Add missing tests
+
+---
+
+## Risks & Mitigations
 
 | Risk | Mitigation |
 |------|------------|
-| **Clerk SDK types may be incomplete** | Use `unknown` with type guards or cast to `PhoneNumber[]` etc. if documented |
-| **Mongoose aggregation results are untyped** | Define explicit result interfaces matching `$group`/`$project` output |
-| **HeroUI/NextUI `Selection` type behavior** | Verify import path and handle `Set<Key>` vs `"all"` union |
-| **Breaking existing functionality during refactor** | Refactor one file at a time, run tests between changes |
-| **Generic constraints may be complex in `useURLFilters`** | Consider keeping `any` internally but exposing strict external types |
+| Auth changes break existing flows | Test each route individually, add auth gradually |
+| Package updates cause regressions | Update in small batches, run full test suite |
+| Performance changes alter behavior | Compare API responses before/after |
+| Zod validation too strict | Start permissive, tighten gradually |
+| Cache introduces stale data | Set appropriate TTLs, add cache invalidation |
 
 ---
 
-## Recommended Execution Order
+## Success Metrics
 
-1. ✅ **Phase 1**: Complete (this audit)
-2. 🔜 **Phase 2.1**: Create shared type definitions (1-2 hours)
-3. 🔜 **Phase 2.2**: API routes (3-4 hours) — highest ROI
-4. 🔜 **Phase 2.3**: Hooks (1-2 hours)
-5. 🔜 **Phase 2.4-2.5**: Components (2-3 hours)
-6. 🔜 **Phase 3**: Verification (~1 hour)
-
-**Total estimated effort**: 8-12 hours of focused refactoring.
+1. **Security:** All API routes require authentication
+2. **Performance:** Booking list API < 500ms for 100 records
+3. **Packages:** No critical/high vulnerabilities in `pnpm audit`
+4. **Quality:** Zero ESLint errors, 80%+ test coverage on critical paths
+5. **Types:** Zero `any` types in new code
 
 ---
 
-## Progress Tracking
+## Notes
 
-- [x] Phase 2.1: Create `types/api.ts`
-- [x] Phase 2.1: Create `types/errors.ts`
-- [x] Phase 2.1: Update `types/clerk.ts`
-- [x] Phase 2.2: Refactor `app/api/bookings/route.ts`
-- [x] Phase 2.2: Refactor `app/api/cabins/route.ts`
-- [x] Phase 2.2: Refactor `app/api/dashboard/route.ts`
-- [x] Phase 2.2: Refactor `app/api/dining/route.ts`
-- [x] Phase 2.2: Refactor `app/api/settings/route.ts`
-- [x] Phase 2.2: Refactor `app/api/customers/*.ts` routes
-- [x] Phase 2.2: Refactor `app/api/cabins/[id]/route.ts` and `availability/route.ts`
-- [x] Phase 2.3: Refactor `hooks/useURLFilters.ts`
-- [x] Phase 2.3: Refactor `hooks/useCustomers.ts`
-- [x] Phase 2.3: Refactor `hooks/useBookings.ts` (added CreateBookingInput/UpdateBookingInput types)
-- [x] Phase 2.4: Refactor `components/BookingForm/` (types.ts, PaymentInformation.tsx, BookingDatesGuests.tsx, PriceBreakdown.tsx)
-- [x] Phase 2.4: Refactor `components/BookingForm.tsx` and `components/BookingFormRefactored.tsx`
-- [x] Phase 2.4: Refactor `components/SettingsForm/` (SettingsBookingSection.tsx)
-- [x] Phase 2.4: Refactor chart components (AreaChart.tsx, DurationChart.tsx)
-- [x] Phase 2.4: Add index signatures to filter types in `types/index.ts`
-- [x] Phase 2.5: Refactor filter components (BookingsFilters.tsx, CabinFilters.tsx)
-- [x] Phase 2.5: Refactor dining form components (DiningBasicInfo.tsx, DiningServingDetails.tsx)
-- [x] Phase 2.5: Refactor experience components (AddExperienceForm.tsx, AddExperienceModal.tsx, EditExperienceForm.tsx)
-- [x] Phase 2.5: Refactor misc components (DeletionModal.tsx, GuestRecentBookingCard.tsx, TodayActivity.tsx)
-- [x] Phase 2.5: Refactor page components (bookings/*.tsx, dining/page.tsx, experiences/page.tsx, guests/*.tsx)
-- [x] Phase 2.5: Remove remaining `as any` and `: any` casts
-- [x] Phase 2.5: Fix utility functions (bookingUtils.ts, utilityFunctions.ts - added ChipColor return types)
-- [x] Phase 2.5: Fix models (Booking.ts - findOverlapping query type)
-- [x] Phase 3: TypeScript verification (✅ `pnpm tsc --noEmit` passes)
-- [x] Phase 3: Build verification (✅ `pnpm build` passes)
-- [x] Phase 3: ESLint verification (✅ `pnpm lint` passes - test files excluded)
-- [ ] Phase 3: Test suite pass
-- [ ] Phase 3: Manual smoke test
-
----
-
-## Summary of Changes Made
-
-### New Type Definitions Created
-- `types/api.ts`: MongoDB query filters, sort types, aggregation result types, API input types (CreateBookingInput, UpdateBookingInput)
-- `types/errors.ts`: Error handling types and type guards (isMongooseValidationError, getErrorMessage)
-
-### Files Refactored (45+ files total)
-
-**API Routes:**
-- `app/api/bookings/route.ts`
-- `app/api/cabins/route.ts`, `route_new.ts`
-- `app/api/cabins/[id]/route.ts`, `availability/route.ts`
-- `app/api/dashboard/route.ts`
-- `app/api/dining/route.ts`
-- `app/api/settings/route.ts`
-- `app/api/customers/route.ts`, `[id]/route.ts`, `[id]/lock/route.ts`
-
-**Hooks:**
-- `hooks/useURLFilters.ts`
-- `hooks/useCustomers.ts`
-- `hooks/useBookings.ts`
-
-**Components:**
-- `components/BookingForm.tsx`, `BookingFormRefactored.tsx`, `BookingFormFields.tsx`
-- `components/BookingForm/` (types.ts, PaymentInformation.tsx, BookingDatesGuests.tsx, PriceBreakdown.tsx)
-- `components/BookingsTable/` (BookingCard.tsx, BookingTableCell.tsx)
-- `components/SettingsForm/SettingsBookingSection.tsx`
-- `components/AreaChart.tsx`, `DurationChart.tsx`
-- `components/BookingsFilters.tsx`, `CabinFilters.tsx`
-- `components/DiningForm/` (DiningBasicInfo.tsx, DiningServingDetails.tsx)
-- `components/AddExperienceForm.tsx`, `AddExperienceModal.tsx`, `EditExperienceForm.tsx`
-- `components/EditExperienceForm/types.ts`
-- `components/DeletionModal.tsx`, `GuestRecentBookingCard.tsx`, `TodayActivity.tsx`
-
-**Pages:**
-- `app/(dashboard)/bookings/page.tsx`, `[id]/edit/page.tsx`, `new/page.tsx`
-- `app/(dashboard)/dining/page.tsx`
-- `app/(dashboard)/experiences/page.tsx`
-- `app/(dashboard)/guests/page.tsx`, `[id]/page.tsx`
-
-**Types:**
-- `types/index.ts` (added FilterValue, index signatures to filter interfaces)
-- `types/clerk.ts` (replaced any[] with unknown[])
-
-**Utilities:**
-- `utils/bookingUtils.ts` (added ChipColor return type)
-- `utils/utilityFunctions.ts` (added ChipColor return type)
-
-**Models:**
-- `models/Booking.ts` (typed findOverlapping query)
+- Start with Phase 1 (Security) - highest impact, manageable scope
+- Phase 2 can run partially in parallel with Phase 3
+- Phase 4 is lower priority but improves maintainability
+- Consider feature flags for major changes
+- Keep `current-plan.md` for reference on TypeScript work already done

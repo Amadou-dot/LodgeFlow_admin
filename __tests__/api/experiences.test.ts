@@ -18,6 +18,15 @@ const mockConnectToDatabase = connectToDatabase as jest.MockedFunction<
 jest.mock('@/models/Experience');
 const MockExperience = Experience as jest.MockedClass<typeof Experience>;
 
+// Mock auth to bypass authentication
+jest.mock('@/lib/api-utils', () => ({
+  ...jest.requireActual('@/lib/api-utils'),
+  requireApiAuth: jest.fn().mockResolvedValue({
+    authenticated: true,
+    userId: 'test-user-id',
+  }),
+}));
+
 // Mock data
 const mockExperienceData = {
   _id: '507f1f77bcf86cd799439011',
@@ -66,7 +75,7 @@ describe('/api/experiences', () => {
       expect(mockConnectToDatabase).toHaveBeenCalledTimes(1);
       expect(MockExperience.find).toHaveBeenCalledWith({});
       expect(response.status).toBe(200);
-      expect(data).toEqual(mockExperienceList);
+      expect(data).toEqual({ success: true, data: mockExperienceList });
     });
 
     it('should handle database errors', async () => {
@@ -78,7 +87,7 @@ describe('/api/experiences', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toEqual({ error: 'Failed to fetch experiences' });
+      expect(data).toEqual({ success: false, error: 'Failed to fetch experiences' });
     });
   });
 
@@ -129,7 +138,11 @@ describe('/api/experiences', () => {
       });
       expect(mockSave).toHaveBeenCalledTimes(1);
       expect(response.status).toBe(201);
-      expect(data).toEqual(mockExperienceData);
+      expect(data.success).toBe(true);
+      expect(data.data).toMatchObject({
+        name: mockExperienceData.name,
+        price: mockExperienceData.price,
+      });
     });
 
     it('should handle creation errors', async () => {
@@ -149,7 +162,7 @@ describe('/api/experiences', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toEqual({ error: 'Failed to create experience' });
+      expect(data).toEqual({ success: false, error: 'Failed to create experience' });
     });
 
     it('should handle invalid JSON', async () => {
@@ -162,7 +175,7 @@ describe('/api/experiences', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toEqual({ error: 'Failed to create experience' });
+      expect(data).toEqual({ success: false, error: 'Failed to create experience' });
     });
   });
 });
