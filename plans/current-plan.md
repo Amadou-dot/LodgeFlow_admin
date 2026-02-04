@@ -787,9 +787,11 @@ Document each endpoint:
 - [x] 4.6 Add env validation (created lib/env.ts with type-safe config)
 - [x] Verify: TypeScript + build pass
 
-### Phase 5: Documentation (Ongoing)
-- [ ] 5.1 API documentation
-- [ ] 5.2 Add missing tests
+### Phase 5: Documentation & Testing ✅ COMPLETED
+- [x] 5.1 API documentation (created docs/api.md with comprehensive endpoint docs)
+- [x] 5.2 Add validation tests (170 tests for all Zod schemas in __tests__/validations/)
+- [x] 5.3 Add API route tests (tests for cabins, dining, settings routes in __tests__/api/)
+- [x] Verify: All 235 tests pass
 
 ---
 
