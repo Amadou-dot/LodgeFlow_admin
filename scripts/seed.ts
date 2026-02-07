@@ -1,3 +1,4 @@
+import { createClerkClient } from '@clerk/backend';
 import { faker } from '@faker-js/faker';
 import { config } from 'dotenv';
 import { resolve } from 'path';
@@ -7,6 +8,12 @@ import { Booking, Cabin, Dining, Experience, Settings } from '../models';
 
 // Load environment variables from .env.local
 config({ path: resolve(process.cwd(), '.env.local') });
+
+const CLERK_BATCH_SIZE = 3;
+const CLERK_BATCH_DELAY_MS = 500;
+const CLERK_USER_COUNT = 50;
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Sample cabin data (extracted from database with updated images)
 const cabinData = [
@@ -1081,31 +1088,77 @@ async function seedDatabase() {
     const dining = await Dining.insertMany(diningData as any);
     console.log(`🍽️ Created ${dining.length} dining items`);
 
-    // NOTE: Users are now created via Clerk, not MongoDB
-    // Use the create-clerk-users.ts script to create users in Clerk
-    // Load real Clerk user IDs from generated file
-    let clerkUserIds: string[] = [];
-    try {
-      const fs = await import('fs/promises');
-      const userIdsData = await fs.readFile('clerk-user-ids.json', 'utf-8');
-      clerkUserIds = JSON.parse(userIdsData);
-      console.log(
-        `👥 Loaded ${clerkUserIds.length} real Clerk user IDs for bookings`
-      );
-    } catch (error) {
-      console.warn('⚠️  Could not load clerk-user-ids.json, using sample IDs');
-      // Fallback to sample IDs if file doesn't exist
-      clerkUserIds = [
-        'user_2NhL8ZbYr0vE3fPm4WqXt6KaB7d',
-        'user_2NhL8ZcYr0vE3fPm4WqXt6KaB7e',
-        'user_2NhL8ZdYr0vE3fPm4WqXt6KaB7f',
-        'user_2NhL8ZeYr0vE3fPm4WqXt6KaB7g',
-        'user_2NhL8ZfYr0vE3fPm4WqXt6KaB7h',
-      ];
-      console.log(
-        `👥 Using ${clerkUserIds.length} sample Clerk user IDs for bookings`
-      );
+    // Delete all existing Clerk users, then create fresh ones
+    if (!process.env.CLERK_SECRET_KEY) {
+      throw new Error('CLERK_SECRET_KEY is not set');
     }
+    const clerkClient = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+
+    // Fetch all existing users
+    const existingUserIds: string[] = [];
+    let offset = 0;
+    const limit = 100;
+    while (true) {
+      const response = await clerkClient.users.getUserList({ limit, offset });
+      existingUserIds.push(...response.data.map(u => u.id));
+      if (response.data.length < limit) break;
+      offset += limit;
+    }
+
+    // Delete existing users in batches
+    if (existingUserIds.length > 0) {
+      console.log(
+        `🗑️  Deleting ${existingUserIds.length} existing Clerk users...`
+      );
+      for (let i = 0; i < existingUserIds.length; i += CLERK_BATCH_SIZE) {
+        const batch = existingUserIds.slice(i, i + CLERK_BATCH_SIZE);
+        await Promise.all(batch.map(id => clerkClient.users.deleteUser(id)));
+        if (i + CLERK_BATCH_SIZE < existingUserIds.length) {
+          await delay(CLERK_BATCH_DELAY_MS);
+        }
+      }
+      console.log(`🗑️  Deleted ${existingUserIds.length} Clerk users`);
+    } else {
+      console.log('👥 No existing Clerk users to delete');
+    }
+
+    // Create new users in batches
+    const clerkUserIds: string[] = [];
+    console.log(`👤 Creating ${CLERK_USER_COUNT} new Clerk users...`);
+    for (let i = 0; i < CLERK_USER_COUNT; i += CLERK_BATCH_SIZE) {
+      const batchSize = Math.min(CLERK_BATCH_SIZE, CLERK_USER_COUNT - i);
+      const batchPromises = Array.from({ length: batchSize }, async () => {
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const email = faker.internet.email({ firstName, lastName });
+        const password = faker.internet.password({
+          length: 12,
+          memorable: true,
+        });
+        const user = await clerkClient.users.createUser({
+          emailAddress: [email],
+          firstName,
+          lastName,
+          password,
+        });
+        return user.id;
+      });
+      const ids = await Promise.all(batchPromises);
+      clerkUserIds.push(...ids);
+      if ((i + batchSize) % 10 === 0 || i + batchSize >= CLERK_USER_COUNT) {
+        console.log(
+          `✅ Created ${clerkUserIds.length}/${CLERK_USER_COUNT} users...`
+        );
+      }
+      if (i + CLERK_BATCH_SIZE < CLERK_USER_COUNT) {
+        await delay(CLERK_BATCH_DELAY_MS);
+      }
+    }
+    console.log(
+      `👥 Created ${clerkUserIds.length} Clerk users for bookings`
+    );
 
     // Create bookings with recent dates (within last 60 days)
     const bookings: IBooking[] = [];
@@ -1229,7 +1282,7 @@ async function seedDatabase() {
 - Clerk User IDs: ${clerkUserIds.length}
 - Bookings: ${bookings.length}
 
-⚠️  Note: Users are now managed by Clerk. Use create-clerk-users.ts to create actual users.
+⚠️  Note: Clerk users were reset and recreated as part of seeding.
     `);
   } catch (error) {
     console.error('❌ Error seeding database:', error);
