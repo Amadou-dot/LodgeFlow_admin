@@ -1124,7 +1124,7 @@ async function seedDatabase() {
       console.log('👥 No existing Clerk users to delete');
     }
 
-    // Create new users in batches
+    // Create new users in batches with extended metadata
     const clerkUserIds: string[] = [];
     console.log(`👤 Creating ${CLERK_USER_COUNT} new Clerk users...`);
     for (let i = 0; i < CLERK_USER_COUNT; i += CLERK_BATCH_SIZE) {
@@ -1143,13 +1143,97 @@ async function seedDatabase() {
           lastName,
           password,
         });
+
+        // Write extended customer data to Clerk metadata
+        const publicMetadata: Record<string, unknown> = {
+          nationality: faker.location.country(),
+        };
+
+        // ~60% of users get preferences
+        if (faker.datatype.boolean({ probability: 0.6 })) {
+          publicMetadata.preferences = {
+            smokingPreference: faker.helpers.arrayElement([
+              'smoking',
+              'non-smoking',
+              'no-preference',
+            ]),
+            dietaryRestrictions: faker.datatype.boolean({ probability: 0.3 })
+              ? faker.helpers.arrayElements(
+                  [
+                    'vegetarian',
+                    'vegan',
+                    'gluten-free',
+                    'halal',
+                    'kosher',
+                    'nut-free',
+                    'dairy-free',
+                  ],
+                  { min: 1, max: 2 }
+                )
+              : [],
+            accessibilityNeeds: faker.datatype.boolean({ probability: 0.1 })
+              ? faker.helpers.arrayElements(
+                  [
+                    'wheelchair access',
+                    'ground floor',
+                    'visual aids',
+                    'hearing aids',
+                  ],
+                  { min: 1, max: 2 }
+                )
+              : [],
+          };
+        }
+
+        const privateMetadata: Record<string, unknown> = {};
+
+        // ~40% of users have a national ID
+        if (faker.datatype.boolean({ probability: 0.4 })) {
+          privateMetadata.nationalId = faker.string.alphanumeric({
+            length: { min: 8, max: 12 },
+            casing: 'upper',
+          });
+        }
+
+        // ~70% have an address
+        if (faker.datatype.boolean({ probability: 0.7 })) {
+          privateMetadata.address = {
+            street: faker.location.streetAddress(),
+            city: faker.location.city(),
+            state: faker.location.state(),
+            country: faker.location.country(),
+            zipCode: faker.location.zipCode(),
+          };
+        }
+
+        // ~30% have an emergency contact
+        if (faker.datatype.boolean({ probability: 0.3 })) {
+          privateMetadata.emergencyContact = {
+            firstName: faker.person.firstName(),
+            lastName: faker.person.lastName(),
+            phone: faker.phone.number({ style: 'international' }),
+            relationship: faker.helpers.arrayElement([
+              'spouse',
+              'parent',
+              'sibling',
+              'friend',
+              'partner',
+            ]),
+          };
+        }
+
+        await clerkClient.users.updateUserMetadata(user.id, {
+          publicMetadata,
+          privateMetadata,
+        });
+
         return user.id;
       });
       const ids = await Promise.all(batchPromises);
       clerkUserIds.push(...ids);
       if ((i + batchSize) % 10 === 0 || i + batchSize >= CLERK_USER_COUNT) {
         console.log(
-          `✅ Created ${clerkUserIds.length}/${CLERK_USER_COUNT} users...`
+          `✅ Created ${clerkUserIds.length}/${CLERK_USER_COUNT} users (with metadata)...`
         );
       }
       if (i + CLERK_BATCH_SIZE < CLERK_USER_COUNT) {
@@ -1157,7 +1241,7 @@ async function seedDatabase() {
       }
     }
     console.log(
-      `👥 Created ${clerkUserIds.length} Clerk users for bookings`
+      `👥 Created ${clerkUserIds.length} Clerk users with extended metadata`
     );
 
     // Create bookings with recent dates (within last 60 days)

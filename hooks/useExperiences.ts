@@ -1,6 +1,6 @@
 'use client';
 
-import { Experience } from '@/types';
+import type { Experience, ExperienceFilters } from '@/types';
 import useSWR from 'swr';
 
 // Fetcher function for SWR - extracts data from wrapped API response
@@ -18,9 +18,20 @@ const fetcher = (url: string) =>
   });
 
 // Fetch app experiences using SWR
-export const useExperiences = () => {
+export const useExperiences = (filters: ExperienceFilters = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (filters.search) queryParams.append('search', filters.search);
+  if (filters.category) queryParams.append('category', filters.category);
+  if (filters.difficulty) queryParams.append('difficulty', filters.difficulty);
+  if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
+  if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
+
+  const queryString = queryParams.toString();
+  const url = `/api/experiences${queryString ? `?${queryString}` : ''}`;
+
   const { data, error, isLoading, mutate } = useSWR<Experience[]>(
-    '/api/experiences',
+    url,
     fetcher,
     {
       revalidateOnFocus: false,

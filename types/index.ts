@@ -10,6 +10,8 @@ import type {
   ClerkUserListResponse,
   Customer,
   CustomerExtendedData,
+  CustomerPrivateMetadata,
+  CustomerPublicMetadata,
 } from './clerk';
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
@@ -27,6 +29,8 @@ export type {
   ClerkUserListResponse,
   Customer,
   CustomerExtendedData,
+  CustomerPrivateMetadata,
+  CustomerPublicMetadata,
 };
 export type Booking = IBooking;
 export type Dining = IDining;
@@ -56,11 +60,10 @@ export interface RecentBooking {
 }
 
 // Extended types for populated models (used in API responses)
-export interface PopulatedBooking
-  extends Omit<
-    IBooking,
-    'cabin' | 'customer' | 'checkInDate' | 'checkOutDate'
-  > {
+export interface PopulatedBooking extends Omit<
+  IBooking,
+  'cabin' | 'customer' | 'checkInDate' | 'checkOutDate'
+> {
   cabin: ICabin;
   customer: Customer; // Updated to use new Customer type from Clerk
   checkInDate: string | Date; // API returns string, but might be Date in some contexts
@@ -203,3 +206,12 @@ export interface PaginationData {
 
 // Alias for customer pagination (same structure)
 export type CustomerPaginationMeta = PaginationData;
+
+export interface ExperienceFilters {
+  [key: string]: FilterValue;
+  search?: string;
+  category?: string;
+  difficulty?: 'Easy' | 'Moderate' | 'Challenging';
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}

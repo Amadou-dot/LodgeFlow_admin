@@ -1,18 +1,22 @@
 'use client';
 
 import AddExperienceModal from '@/components/AddExperienceModal';
+import ExperienceFilters from '@/components/ExperienceFilters';
 import { ExperienceGrid } from '@/components/ExperienceGrid';
 import { PlusIcon } from '@/components/icons';
 import { useCreateExperience, useExperiences } from '@/hooks/useExperiences';
 import type { FormData } from '@/components/AddExperienceForm/types';
+import type { ExperienceFilters as ExperienceFiltersType } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { useDisclosure } from '@heroui/modal';
 import { Spinner } from '@heroui/spinner';
 import { addToast } from '@heroui/toast';
+import { useState } from 'react';
 
 export default function ExperiencesPage() {
-  const { data: experiences, error, isLoading } = useExperiences();
+  const [filters, setFilters] = useState<ExperienceFiltersType>({});
+  const { data: experiences, error, isLoading } = useExperiences(filters);
   const { createExperience } = useCreateExperience();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -145,6 +149,16 @@ export default function ExperiencesPage() {
         </Button>
       </div>
 
+      {/* Filters */}
+      <div className='mb-8'>
+        <ExperienceFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          onReset={() => setFilters({})}
+          totalCount={experiences?.length || 0}
+        />
+      </div>
+
       {/* Loading State */}
       {isLoading && (
         <div className='flex justify-center items-center py-12'>
@@ -159,30 +173,31 @@ export default function ExperiencesPage() {
             <Card className='bg-default-50'>
               <CardBody className='text-center py-12'>
                 <p className='text-default-600 text-lg mb-4'>
-                  No experiences available
+                  {Object.keys(filters).length > 0
+                    ? 'No experiences match your current filters'
+                    : 'No experiences available'}
                 </p>
-                <Button
-                  color='primary'
-                  onPress={() => onOpen()}
-                  startContent={<PlusIcon size={18} />}
-                >
-                  Create Your First Experience
-                </Button>
+                {Object.keys(filters).length > 0 ? (
+                  <Button
+                    color='default'
+                    variant='bordered'
+                    onPress={() => setFilters({})}
+                  >
+                    Clear Filters
+                  </Button>
+                ) : (
+                  <Button
+                    color='primary'
+                    onPress={() => onOpen()}
+                    startContent={<PlusIcon size={18} />}
+                  >
+                    Create Your First Experience
+                  </Button>
+                )}
               </CardBody>
             </Card>
           ) : (
-            <>
-              {/* Results Count */}
-              <div className='mb-6'>
-                <p className='text-sm text-default-600'>
-                  {experiences.length} experience
-                  {experiences.length !== 1 ? 's' : ''} found
-                </p>
-              </div>
-
-              {/* Experiences Grid */}
-              <ExperienceGrid items={experiences} />
-            </>
+            <ExperienceGrid items={experiences} />
           )}
         </>
       )}

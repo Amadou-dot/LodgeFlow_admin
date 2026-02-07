@@ -1,3 +1,6 @@
+// @deprecated - This model is kept for the migration script (scripts/migrate-customer-data-to-clerk.ts).
+// Extended customer data is now stored in Clerk user metadata (publicMetadata + privateMetadata).
+// Do not use this model for new code.
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ICustomer extends Document {

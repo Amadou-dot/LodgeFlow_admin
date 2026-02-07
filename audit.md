@@ -4,6 +4,7 @@
 
 ## Issue 1: Duplicate Notifications & Double Confirmation on Cabin Delete
 
+**Status: Fixed**
 **Severity:** Medium
 **Area:** Cabins
 **Screenshots:** `delete modal confirmation 1.png`, `delete modal confirmation 2.png`, `multi toast error.png`
@@ -56,6 +57,7 @@ The mutation's `onError` callback likely calls `window.alert()` or similar. It s
 
 ## Issue 4: No Search Functionality on Experiences Page
 
+**Status: Fixed**
 **Severity:** Low
 **Area:** Experiences
 **Screenshot:** `Experiences page.png`
@@ -70,6 +72,7 @@ Add a search input that filters experiences by name, description, or category (m
 
 ## Issue 5: Guest Management Should Use Clerk User Records
 
+**Status: Fixed**
 **Severity:** Medium
 **Area:** Guests — Add / Edit
 **Type:** Feature requirement

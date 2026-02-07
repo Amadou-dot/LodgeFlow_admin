@@ -5,7 +5,6 @@ import {
   updateCompleteCustomer,
 } from '@/lib/clerk-users';
 import connectDB from '@/lib/mongodb';
-import { isMongooseValidationError } from '@/types/errors';
 import { NextRequest, NextResponse } from 'next/server';
 import { Booking } from '../../../../models';
 
@@ -20,7 +19,7 @@ export async function GET(
   try {
     const { id } = await params;
 
-    // Get customer from Clerk with extended data
+    // Get customer from Clerk with metadata
     const customer = await getClerkUser(id);
 
     if (!customer) {
@@ -33,12 +32,10 @@ export async function GET(
       );
     }
 
-    // Get all customer stats in a single aggregation pipeline
+    // Compute stats on demand from Booking collection
     await connectDB();
 
-    // Run aggregation and recent bookings query in parallel
     const [statsResult, recentBookings] = await Promise.all([
-      // Single aggregation for all stats
       Booking.aggregate([
         { $match: { customer: id } },
         {
@@ -54,6 +51,7 @@ export async function GET(
               },
             },
             totalNights: { $sum: '$numNights' },
+            lastBookingDate: { $max: '$createdAt' },
           },
         },
         {
@@ -62,6 +60,7 @@ export async function GET(
             totalBookings: 1,
             completedBookings: 1,
             totalRevenue: 1,
+            lastBookingDate: 1,
             averageStayLength: {
               $cond: [
                 { $gt: ['$totalBookings', 0] },
@@ -72,25 +71,34 @@ export async function GET(
           },
         },
       ]),
-      // Recent bookings with populated cabin
       Booking.find({ customer: id })
         .populate('cabin', 'name image capacity price')
         .sort({ createdAt: -1 })
         .limit(10),
     ]);
 
-    // Extract stats with defaults
     const stats = statsResult[0] || {
       totalBookings: 0,
       completedBookings: 0,
       totalRevenue: 0,
       averageStayLength: 0,
+      lastBookingDate: undefined,
     };
 
-    // Flatten the customer data - use database values for core stats, calculated values for display-only stats
+    // Compute loyalty tier from booking count
+    let loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum' = 'bronze';
+    if (stats.totalBookings >= 10) loyaltyTier = 'platinum';
+    else if (stats.totalBookings >= 5) loyaltyTier = 'gold';
+    else if (stats.totalBookings >= 2) loyaltyTier = 'silver';
+
     const customerData = {
       ...customer,
-      // Additional calculated stats for display purposes
+      // Override computed fields with actual booking stats
+      totalBookings: stats.totalBookings,
+      totalSpent: stats.totalRevenue,
+      lastBookingDate: stats.lastBookingDate,
+      loyaltyTier,
+      // Additional calculated stats for display
       completedBookings: stats.completedBookings,
       totalRevenue: stats.totalRevenue,
       averageStayLength: stats.averageStayLength,
@@ -118,18 +126,18 @@ export async function PUT(
   if (!authResult.authenticated) return authResult.error;
 
   try {
-    const { id } = await params; // This is the Clerk user ID
+    const { id } = await params;
 
     const body = await request.json();
 
-    // Update complete customer (Clerk user + extended data)
+    // Update complete customer (Clerk user + metadata)
     const customer = await updateCompleteCustomer(id, {
       // Clerk user fields
       firstName: body.firstName,
       lastName: body.lastName,
       username: body.username,
 
-      // Extended data fields
+      // Extended data fields (stored in Clerk metadata)
       nationality: body.nationality,
       nationalId: body.nationalId,
       address: body.address,
@@ -143,17 +151,6 @@ export async function PUT(
     });
   } catch (error: unknown) {
     console.error('Error updating customer:', error);
-
-    if (isMongooseValidationError(error)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Validation failed',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
-    }
 
     return NextResponse.json(
       {
@@ -175,7 +172,7 @@ export async function DELETE(
 
   try {
     await connectDB();
-    const { id } = await params; // This is the Clerk user ID
+    const { id } = await params;
 
     // Check if customer has any bookings
     const bookingCount = await Booking.countDocuments({ customer: id });
@@ -190,7 +187,7 @@ export async function DELETE(
       );
     }
 
-    // Delete complete customer (Clerk user + extended data)
+    // Delete customer from Clerk (no more MongoDB cleanup needed)
     await deleteCompleteCustomer(id);
 
     return NextResponse.json({

@@ -5,7 +5,7 @@ import { Button } from '@heroui/button';
 import { Card, CardBody, CardFooter } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import Image from 'next/image';
-import DeletionModal from './DeletionModal';
+import { TrashIcon } from './icons';
 
 interface CabinCardProps {
   cabin: Cabin;
@@ -93,17 +93,15 @@ export default function CabinCard({ cabin, onEdit, onDelete }: CabinCardProps) {
           >
             Edit
           </Button>
-          <DeletionModal
-            resourceId={cabin.id}
-            resourceName='Cabin'
-            itemName={cabin.name}
-            onDelete={async () => onDelete(cabin)}
-            buttonProps={{
-              color: 'danger',
-              variant: 'light',
-              className: 'flex-1',
-            }}
-          />
+          <Button
+            color='danger'
+            variant='light'
+            className='flex-1'
+            startContent={<TrashIcon />}
+            onPress={() => onDelete(cabin)}
+          >
+            Delete
+          </Button>
         </div>
       </CardFooter>
     </Card>

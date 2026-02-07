@@ -1,7 +1,10 @@
-import CustomerModel from '@/models/Customer';
-import { ClerkUserListParams, Customer, CustomerExtendedData } from '@/types';
+import type {
+  ClerkUserListParams,
+  Customer,
+  CustomerPrivateMetadata,
+  CustomerPublicMetadata,
+} from '@/types';
 import { clerkClient, User } from '@clerk/nextjs/server';
-import connectDB from './mongodb';
 
 // In-memory cache for Clerk user data
 const userCache = new Map<
@@ -27,6 +30,13 @@ function getCachedUser(userId: string): Customer | null | undefined {
 
 function setCachedUser(userId: string, user: Customer | null): void {
   userCache.set(userId, { data: user, timestamp: Date.now() });
+}
+
+/**
+ * Invalidate cache for a specific user
+ */
+function invalidateCache(userId: string): void {
+  userCache.delete(userId);
 }
 
 /**
@@ -75,16 +85,23 @@ async function retryWithBackoff<T>(
 }
 
 /**
- * Service functions for interacting with Clerk users and combining with our extended data
+ * Extract extended data from Clerk user metadata
  */
+function extractMetadata(clerkUser: User): {
+  publicMeta: CustomerPublicMetadata;
+  privateMeta: CustomerPrivateMetadata;
+} {
+  const publicMeta = (clerkUser.publicMetadata || {}) as CustomerPublicMetadata;
+  const privateMeta = (clerkUser.privateMetadata ||
+    {}) as CustomerPrivateMetadata;
+  return { publicMeta, privateMeta };
+}
 
 /**
- * Converts Clerk user data to our Customer format
+ * Converts Clerk user data to our Customer format.
+ * Extended data is read from Clerk metadata (publicMetadata + privateMetadata).
  */
-export function convertClerkUserToCustomer(
-  clerkUser: User,
-  extendedData?: CustomerExtendedData
-): Customer {
+export function convertClerkUserToCustomer(clerkUser: User): Customer {
   // Get primary email address
   const primaryEmail = clerkUser.emailAddresses.find(
     email => email.id === clerkUser.primaryEmailAddressId
@@ -99,17 +116,18 @@ export function convertClerkUserToCustomer(
     clerkUser.username ||
     'Unknown User';
 
-  // Calculate loyalty tier
-  const totalBookings = extendedData?.totalBookings || 0;
-  let loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum' = 'bronze';
-  if (totalBookings >= 10) loyaltyTier = 'platinum';
-  else if (totalBookings >= 5) loyaltyTier = 'gold';
-  else if (totalBookings >= 2) loyaltyTier = 'silver';
+  // Extract metadata
+  const { publicMeta, privateMeta } = extractMetadata(clerkUser);
 
-  // Build full address
+  // totalBookings/totalSpent are computed on demand from Booking collection,
+  // default to 0 here since they aren't stored in Clerk metadata
+  const totalBookings = 0;
+  const loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum' = 'bronze';
+
+  // Build full address from privateMetadata
   let fullAddress = '';
-  if (extendedData?.address) {
-    const { street, city, state, country, zipCode } = extendedData.address;
+  if (privateMeta.address) {
+    const { street, city, state, country, zipCode } = privateMeta.address;
     fullAddress = [street, city, state, country, zipCode]
       .filter(Boolean)
       .join(', ');
@@ -136,18 +154,19 @@ export function convertClerkUserToCustomer(
     // Clerk status fields
     banned: clerkUser.banned,
     locked: clerkUser.locked,
-    // Clerk does not currently provide lockout expiration information in the User object
     lockout_expires_in_seconds: null,
 
-    // Extended data (with defaults)
-    nationality: extendedData?.nationality,
-    nationalId: extendedData?.nationalId,
-    address: extendedData?.address,
-    emergencyContact: extendedData?.emergencyContact,
-    preferences: extendedData?.preferences,
-    totalBookings: extendedData?.totalBookings || 0,
-    totalSpent: extendedData?.totalSpent || 0,
-    lastBookingDate: extendedData?.lastBookingDate,
+    // Extended data from Clerk metadata
+    nationality: publicMeta.nationality,
+    nationalId: privateMeta.nationalId,
+    address: privateMeta.address,
+    emergencyContact: privateMeta.emergencyContact,
+    preferences: publicMeta.preferences,
+
+    // Computed on demand — default to 0 here
+    totalBookings,
+    totalSpent: 0,
+    lastBookingDate: undefined,
 
     // Computed properties
     loyaltyTier,
@@ -163,7 +182,6 @@ export async function getClerkUsers(params: ClerkUserListParams = {}): Promise<{
   totalCount: number;
 }> {
   try {
-    // Fetch users from Clerk
     const client = await clerkClient();
     const response = await client.users.getUserList({
       limit: params.limit || 10,
@@ -189,24 +207,10 @@ export async function getClerkUsers(params: ClerkUserListParams = {}): Promise<{
       query: params.query,
     });
 
-    // Get extended data for all users
-    await connectDB();
-    const clerkUserIds = response.data.map((user: User) => user.id);
-    const extendedDataList = await CustomerModel.find({
-      clerkUserId: { $in: clerkUserIds },
-    });
-
-    // Create a map for quick lookup
-    const extendedDataMap = new Map<string, CustomerExtendedData>();
-    extendedDataList.forEach(data => {
-      extendedDataMap.set(data.clerkUserId, data);
-    });
-
-    // Convert Clerk users to our Customer format
-    const customers = response.data.map((clerkUser: User) => {
-      const extendedData = extendedDataMap.get(clerkUser.id);
-      return convertClerkUserToCustomer(clerkUser, extendedData);
-    });
+    // Convert Clerk users to our Customer format (metadata is already on the user object)
+    const customers = response.data.map((clerkUser: User) =>
+      convertClerkUserToCustomer(clerkUser)
+    );
 
     return {
       data: customers,
@@ -229,19 +233,13 @@ export async function getClerkUser(userId: string): Promise<Customer | null> {
   }
 
   try {
-    // Apply rate limiting and retry with exponential backoff
     const customer = await retryWithBackoff(async () => {
       await waitForRateLimit();
 
-      // Fetch user from Clerk
       const client = await clerkClient();
       const clerkUser = await client.users.getUser(userId);
 
-      // Get extended data from our database
-      await connectDB();
-      const extendedData = await CustomerModel.findOne({ clerkUserId: userId });
-
-      return convertClerkUserToCustomer(clerkUser, extendedData);
+      return convertClerkUserToCustomer(clerkUser);
     });
 
     // Cache the result
@@ -262,8 +260,8 @@ export async function getClerkUser(userId: string): Promise<Customer | null> {
         typedError.status === 404 ||
         typedError.errors?.[0]?.code === 'resource_not_found'
       ) {
-        setCachedUser(userId, null); // Cache the null result
-        return null; // User not found - this is expected for some cases
+        setCachedUser(userId, null);
+        return null;
       }
 
       if (typedError.status === 429) {
@@ -271,18 +269,15 @@ export async function getClerkUser(userId: string): Promise<Customer | null> {
           'Rate limited by Clerk API after retries, returning null for user:',
           userId
         );
-        // Don't cache rate limit errors, but return null
-        return null; // Rate limited - return null to prevent hanging
+        return null;
       }
 
       if (typedError.status && typedError.status >= 500) {
         console.warn('Clerk server error, returning null for user:', userId);
-        // Don't cache server errors, but return null
-        return null; // Server error - return null to prevent hanging
+        return null;
       }
     }
 
-    // For other errors, return null instead of throwing to prevent search from hanging
     console.warn('Unknown Clerk error, returning null for user:', userId);
     return null;
   }
@@ -323,7 +318,6 @@ export async function searchClerkUsers(
 
 /**
  * Batch fetch multiple Clerk users with optimized caching
- * This is more efficient than calling getClerkUser for each ID
  */
 export async function getClerkUsersBatch(
   userIds: string[]
@@ -341,21 +335,9 @@ export async function getClerkUsersBatch(
     }
   }
 
-  // If all users were cached, return immediately
   if (uncachedIds.length === 0) {
     return results;
   }
-
-  // Fetch extended data for all uncached users in one query
-  await connectDB();
-  const extendedDataList = await CustomerModel.find({
-    clerkUserId: { $in: uncachedIds },
-  });
-
-  const extendedDataMap = new Map<string, CustomerExtendedData>();
-  extendedDataList.forEach(data => {
-    extendedDataMap.set(data.clerkUserId, data);
-  });
 
   // Fetch Clerk users in batches with concurrency limit
   const CONCURRENT_LIMIT = Number(process.env.CLERK_API_CONCURRENT_LIMIT) || 3;
@@ -367,21 +349,18 @@ export async function getClerkUsersBatch(
 
   for (const chunk of chunks) {
     const clerkResults = await Promise.all(
-      chunk.map(async (userId) => {
+      chunk.map(async userId => {
         try {
           await waitForRateLimit();
           const client = await clerkClient();
           const clerkUser = await client.users.getUser(userId);
-          const extendedData = extendedDataMap.get(userId);
-          const customer = convertClerkUserToCustomer(clerkUser, extendedData);
+          const customer = convertClerkUserToCustomer(clerkUser);
 
-          // Cache the result
           setCachedUser(userId, customer);
           return { userId, customer };
         } catch (error: unknown) {
           console.error(`Error fetching user ${userId}:`, error);
 
-          // Handle user not found - cache null
           if (
             error &&
             typeof error === 'object' &&
@@ -396,55 +375,12 @@ export async function getClerkUsersBatch(
       })
     );
 
-    // Add results to map
     for (const { userId, customer } of clerkResults) {
       results.set(userId, customer);
     }
   }
 
   return results;
-}
-
-/**
- * Create or update extended customer data in our database
- */
-export async function upsertCustomerExtendedData(
-  clerkUserId: string,
-  data: Partial<
-    Omit<CustomerExtendedData, 'clerkUserId' | 'createdAt' | 'updatedAt'>
-  >
-): Promise<CustomerExtendedData> {
-  try {
-    await connectDB();
-    const extendedData = await CustomerModel.findOneAndUpdate(
-      { clerkUserId },
-      { ...data, clerkUserId },
-      {
-        new: true,
-        upsert: true,
-        runValidators: true,
-      }
-    );
-    return extendedData;
-  } catch (error) {
-    console.error('Error upserting customer extended data:', error);
-    throw new Error('Failed to update customer extended data');
-  }
-}
-
-/**
- * Get extended customer data from our database
- */
-export async function getCustomerExtendedData(
-  clerkUserId: string
-): Promise<CustomerExtendedData | null> {
-  try {
-    await connectDB();
-    return await CustomerModel.findOne({ clerkUserId });
-  } catch (error) {
-    console.error('Error fetching customer extended data:', error);
-    throw new Error('Failed to fetch customer extended data');
-  }
 }
 
 /**
@@ -477,7 +413,6 @@ export async function createClerkUser(userData: {
       lastName: userData.lastName,
     };
 
-    // Add optional fields if provided
     if (userData.phone) {
       createParams.phoneNumber = [userData.phone];
     }
@@ -491,7 +426,6 @@ export async function createClerkUser(userData: {
   } catch (error: unknown) {
     console.error('Error creating user in Clerk:', error);
 
-    // Handle specific Clerk errors
     if (error && typeof error === 'object' && 'errors' in error) {
       const clerkError = error as { errors: Array<{ message: string }> };
       const errorMessages = clerkError.errors
@@ -526,7 +460,6 @@ export async function updateClerkUser(
 
     const updateParams: ClerkUpdateUserParams = {};
 
-    // Only include fields that are provided
     if (userData.firstName !== undefined) {
       updateParams.firstName = userData.firstName;
     }
@@ -542,7 +475,6 @@ export async function updateClerkUser(
   } catch (error: unknown) {
     console.error('Error updating user in Clerk:', error);
 
-    // Handle specific Clerk errors
     if (error && typeof error === 'object' && 'errors' in error) {
       const clerkError = error as { errors: Array<{ message: string }> };
       const errorMessages = clerkError.errors
@@ -623,7 +555,7 @@ export async function unlockClerkUser(userId: string): Promise<User> {
 }
 
 /**
- * Create a complete customer (Clerk user + extended data)
+ * Create a complete customer (Clerk user + metadata)
  */
 export async function createCompleteCustomer(userData: {
   // Required Clerk fields
@@ -634,7 +566,7 @@ export async function createCompleteCustomer(userData: {
   lastName: string;
   username?: string;
 
-  // Extended data fields
+  // Extended data fields (stored in Clerk metadata)
   nationality?: string;
   nationalId?: string;
   address?: {
@@ -667,71 +599,52 @@ export async function createCompleteCustomer(userData: {
       username: userData.username,
     });
 
-    // 2. Create extended data in our database
-    type ExtendedDataToSave = Partial<
-      Omit<
-        CustomerExtendedData,
-        | 'clerkUserId'
-        | 'totalBookings'
-        | 'totalSpent'
-        | 'createdAt'
-        | 'updatedAt'
-      >
-    > & {
-      clerkUserId: string;
-    };
+    // 2. Store extended data in Clerk metadata
+    const publicMetadata: CustomerPublicMetadata = {};
+    const privateMetadata: CustomerPrivateMetadata = {};
 
-    const extendedDataToSave: ExtendedDataToSave = {
-      clerkUserId: clerkUser.id,
-    };
-
-    // Add optional extended data fields if provided
-    if (userData.nationality)
-      extendedDataToSave.nationality = userData.nationality;
-    if (userData.nationalId)
-      extendedDataToSave.nationalId = userData.nationalId;
-    if (userData.address) extendedDataToSave.address = userData.address;
-    if (userData.emergencyContact)
-      extendedDataToSave.emergencyContact =
-        userData.emergencyContact as CustomerExtendedData['emergencyContact'];
+    if (userData.nationality) publicMetadata.nationality = userData.nationality;
     if (userData.preferences)
-      extendedDataToSave.preferences =
-        userData.preferences as CustomerExtendedData['preferences'];
+      publicMetadata.preferences =
+        userData.preferences as CustomerPublicMetadata['preferences'];
 
-    const extendedData = await upsertCustomerExtendedData(
-      clerkUser.id,
-      extendedDataToSave
-    );
+    if (userData.nationalId) privateMetadata.nationalId = userData.nationalId;
+    if (userData.address) privateMetadata.address = userData.address;
+    if (userData.emergencyContact)
+      privateMetadata.emergencyContact =
+        userData.emergencyContact as CustomerPrivateMetadata['emergencyContact'];
+
+    const client = await clerkClient();
+    const updatedUser = await client.users.updateUserMetadata(clerkUser.id, {
+      publicMetadata,
+      privateMetadata,
+    });
 
     // 3. Return combined customer object
-    return convertClerkUserToCustomer(clerkUser, extendedData);
+    return convertClerkUserToCustomer(updatedUser);
   } catch (error) {
     console.error('Error creating complete customer:', error);
-    throw error; // Re-throw to preserve the original error message
+    throw error;
   }
 }
 
 /**
- * Delete a complete customer (Clerk user + extended data)
+ * Delete a complete customer (Clerk user only — no more MongoDB)
  */
 export async function deleteCompleteCustomer(
   clerkUserId: string
 ): Promise<void> {
   try {
-    // 1. Delete extended data from our database first
-    await connectDB();
-    await CustomerModel.findOneAndDelete({ clerkUserId });
-
-    // 2. Delete user from Clerk
     await deleteClerkUser(clerkUserId);
+    invalidateCache(clerkUserId);
   } catch (error) {
     console.error('Error deleting complete customer:', error);
-    throw error; // Re-throw to preserve the original error message
+    throw error;
   }
 }
 
 /**
- * Update a complete customer (Clerk user + extended data)
+ * Update a complete customer (Clerk user + metadata)
  */
 export async function updateCompleteCustomer(
   clerkUserId: string,
@@ -741,7 +654,7 @@ export async function updateCompleteCustomer(
     lastName?: string;
     username?: string;
 
-    // Extended data fields
+    // Extended data fields (stored in Clerk metadata)
     nationality?: string;
     nationalId?: string;
     address?: {
@@ -765,6 +678,8 @@ export async function updateCompleteCustomer(
   }
 ): Promise<Customer> {
   try {
+    const client = await clerkClient();
+
     // 1. Update user in Clerk (only if Clerk-related fields are provided)
     let clerkUser;
     const clerkUpdateFields = {
@@ -773,7 +688,6 @@ export async function updateCompleteCustomer(
       username: userData.username,
     };
 
-    // Check if any Clerk fields need updating
     const hasClerkUpdates = Object.values(clerkUpdateFields).some(
       value => value !== undefined
     );
@@ -781,58 +695,56 @@ export async function updateCompleteCustomer(
     if (hasClerkUpdates) {
       clerkUser = await updateClerkUser(clerkUserId, clerkUpdateFields);
     } else {
-      // Get current Clerk user if no updates needed
-      const client = await clerkClient();
       clerkUser = await client.users.getUser(clerkUserId);
     }
 
-    // 2. Update extended data in our database
-    type ExtendedDataToUpdate = Partial<
-      Omit<
-        CustomerExtendedData,
-        | 'clerkUserId'
-        | 'totalBookings'
-        | 'totalSpent'
-        | 'createdAt'
-        | 'updatedAt'
-        | 'lastBookingDate'
-      >
-    >;
+    // 2. Update extended data in Clerk metadata
+    const publicMetadata: Partial<CustomerPublicMetadata> = {};
+    const privateMetadata: Partial<CustomerPrivateMetadata> = {};
+    let hasMetadataUpdates = false;
 
-    const extendedDataToUpdate: ExtendedDataToUpdate = {};
-
-    // Add optional extended data fields if provided
-    if (userData.nationality !== undefined)
-      extendedDataToUpdate.nationality = userData.nationality;
-    if (userData.nationalId !== undefined)
-      extendedDataToUpdate.nationalId = userData.nationalId;
-    if (userData.address !== undefined)
-      extendedDataToUpdate.address = userData.address;
-    if (userData.emergencyContact !== undefined)
-      extendedDataToUpdate.emergencyContact =
-        userData.emergencyContact as CustomerExtendedData['emergencyContact'];
-    if (userData.preferences !== undefined)
-      extendedDataToUpdate.preferences =
-        userData.preferences as CustomerExtendedData['preferences'];
-
-    let extendedData;
-    if (Object.keys(extendedDataToUpdate).length > 0) {
-      extendedData = await upsertCustomerExtendedData(
-        clerkUserId,
-        extendedDataToUpdate
-      );
-    } else {
-      extendedData = await getCustomerExtendedData(clerkUserId);
+    if (userData.nationality !== undefined) {
+      publicMetadata.nationality = userData.nationality;
+      hasMetadataUpdates = true;
     }
+    if (userData.preferences !== undefined) {
+      publicMetadata.preferences =
+        userData.preferences as CustomerPublicMetadata['preferences'];
+      hasMetadataUpdates = true;
+    }
+
+    if (userData.nationalId !== undefined) {
+      privateMetadata.nationalId = userData.nationalId;
+      hasMetadataUpdates = true;
+    }
+    if (userData.address !== undefined) {
+      privateMetadata.address = userData.address;
+      hasMetadataUpdates = true;
+    }
+    if (userData.emergencyContact !== undefined) {
+      privateMetadata.emergencyContact =
+        userData.emergencyContact as CustomerPrivateMetadata['emergencyContact'];
+      hasMetadataUpdates = true;
+    }
+
+    if (hasMetadataUpdates) {
+      clerkUser = await client.users.updateUserMetadata(clerkUserId, {
+        publicMetadata,
+        privateMetadata,
+      });
+    }
+
+    // Invalidate cache
+    invalidateCache(clerkUserId);
 
     // 3. Return updated combined customer object
     if (!clerkUser) {
       throw new Error('Failed to get updated user data');
     }
 
-    return convertClerkUserToCustomer(clerkUser, extendedData || undefined);
+    return convertClerkUserToCustomer(clerkUser);
   } catch (error) {
     console.error('Error updating complete customer:', error);
-    throw error; // Re-throw to preserve the original error message
+    throw error;
   }
 }
