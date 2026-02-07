@@ -68,26 +68,39 @@ export const createBookingSchema = z
 /**
  * Update booking request schema (all fields optional except _id)
  */
-export const updateBookingSchema = z.object({
-  _id: z.string().min(1, 'Booking ID is required'),
-  cabin: z.string().min(1).optional(),
-  customer: z.string().min(1).optional(),
-  checkInDate: z.coerce.date().optional(),
-  checkOutDate: z.coerce.date().optional(),
-  numGuests: z.number().int().min(1).max(20).optional(),
-  numNights: z.number().int().min(1).optional(),
-  status: bookingStatusSchema.optional(),
-  cabinPrice: z.number().min(0).optional(),
-  extrasPrice: z.number().min(0).optional(),
-  totalPrice: z.number().min(0).optional(),
-  isPaid: z.boolean().optional(),
-  paymentMethod: paymentMethodSchema.optional(),
-  depositPaid: z.boolean().optional(),
-  depositAmount: z.number().min(0).optional(),
-  remainingAmount: z.number().min(0).optional(),
-  extras: bookingExtrasSchema.optional(),
-  observations: z.string().max(1000).optional(),
-});
+export const updateBookingSchema = z
+  .object({
+    _id: z.string().min(1, 'Booking ID is required'),
+    cabin: z.string().min(1).optional(),
+    customer: z.string().min(1).optional(),
+    checkInDate: z.coerce.date().optional(),
+    checkOutDate: z.coerce.date().optional(),
+    numGuests: z.number().int().min(1).max(20).optional(),
+    numNights: z.number().int().min(1).optional(),
+    status: bookingStatusSchema.optional(),
+    cabinPrice: z.number().min(0).optional(),
+    extrasPrice: z.number().min(0).optional(),
+    totalPrice: z.number().min(0).optional(),
+    isPaid: z.boolean().optional(),
+    paymentMethod: paymentMethodSchema.optional(),
+    depositPaid: z.boolean().optional(),
+    depositAmount: z.number().min(0).optional(),
+    remainingAmount: z.number().min(0).optional(),
+    extras: bookingExtrasSchema.optional(),
+    observations: z.string().max(1000).optional(),
+  })
+  .refine(
+    data => {
+      if (data.checkInDate && data.checkOutDate) {
+        return data.checkOutDate > data.checkInDate;
+      }
+      return true;
+    },
+    {
+      message: 'Check-out date must be after check-in date',
+      path: ['checkOutDate'],
+    }
+  );
 
 /**
  * Record payment schema (for PATCH /api/bookings/[id])

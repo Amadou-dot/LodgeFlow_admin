@@ -16,6 +16,7 @@ import { BookingFormFieldProps } from './types';
 interface BookingDatesGuestsProps extends BookingFormFieldProps {
   selectedCabin?: Cabin;
   numNights: number;
+  excludeBookingId?: string;
 }
 
 interface UnavailableDateRange {
@@ -39,15 +40,18 @@ export default function BookingDatesGuests({
   onInputChange,
   selectedCabin,
   numNights,
+  excludeBookingId,
 }: BookingDatesGuestsProps) {
   // Fetch unavailable dates for the selected cabin
+  // When editing, exclude the current booking's dates from the unavailable list
+  const availabilityUrl = selectedCabin?.id
+    ? `/api/cabins/${selectedCabin.id}/availability${excludeBookingId ? `?excludeBookingId=${excludeBookingId}` : ''}`
+    : null;
+
   const { data: availabilityData, error } = useSWR<{
     success: boolean;
     data: AvailabilityData;
-  }>(
-    selectedCabin?.id ? `/api/cabins/${selectedCabin.id}/availability` : null,
-    fetcher
-  );
+  }>(availabilityUrl, fetcher);
 
   // Convert string dates to CalendarDate objects for the DateRangePicker
   const dateRange: RangeValue<CalendarDate> | null =
