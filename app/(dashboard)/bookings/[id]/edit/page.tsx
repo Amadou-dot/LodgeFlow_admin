@@ -7,6 +7,7 @@ import { useBooking, useUpdateBooking } from '@/hooks/useBookings';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { Spinner } from '@heroui/spinner';
+import { addToast } from '@heroui/toast';
 import { useRouter } from 'next/navigation';
 import { use } from 'react';
 
@@ -40,7 +41,11 @@ export default function EditBookingPage({ params }: EditBookingPageProps) {
 
     const errors = validateForm();
     if (errors.length > 0) {
-      alert(errors.join('\n'));
+      addToast({
+        title: 'Validation errors',
+        description: errors.join('\n'),
+        color: 'danger',
+      });
       return;
     }
 
@@ -54,8 +59,8 @@ export default function EditBookingPage({ params }: EditBookingPageProps) {
       await updateBooking.mutateAsync(bookingData);
       handleSuccess();
     } catch (error) {
+      // Toast is shown by the mutation's onError callback
       console.error('Error updating booking:', error);
-      alert('Failed to update booking. Please try again.');
     }
   };
 
@@ -136,6 +141,7 @@ export default function EditBookingPage({ params }: EditBookingPageProps) {
                   formatCurrency={bookingFormHook.formatCurrency}
                   showPayment={true}
                   showPricing={true}
+                  excludeBookingId={booking._id.toString()}
                 />
 
                 {/* Form Actions */}

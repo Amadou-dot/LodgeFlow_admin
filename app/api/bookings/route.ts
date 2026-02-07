@@ -6,6 +6,7 @@ import type { IBooking } from '@/models/Booking';
 import type { ICabin } from '@/models/Cabin';
 import type { BookingQueryFilter, MongoSortOrder } from '@/types/api';
 import { getErrorMessage, isMongooseValidationError } from '@/types/errors';
+import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 import { Booking, Cabin, Customer as CustomerModel } from '../../../models';
 
@@ -331,9 +332,59 @@ export async function PUT(request: NextRequest) {
 
     const { _id, ...updateData } = validationResult.data;
 
+    // Fetch the existing booking to compare fields
+    const existingBooking = await Booking.findById(_id);
+    if (!existingBooking) {
+      return NextResponse.json(
+        { success: false, error: 'Booking not found' },
+        { status: 404 }
+      );
+    }
+
+    // Only check for date overlaps when dates or cabin actually changed
+    const cabinChanged =
+      updateData.cabin &&
+      updateData.cabin.toString() !== existingBooking.cabin.toString();
+    const checkInChanged =
+      updateData.checkInDate &&
+      new Date(updateData.checkInDate).getTime() !==
+        existingBooking.checkInDate.getTime();
+    const checkOutChanged =
+      updateData.checkOutDate &&
+      new Date(updateData.checkOutDate).getTime() !==
+        existingBooking.checkOutDate.getTime();
+
+    if (cabinChanged || checkInChanged || checkOutChanged) {
+      const cabinId = updateData.cabin || existingBooking.cabin;
+      const checkIn = updateData.checkInDate || existingBooking.checkInDate;
+      const checkOut = updateData.checkOutDate || existingBooking.checkOutDate;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const overlapping = await (Booking as any).findOverlapping(
+        cabinId,
+        checkIn,
+        checkOut,
+        new mongoose.Types.ObjectId(_id)
+      );
+
+      if (overlapping.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              'The selected dates overlap with an existing booking for this cabin',
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Note: runValidators omitted because Zod's updateBookingSchema already
+    // validates all fields including date order. Mongoose's checkOutDate
+    // validator breaks with findByIdAndUpdate (this context is the Query, not
+    // the document, so this.checkInDate is undefined).
     const booking = await Booking.findByIdAndUpdate(_id, updateData, {
       new: true,
-      runValidators: true,
     }).populate('cabin', 'name image capacity price discount');
 
     if (!booking) {

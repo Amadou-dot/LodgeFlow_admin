@@ -79,6 +79,9 @@ interface BookingFormFieldsProps {
   // Display Options
   showPayment?: boolean;
   showPricing?: boolean;
+
+  // Edit mode
+  excludeBookingId?: string;
 }
 
 export default function BookingFormFields({
@@ -101,6 +104,7 @@ export default function BookingFormFields({
   formatCurrency,
   showPayment = true,
   showPricing = true,
+  excludeBookingId,
 }: BookingFormFieldsProps) {
   return (
     <div className='space-y-6'>
@@ -148,6 +152,7 @@ export default function BookingFormFields({
             onInputChange={handleInputChange}
             selectedCabin={selectedCabin}
             numNights={numNights}
+            excludeBookingId={excludeBookingId}
           />
         </CardBody>
       </Card>

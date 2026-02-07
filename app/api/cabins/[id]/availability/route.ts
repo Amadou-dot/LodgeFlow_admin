@@ -23,6 +23,7 @@ export async function GET(
     const url = new URL(request.url);
     const startDate = url.searchParams.get('startDate');
     const endDate = url.searchParams.get('endDate');
+    const excludeBookingId = url.searchParams.get('excludeBookingId');
 
     // Default to next 6 months if no date range provided
     const defaultStart = new Date();
@@ -33,16 +34,24 @@ export async function GET(
     const queryEndDate = endDate ? new Date(endDate) : defaultEnd;
 
     // Find all bookings that overlap with the query date range
-    const bookings = await Booking.find({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const query: Record<string, any> = {
       cabin: cabinId,
-      status: { $nin: ['cancelled'] }, // Exclude cancelled bookings
+      status: { $nin: ['cancelled'] },
       $or: [
         {
           checkInDate: { $lt: queryEndDate },
           checkOutDate: { $gt: queryStartDate },
         },
       ],
-    })
+    };
+
+    // When editing a booking, exclude its own dates from the unavailable list
+    if (excludeBookingId) {
+      query._id = { $ne: excludeBookingId };
+    }
+
+    const bookings = await Booking.find(query)
       .select('checkInDate checkOutDate')
       .lean();
 

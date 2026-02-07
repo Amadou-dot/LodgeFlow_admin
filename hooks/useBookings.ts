@@ -32,6 +32,7 @@
 import { SWR_CONFIG } from '@/lib/config';
 import type { BookingsFilters, PopulatedBooking } from '@/types';
 import type { CreateBookingInput, UpdateBookingInput } from '@/types/api';
+import { addToast } from '@heroui/toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useSWR from 'swr';
 
@@ -236,7 +237,10 @@ export const useUpdateBooking = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update booking');
+        const result = await response.json();
+        throw new Error(
+          result.error || 'Failed to update booking'
+        );
       }
       const result = await response.json();
       return result.success ? result.data : result;
@@ -245,6 +249,18 @@ export const useUpdateBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       queryClient.invalidateQueries({ queryKey: ['overview'] });
+      addToast({
+        title: 'Booking updated',
+        description: 'The booking has been updated successfully.',
+        color: 'success',
+      });
+    },
+    onError: (error: Error) => {
+      addToast({
+        title: 'Update failed',
+        description: error.message,
+        color: 'danger',
+      });
     },
   });
 };
