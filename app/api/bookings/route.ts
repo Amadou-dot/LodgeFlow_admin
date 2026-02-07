@@ -1,4 +1,8 @@
-import { createValidationErrorResponse, escapeRegex, requireApiAuth } from '@/lib/api-utils';
+import {
+  createValidationErrorResponse,
+  escapeRegex,
+  requireApiAuth,
+} from '@/lib/api-utils';
 import { getClerkUsersBatch } from '@/lib/clerk-users';
 import connectDB from '@/lib/mongodb';
 import { createBookingSchema, updateBookingSchema } from '@/lib/validations';
@@ -8,57 +12,19 @@ import type { BookingQueryFilter, MongoSortOrder } from '@/types/api';
 import { getErrorMessage, isMongooseValidationError } from '@/types/errors';
 import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
-import { Booking, Cabin, Customer as CustomerModel } from '../../../models';
-
-// Helper function to update customer statistics
-async function updateCustomerStats(clerkUserId: string) {
-  try {
-    // Get all bookings for this customer
-    const customerBookings = await Booking.find({ customer: clerkUserId });
-
-    // Filter out cancelled bookings for revenue calculations
-    const validBookings = customerBookings.filter(
-      booking => booking.status !== 'cancelled'
-    );
-
-    // Calculate statistics
-    const totalBookings = customerBookings.length; // Include all bookings for count
-    const totalSpent = validBookings.reduce(
-      (sum, booking) => sum + (booking.totalPrice || 0),
-      0
-    );
-    // Find the most recent booking
-    const sortedBookings = customerBookings.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-    const lastBookingDate =
-      sortedBookings.length > 0 ? sortedBookings[0].createdAt : null;
-
-    // Update customer record by clerkUserId, create if it doesn't exist
-    await CustomerModel.findOneAndUpdate(
-      { clerkUserId },
-      {
-        clerkUserId, // Include this in case we're creating a new record
-        totalBookings,
-        totalSpent,
-        lastBookingDate,
-      },
-      {
-        upsert: true, // Create the record if it doesn't exist
-        new: true, // Return the updated document
-      }
-    );
-  } catch (error) {
-    console.error(`Error updating customer stats for ${clerkUserId}:`, error);
-    // Don't throw the error to avoid breaking booking operations
-  }
-}
+import { Booking, Cabin } from '../../../models';
 
 // Helper function to populate bookings with Clerk customer data
 // Uses optimized batch fetching with caching
 async function populateBookingsWithClerkCustomers(
-  bookings: Array<IBooking & { cabin?: Pick<ICabin, 'name' | 'image' | 'capacity' | 'price' | 'discount'> }>
+  bookings: Array<
+    IBooking & {
+      cabin?: Pick<
+        ICabin,
+        'name' | 'image' | 'capacity' | 'price' | 'discount'
+      >;
+    }
+  >
 ) {
   // Get unique customer IDs to avoid duplicate API calls
   const customerIds = bookings.map(booking => booking.customer);
@@ -121,33 +87,15 @@ export async function GET(request: NextRequest) {
 
       // Phase 1: Find matching cabin IDs from database
       const matchingCabins = await Cabin.find({
-        name: { $regex: safeSearch, $options: 'i' }
+        name: { $regex: safeSearch, $options: 'i' },
       }).select('_id');
       const cabinIds = matchingCabins.map(c => c._id);
 
-      // Phase 2: Find matching customer IDs from our Customer collection
-      // (searches by name/email stored in extended data)
-      const matchingCustomers = await CustomerModel.find({
-        $or: [
-          { 'address.street': { $regex: safeSearch, $options: 'i' } },
-          { nationality: { $regex: safeSearch, $options: 'i' } },
-        ]
-      }).select('clerkUserId');
-      const customerIds = matchingCustomers.map(c => c.clerkUserId);
-
-      // Build query to find bookings matching either cabin OR customer
+      // Build query to find bookings matching cabin name
       const searchQuery: BookingQueryFilter = { ...query };
 
-      // Only add $or if we have matches, otherwise fall back to populate-then-filter
-      if (cabinIds.length > 0 || customerIds.length > 0) {
-        const orConditions = [];
-        if (cabinIds.length > 0) {
-          orConditions.push({ cabin: { $in: cabinIds } });
-        }
-        if (customerIds.length > 0) {
-          orConditions.push({ customer: { $in: customerIds } });
-        }
-        searchQuery.$or = orConditions;
+      if (cabinIds.length > 0) {
+        searchQuery.$or = [{ cabin: { $in: cabinIds } }];
       }
 
       // Get bookings matching the search criteria
@@ -156,7 +104,8 @@ export async function GET(request: NextRequest) {
         .sort(sort);
 
       // Populate with Clerk customer data
-      const populatedBookings = await populateBookingsWithClerkCustomers(matchingBookings);
+      const populatedBookings =
+        await populateBookingsWithClerkCustomers(matchingBookings);
 
       // Additional client-side filtering for customer name/email
       // (since Clerk data isn't in our DB, we still need some filtering)
@@ -257,9 +206,6 @@ export async function POST(request: NextRequest) {
     }
 
     const booking = await Booking.create(validationResult.data);
-
-    // Update customer statistics after creating booking
-    await updateCustomerStats(booking.customer);
 
     // Populate the response
     const populatedBooking = await Booking.findById(booking._id).populate(
@@ -402,9 +348,6 @@ export async function PUT(request: NextRequest) {
       booking,
     ]);
 
-    // Update customer statistics after updating booking
-    await updateCustomerStats(booking.customer);
-
     return NextResponse.json({
       success: true,
       data: populatedWithClerk,
@@ -476,13 +419,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const customerId = booking.customer;
-
     // Delete the booking
     await Booking.findByIdAndDelete(id);
-
-    // Update customer statistics after deleting booking
-    await updateCustomerStats(customerId);
 
     return NextResponse.json({
       success: true,

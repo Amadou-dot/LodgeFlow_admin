@@ -127,7 +127,6 @@ export function useDeleteCabin() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayCabinToast(error.message || 'Failed to delete cabin', 'error');
         throw new Error(error.error || 'Failed to delete cabin');
       }
 
@@ -136,7 +135,6 @@ export function useDeleteCabin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });
-      displayCabinToast('Cabin deleted successfully', 'success');
     },
   });
 }

@@ -94,13 +94,6 @@ export default function DeletionModal({
         color: 'success',
       });
     } catch (error: unknown) {
-      addToast({
-        title: 'Error',
-        description: 'Delete error occurred',
-        color: 'danger',
-      });
-
-      // Handle specific error messages from the API
       let errorMessage = 'Unknown error occurred';
       if (error instanceof Error) {
         errorMessage = error.message;

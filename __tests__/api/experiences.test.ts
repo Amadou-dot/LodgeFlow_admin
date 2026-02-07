@@ -66,10 +66,13 @@ describe('/api/experiences', () => {
 
   describe('GET /api/experiences', () => {
     it('should return all experiences', async () => {
-      // Mock Experience.find to return mock data
-      MockExperience.find = jest.fn().mockResolvedValue(mockExperienceList);
+      // Mock Experience.find to return mock data with sort chaining
+      MockExperience.find = jest.fn().mockReturnValue({
+        sort: jest.fn().mockResolvedValue(mockExperienceList),
+      });
 
-      const response = await GET();
+      const request = new NextRequest('http://localhost/api/experiences');
+      const response = await GET(request);
       const data = await response.json();
 
       expect(mockConnectToDatabase).toHaveBeenCalledTimes(1);
@@ -79,15 +82,19 @@ describe('/api/experiences', () => {
     });
 
     it('should handle database errors', async () => {
-      MockExperience.find = jest
-        .fn()
-        .mockRejectedValue(new Error('Database error'));
+      MockExperience.find = jest.fn().mockReturnValue({
+        sort: jest.fn().mockRejectedValue(new Error('Database error')),
+      });
 
-      const response = await GET();
+      const request = new NextRequest('http://localhost/api/experiences');
+      const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toEqual({ success: false, error: 'Failed to fetch experiences' });
+      expect(data).toEqual({
+        success: false,
+        error: 'Failed to fetch experiences',
+      });
     });
   });
 
@@ -162,7 +169,10 @@ describe('/api/experiences', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toEqual({ success: false, error: 'Failed to create experience' });
+      expect(data).toEqual({
+        success: false,
+        error: 'Failed to create experience',
+      });
     });
 
     it('should handle invalid JSON', async () => {
@@ -175,7 +185,10 @@ describe('/api/experiences', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toEqual({ success: false, error: 'Failed to create experience' });
+      expect(data).toEqual({
+        success: false,
+        error: 'Failed to create experience',
+      });
     });
   });
 });

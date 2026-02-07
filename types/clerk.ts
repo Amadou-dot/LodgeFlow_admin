@@ -91,7 +91,40 @@ export interface ClerkUser {
   password_last_updated_at?: number;
 }
 
-// Extended customer data that we store in our database
+// Extended customer data stored in Clerk user metadata
+// publicMetadata: non-sensitive data accessible on the client
+export interface CustomerPublicMetadata {
+  [key: string]: unknown;
+  nationality?: string;
+  preferences?: {
+    smokingPreference: 'smoking' | 'non-smoking' | 'no-preference';
+    dietaryRestrictions?: string[];
+    accessibilityNeeds?: string[];
+  };
+}
+
+// privateMetadata: sensitive PII accessible only on the server
+export interface CustomerPrivateMetadata {
+  [key: string]: unknown;
+  nationalId?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    zipCode?: string;
+  };
+  emergencyContact?: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    relationship: string;
+  };
+}
+
+// @deprecated - Extended customer data previously stored in MongoDB Customer collection.
+// Now stored in Clerk metadata (publicMetadata + privateMetadata).
+// Kept for migration script compatibility.
 export interface CustomerExtendedData {
   clerkUserId: string; // Reference to Clerk user ID
   nationality?: string;
