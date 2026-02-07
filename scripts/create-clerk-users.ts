@@ -106,15 +106,6 @@ if (require.main === module) {
       console.log('\n📋 Created users summary:');
       console.log(`Total users: ${users.length}`);
       console.log(`Sample bookings prepared: ${sampleBookings.length}`);
-
-      // Optionally save user data to a JSON file for reference
-      const fs = await import('fs/promises');
-      await fs.writeFile(
-        'clerk-users.json',
-        JSON.stringify(users, null, 2),
-        'utf-8'
-      );
-      console.log('💾 User data saved to clerk-users.json');
     } catch (error) {
       console.error('❌ Script failed:', error);
       process.exit(1);
