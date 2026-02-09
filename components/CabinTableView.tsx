@@ -109,7 +109,7 @@ export default function CabinTableView({
         return (
           <Dropdown>
             <DropdownTrigger>
-              <Button isIconOnly variant='light' size='sm'>
+              <Button isIconOnly variant='light' size='sm' aria-label='Cabin actions'>
                 <VerticalDotsIcon size={18} />
               </Button>
             </DropdownTrigger>

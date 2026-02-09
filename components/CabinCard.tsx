@@ -32,7 +32,7 @@ export default function CabinCard({
   return (
     <Card
       shadow='sm'
-      className='w-full transition-shadow hover:shadow-md'
+      className='w-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5'
     >
       <CardBody
         className='p-0 cursor-pointer'
@@ -51,13 +51,13 @@ export default function CabinCard({
               color='danger'
               variant='solid'
               size='sm'
-              className='absolute top-2 right-2'
+              className='absolute top-2 right-2 shadow-md'
             >
               ${cabin.discount} off
             </Chip>
           )}
           <div className='absolute bottom-2 left-2'>
-            <Chip color='primary' variant='solid' size='sm'>
+            <Chip color='primary' variant='solid' size='sm' className='shadow-md'>
               {cabin.capacity} guests
             </Chip>
           </div>
@@ -72,6 +72,7 @@ export default function CabinCard({
                   isIconOnly
                   variant='light'
                   size='sm'
+                  aria-label='Cabin actions'
                   onClick={e => e.stopPropagation()}
                 >
                   <VerticalDotsIcon size={18} />

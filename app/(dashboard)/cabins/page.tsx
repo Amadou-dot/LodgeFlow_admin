@@ -256,6 +256,7 @@ export default function CabinsPage() {
         onClose={handleCloseModal}
         cabin={selectedCabin}
         mode={modalMode}
+        onEdit={handleEditCabin}
       />
 
       {/* Delete Confirmation Modal */}
