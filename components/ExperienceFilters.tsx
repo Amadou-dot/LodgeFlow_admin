@@ -68,6 +68,7 @@ export default function ExperienceFiltersComponent({
     <>
       <Select
         placeholder='All categories'
+        aria-label='Filter by category'
         selectedKeys={filters.category ? [filters.category] : []}
         onSelectionChange={(keys: SharedSelection) => {
           const value = Array.from(keys)[0] as string;
@@ -87,6 +88,7 @@ export default function ExperienceFiltersComponent({
 
       <Select
         placeholder='All difficulties'
+        aria-label='Filter by difficulty'
         selectedKeys={filters.difficulty ? [filters.difficulty] : []}
         onSelectionChange={(keys: SharedSelection) => {
           const value = Array.from(keys)[0] as

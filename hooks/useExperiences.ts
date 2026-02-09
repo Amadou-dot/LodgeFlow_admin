@@ -1,24 +1,16 @@
-'use client';
-
 import type { Experience, ExperienceFilters } from '@/types';
-import useSWR from 'swr';
+import { addToast } from '@heroui/toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-// Fetcher function for SWR - extracts data from wrapped API response
-const fetcher = (url: string) =>
-  fetch(url).then(res => {
-    if (!res.ok) {
-      throw new Error('Failed to fetch experiences');
-    }
-    return res.json().then(result => {
-      if (result.success) {
-        return result.data;
-      }
-      throw new Error('Failed to fetch experiences');
-    });
+const displayExperienceToast = (message: string, type: 'success' | 'error') => {
+  addToast({
+    title: type === 'success' ? 'Success' : 'Error',
+    description: message,
+    color: type === 'success' ? 'success' : 'danger',
   });
+};
 
-// Fetch app experiences using SWR
-export const useExperiences = (filters: ExperienceFilters = {}) => {
+export function useExperiences(filters: ExperienceFilters = {}) {
   const queryParams = new URLSearchParams();
 
   if (filters.search) queryParams.append('search', filters.search);
@@ -27,103 +19,107 @@ export const useExperiences = (filters: ExperienceFilters = {}) => {
   if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
   if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
 
-  const queryString = queryParams.toString();
-  const url = `/api/experiences${queryString ? `?${queryString}` : ''}`;
+  return useQuery<Experience[]>({
+    queryKey: ['experiences', filters],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/experiences?${queryParams.toString()}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch experiences');
+      }
+      const result = await response.json();
+      return result.success ? result.data : result;
+    },
+  });
+}
 
-  const { data, error, isLoading, mutate } = useSWR<Experience[]>(
-    url,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 30000, // Dedupe requests within 30 seconds
-    }
-  );
+export function useCreateExperience() {
+  const queryClient = useQueryClient();
 
-  return {
-    data,
-    error,
-    isLoading,
-    mutate, // For manual revalidation
-  };
-};
+  return useMutation({
+    mutationFn: async (experience: Partial<Experience>) => {
+      const response = await fetch('/api/experiences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(experience),
+      });
 
-export const useCreateExperience = () => {
-  const { mutate } = useExperiences();
+      if (!response.ok) {
+        const error = await response.json();
+        displayExperienceToast(
+          error.message || 'Failed to create experience',
+          'error'
+        );
+        throw new Error(error.error || 'Failed to create experience');
+      }
 
-  const createExperience = async (
-    data: Omit<Experience, '_id' | 'createdAt' | 'updatedAt'>
-  ) => {
-    const response = await fetch('/api/experiences', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+      const result = await response.json();
+      return result.success ? result.data : result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['experiences'] });
+      queryClient.invalidateQueries({ queryKey: ['experience-stats'] });
+      displayExperienceToast('Experience created successfully', 'success');
+    },
+  });
+}
 
-    if (!response.ok) {
-      throw new Error('Failed to create experience');
-    }
+export function useUpdateExperience() {
+  const queryClient = useQueryClient();
 
-    const newExperience = await response.json();
+  return useMutation({
+    mutationFn: async (experience: Partial<Experience> & { _id: string }) => {
+      const response = await fetch(`/api/experiences/${experience._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(experience),
+      });
 
-    // Optimistically update the cache
-    mutate();
+      if (!response.ok) {
+        const error = await response.json();
+        displayExperienceToast(
+          error.message || 'Failed to update experience',
+          'error'
+        );
+        throw new Error(error.error || 'Failed to update experience');
+      }
 
-    return newExperience;
-  };
+      const result = await response.json();
+      return result.success ? result.data : result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['experiences'] });
+      queryClient.invalidateQueries({ queryKey: ['experience-stats'] });
+      displayExperienceToast('Experience updated successfully', 'success');
+    },
+  });
+}
 
-  return {
-    createExperience,
-  };
-};
+export function useDeleteExperience() {
+  const queryClient = useQueryClient();
 
-export const useUpdateExperience = () => {
-  const { mutate } = useExperiences();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/experiences/${id}`, {
+        method: 'DELETE',
+      });
 
-  const updateExperience = async (id: string, data: Partial<Experience>) => {
-    const response = await fetch(`/api/experiences/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete experience');
+      }
 
-    if (!response.ok) {
-      throw new Error('Failed to update experience');
-    }
-
-    // Revalidate the SWR cache
-    mutate();
-
-    return response.json();
-  };
-
-  return {
-    updateExperience,
-  };
-};
-
-export const useDeleteExperience = () => {
-  const { mutate } = useExperiences();
-
-  const deleteExperience = async (id: string) => {
-    const response = await fetch(`/api/experiences/${id}`, {
-      method: 'DELETE',
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to delete experience');
-    }
-
-    // Revalidate the SWR cache
-    mutate();
-
-    return response.json();
-  };
-
-  return {
-    deleteExperience,
-  };
-};
+      const result = await response.json();
+      return result.success ? result : result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['experiences'] });
+      queryClient.invalidateQueries({ queryKey: ['experience-stats'] });
+    },
+  });
+}
