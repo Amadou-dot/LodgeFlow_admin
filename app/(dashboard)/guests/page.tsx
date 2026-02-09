@@ -4,6 +4,7 @@ import GuestGrid from '@/components/GuestGrid';
 import { PlusIcon } from '@/components/icons';
 import StandardFilters, { FilterOption } from '@/components/StandardFilters';
 import { useCustomers } from '@/hooks/useCustomers';
+import { clearDetailMemory } from '@/hooks/useDetailPageMemory';
 import { useURLFilters, guestsFilterConfig } from '@/hooks/useURLFilters';
 import type { CustomersFilters } from '@/types';
 import { Button } from '@heroui/button';
@@ -43,6 +44,9 @@ function GuestsContent() {
     if (!user?.id || !customers) return customers;
     return customers.filter(customer => customer.id !== user.id);
   }, [customers, user?.id]);
+
+  // Clear detail page memory when landing on the list page
+  useEffect(() => { clearDetailMemory('guests'); }, []);
 
   // Check for success message in URL (when coming back from new guest page)
   useEffect(() => {

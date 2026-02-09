@@ -12,6 +12,7 @@ import {
   useCheckOutBooking,
   useDeleteBooking,
 } from '@/hooks/useBookings';
+import { useDetailPageMemory } from '@/hooks/useDetailPageMemory';
 import { formatBookingDates } from '@/utils/bookingUtils';
 import { Button } from '@heroui/button';
 import { Spinner } from '@heroui/spinner';
@@ -23,6 +24,7 @@ export default function BookingDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const bookingId = params.id?.toString();
+  useDetailPageMemory('bookings');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Booking mutations
@@ -151,7 +153,7 @@ export default function BookingDetailsPage() {
     <div className='container mx-auto px-4 py-6 max-w-6xl'>
       <BookingDetailsHeader
         booking={booking}
-        onBack={() => router.back()}
+        onBack={() => router.push('/bookings')}
         onBookingUpdated={() => mutate()}
         onDeleteSuccess={handleDeleteSuccess}
         deleteMutation={deleteMutation}
