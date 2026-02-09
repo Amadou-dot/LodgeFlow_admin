@@ -1,5 +1,16 @@
 'use client';
-import { ArrowLeft, Edit, Moon, Plus, Search, Sun, Trash2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Edit,
+  EllipsisVertical,
+  LayoutGrid,
+  List,
+  Moon,
+  Plus,
+  Search,
+  Sun,
+  Trash2,
+} from 'lucide-react';
 import Image from 'next/image';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
@@ -65,4 +76,16 @@ export const EditIcon = (props: IconSvgProps) => {
 
 export const TrashIcon = (props: IconSvgProps) => {
   return <Trash2 {...props} />;
+};
+
+export const VerticalDotsIcon = (props: IconSvgProps) => {
+  return <EllipsisVertical {...props} />;
+};
+
+export const GridIcon = (props: IconSvgProps) => {
+  return <LayoutGrid {...props} />;
+};
+
+export const ListIcon = (props: IconSvgProps) => {
+  return <List {...props} />;
 };

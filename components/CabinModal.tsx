@@ -46,7 +46,7 @@ export default function CabinModal({
   const updateCabin = useUpdateCabin();
 
   useEffect(() => {
-    if (cabin && mode === 'edit') {
+    if (cabin && (mode === 'edit' || mode === 'view')) {
       setFormData({
         name: cabin.name,
         image: cabin.image,
@@ -138,22 +138,104 @@ export default function CabinModal({
         </ModalHeader>
 
         <ModalBody>
-          <div className='space-y-4'>
-            {/* Image */}
-            <div>
-              <label className='text-sm font-medium'>Cabin Image</label>
+          {isViewMode ? (
+            <div className='space-y-5'>
+              {/* Hero Image */}
               {isValidImage && (
-                <div className='mt-2 mb-3'>
-                  <Image
-                    src={formData.image}
-                    alt='Cabin preview'
-                    width={400}
-                    height={250}
-                    className='w-full h-48 object-cover rounded-lg'
-                  />
+                <Image
+                  src={formData.image}
+                  alt={formData.name}
+                  width={600}
+                  height={300}
+                  className='w-full h-56 object-cover rounded-lg'
+                />
+              )}
+
+              {/* Quick Info Row */}
+              <div className='grid grid-cols-3 gap-3'>
+                <div className='bg-default-100 rounded-lg p-3 text-center'>
+                  <p className='text-xs text-default-500'>Capacity</p>
+                  <p className='text-lg font-bold'>
+                    {formData.capacity} guests
+                  </p>
+                </div>
+                <div className='bg-default-100 rounded-lg p-3 text-center'>
+                  <p className='text-xs text-default-500'>Price/Night</p>
+                  <p className='text-lg font-bold'>${formData.price}</p>
+                </div>
+                <div className='bg-default-100 rounded-lg p-3 text-center'>
+                  <p className='text-xs text-default-500'>Discount</p>
+                  <p className='text-lg font-bold'>
+                    {formData.discount > 0 ? `$${formData.discount}` : '-'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Effective Price */}
+              {formData.discount > 0 && (
+                <div className='bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-700/50 rounded-lg p-4'>
+                  <div className='flex items-center gap-2'>
+                    <span className='text-2xl font-bold text-success'>
+                      ${formData.price - formData.discount}
+                    </span>
+                    <span className='text-default-500 line-through'>
+                      ${formData.price}
+                    </span>
+                    <span className='text-sm text-default-400'>per night</span>
+                  </div>
                 </div>
               )}
-              {!isViewMode && (
+
+              {/* Description */}
+              {formData.description && (
+                <div>
+                  <h4 className='text-sm font-semibold text-default-500 mb-2'>
+                    Description
+                  </h4>
+                  <p className='text-default-700'>{formData.description}</p>
+                </div>
+              )}
+
+              {/* Amenities */}
+              <div>
+                <h4 className='text-sm font-semibold text-default-500 mb-2'>
+                  Amenities
+                </h4>
+                {formData.amenities.length > 0 ? (
+                  <div className='flex flex-wrap gap-2'>
+                    {formData.amenities.map(amenity => (
+                      <Chip
+                        key={amenity}
+                        color='primary'
+                        variant='flat'
+                      >
+                        {amenity}
+                      </Chip>
+                    ))}
+                  </div>
+                ) : (
+                  <p className='text-default-400 text-sm'>
+                    No amenities listed
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className='space-y-4'>
+              {/* Image */}
+              <div>
+                <label className='text-sm font-medium'>Cabin Image</label>
+                {isValidImage && (
+                  <div className='mt-2 mb-3'>
+                    <Image
+                      src={formData.image}
+                      alt='Cabin preview'
+                      width={400}
+                      height={250}
+                      className='w-full h-48 object-cover rounded-lg'
+                    />
+                  </div>
+                )}
                 <Input
                   type='url'
                   placeholder='Enter image URL'
@@ -162,95 +244,88 @@ export default function CabinModal({
                     setFormData(prev => ({ ...prev, image: e.target.value }))
                   }
                 />
-              )}
-            </div>
+              </div>
 
-            {/* Basic Info */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <Input
-                label='Cabin Name'
-                placeholder='Enter cabin name'
-                value={formData.name}
-                onChange={e =>
-                  setFormData(prev => ({ ...prev, name: e.target.value }))
-                }
-                isReadOnly={isViewMode}
-              />
+              {/* Basic Info */}
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <Input
+                  label='Cabin Name'
+                  placeholder='Enter cabin name'
+                  value={formData.name}
+                  onChange={e =>
+                    setFormData(prev => ({ ...prev, name: e.target.value }))
+                  }
+                />
 
-              <Input
-                label='Capacity'
-                type='number'
-                placeholder='Number of guests'
-                value={formData.capacity.toString()}
-                onChange={e =>
+                <Input
+                  label='Capacity'
+                  type='number'
+                  placeholder='Number of guests'
+                  value={formData.capacity.toString()}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      capacity: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                  min='1'
+                  max='12'
+                />
+              </div>
+
+              {/* Pricing */}
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <Input
+                  label='Price per Night'
+                  type='number'
+                  placeholder='Enter price'
+                  value={formData.price.toString()}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      price: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                  startContent='$'
+                  min='0'
+                />
+
+                <Input
+                  label='Discount'
+                  type='number'
+                  placeholder='Enter discount'
+                  value={formData.discount.toString()}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      discount: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                  startContent='$'
+                  min='0'
+                />
+              </div>
+
+              {/* Description */}
+              <Textarea
+                label='Description'
+                placeholder='Enter cabin description'
+                value={formData.description}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setFormData(prev => ({
                     ...prev,
-                    capacity: parseInt(e.target.value) || 0,
+                    description: e.target.value,
                   }))
                 }
-                isReadOnly={isViewMode}
-                min='1'
-                max='12'
-              />
-            </div>
-
-            {/* Pricing */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <Input
-                label='Price per Night'
-                type='number'
-                placeholder='Enter price'
-                value={formData.price.toString()}
-                onChange={e =>
-                  setFormData(prev => ({
-                    ...prev,
-                    price: parseInt(e.target.value) || 0,
-                  }))
-                }
-                isReadOnly={isViewMode}
-                startContent='$'
-                min='0'
+                minRows={3}
               />
 
-              <Input
-                label='Discount'
-                type='number'
-                placeholder='Enter discount'
-                value={formData.discount.toString()}
-                onChange={e =>
-                  setFormData(prev => ({
-                    ...prev,
-                    discount: parseInt(e.target.value) || 0,
-                  }))
-                }
-                isReadOnly={isViewMode}
-                startContent='$'
-                min='0'
-              />
-            </div>
+              {/* Amenities */}
+              <div>
+                <label className='text-sm font-medium mb-2 block'>
+                  Amenities
+                </label>
 
-            {/* Description */}
-            <Textarea
-              label='Description'
-              placeholder='Enter cabin description'
-              value={formData.description}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setFormData(prev => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-              isReadOnly={isViewMode}
-              minRows={3}
-            />
-
-            {/* Amenities */}
-            <div>
-              <label className='text-sm font-medium mb-2 block'>
-                Amenities
-              </label>
-
-              {!isViewMode && (
                 <div className='flex gap-2 mb-3'>
                   <Input
                     placeholder='Add amenity'
@@ -267,60 +342,27 @@ export default function CabinModal({
                     Add
                   </Button>
                 </div>
-              )}
 
-              <div className='flex flex-wrap gap-2'>
-                {formData.amenities.map(amenity => (
-                  <Chip
-                    key={amenity}
-                    color='primary'
-                    variant='flat'
-                    onClose={
-                      !isViewMode ? () => removeAmenity(amenity) : undefined
-                    }
-                  >
-                    {amenity}
-                  </Chip>
-                ))}
-                {formData.amenities.length === 0 && (
-                  <span className='text-default-400 text-sm'>
-                    No amenities added
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Pricing Summary for View Mode */}
-            {isViewMode && (
-              <div className='bg-default-50 p-4 rounded-lg'>
-                <h4 className='font-semibold mb-2'>Pricing</h4>
-                <div className='flex items-center gap-2'>
-                  {formData.discount > 0 ? (
-                    <>
-                      <span className='text-2xl font-bold text-success'>
-                        ${formData.price - formData.discount}
-                      </span>
-                      <span className='text-lg text-default-500 line-through'>
-                        ${formData.price}
-                      </span>
-                      <span className='text-sm text-default-400'>
-                        per night
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className='text-2xl font-bold'>
-                        ${formData.price}
-                      </span>
-                      <span className='text-sm text-default-400'>
-                        per night
-                      </span>
-                    </>
+                <div className='flex flex-wrap gap-2'>
+                  {formData.amenities.map(amenity => (
+                    <Chip
+                      key={amenity}
+                      color='primary'
+                      variant='flat'
+                      onClose={() => removeAmenity(amenity)}
+                    >
+                      {amenity}
+                    </Chip>
+                  ))}
+                  {formData.amenities.length === 0 && (
+                    <span className='text-default-400 text-sm'>
+                      No amenities added
+                    </span>
                   )}
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </ModalBody>
 
         <ModalFooter>

@@ -2,23 +2,42 @@
 
 import type { Cabin } from '@/types';
 import { Button } from '@heroui/button';
-import { Card, CardBody, CardFooter } from '@heroui/card';
+import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+} from '@heroui/dropdown';
+import { Eye } from 'lucide-react';
 import Image from 'next/image';
-import { TrashIcon } from './icons';
+import { EditIcon, TrashIcon, VerticalDotsIcon } from './icons';
 
 interface CabinCardProps {
   cabin: Cabin;
+  onView?: (cabin: Cabin) => void;
   onEdit: (cabin: Cabin) => void;
   onDelete: (cabin: Cabin) => void;
 }
 
-export default function CabinCard({ cabin, onEdit, onDelete }: CabinCardProps) {
+export default function CabinCard({
+  cabin,
+  onView,
+  onEdit,
+  onDelete,
+}: CabinCardProps) {
   const discountedPrice = cabin.price - cabin.discount;
 
   return (
-    <Card className='w-full'>
-      <CardBody className='p-0'>
+    <Card
+      shadow='sm'
+      className='w-full transition-shadow hover:shadow-md'
+    >
+      <CardBody
+        className='p-0 cursor-pointer'
+        onClick={() => onView?.(cabin)}
+      >
         <div className='relative'>
           <Image
             src={cabin.image}
@@ -47,6 +66,45 @@ export default function CabinCard({ cabin, onEdit, onDelete }: CabinCardProps) {
         <div className='p-4'>
           <div className='flex justify-between items-start mb-2'>
             <h3 className='text-lg font-semibold'>{cabin.name}</h3>
+            <Dropdown>
+              <DropdownTrigger>
+                <Button
+                  isIconOnly
+                  variant='light'
+                  size='sm'
+                  onClick={e => e.stopPropagation()}
+                >
+                  <VerticalDotsIcon size={18} />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label='Cabin actions'>
+                {onView ? (
+                  <DropdownItem
+                    key='view'
+                    startContent={<Eye className='w-4 h-4' />}
+                    onPress={() => onView(cabin)}
+                  >
+                    View Details
+                  </DropdownItem>
+                ) : null}
+                <DropdownItem
+                  key='edit'
+                  startContent={<EditIcon size={16} />}
+                  onPress={() => onEdit(cabin)}
+                >
+                  Edit
+                </DropdownItem>
+                <DropdownItem
+                  key='delete'
+                  className='text-danger'
+                  color='danger'
+                  startContent={<TrashIcon size={16} />}
+                  onPress={() => onDelete(cabin)}
+                >
+                  Delete
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
           </div>
 
           <div className='flex items-center gap-2 mb-3'>
@@ -68,7 +126,13 @@ export default function CabinCard({ cabin, onEdit, onDelete }: CabinCardProps) {
             )}
           </div>
 
-          <div className='flex flex-wrap gap-1 mb-3'>
+          {cabin.description && (
+            <p className='text-sm text-default-500 line-clamp-2 mb-3'>
+              {cabin.description}
+            </p>
+          )}
+
+          <div className='flex flex-wrap gap-1'>
             {cabin.amenities.slice(0, 3).map(amenity => (
               <Chip key={amenity} size='sm' variant='flat' color='default'>
                 {amenity}
@@ -82,28 +146,6 @@ export default function CabinCard({ cabin, onEdit, onDelete }: CabinCardProps) {
           </div>
         </div>
       </CardBody>
-
-      <CardFooter className='pt-0 px-4 pb-4'>
-        <div className='flex gap-2 w-full'>
-          <Button
-            color='primary'
-            variant='solid'
-            className='flex-2'
-            onPress={() => onEdit(cabin)}
-          >
-            Edit
-          </Button>
-          <Button
-            color='danger'
-            variant='light'
-            className='flex-1'
-            startContent={<TrashIcon />}
-            onPress={() => onDelete(cabin)}
-          >
-            Delete
-          </Button>
-        </div>
-      </CardFooter>
     </Card>
   );
 }

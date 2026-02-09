@@ -28,10 +28,10 @@ export default function OverviewInfoCard({
 
   return (
     <div
-      className={`flex flex-col text-center p-4 rounded-sm flex-1 border ${colorClasses[variant]} h-24`}
+      className={`flex flex-col text-center p-4 rounded-sm flex-1 border ${colorClasses[variant]} h-24 justify-center`}
     >
-      <h3 className='font-bold'>{title}</h3>
-      <p className={descriptionClasses[variant]}>{description}</p>
+      <p className='text-xs font-medium uppercase tracking-wide opacity-70'>{title}</p>
+      <p className={`text-xl font-bold ${descriptionClasses[variant]}`}>{description}</p>
     </div>
   );
 }
