@@ -65,6 +65,7 @@ export default function CabinFiltersComponent({
   const additionalFilters = (
     <>
       <Select
+        aria-label='Filter by capacity'
         placeholder='All capacities'
         selectedKeys={filters.capacity ? [filters.capacity] : []}
         onSelectionChange={(keys: SharedSelection) => {
@@ -81,6 +82,7 @@ export default function CabinFiltersComponent({
       </Select>
 
       <Select
+        aria-label='Filter by discount'
         placeholder='All discounts'
         selectedKeys={filters.discount ? [filters.discount] : []}
         onSelectionChange={(keys: SharedSelection) => {

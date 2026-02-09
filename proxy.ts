@@ -13,6 +13,11 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // Bypass auth in non-production environments when TESTING=true
+  if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_TESTING === 'true') {
+    return;
+  }
+
   // Allow public routes without any checks
   if (isPublicRoute(req)) {
     return;

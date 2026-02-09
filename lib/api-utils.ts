@@ -118,6 +118,14 @@ export interface ApiAuthResult {
  * ```
  */
 export async function requireApiAuth(): Promise<ApiAuthResult> {
+  // Bypass auth in non-production environments when TESTING=true
+  if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_TESTING === 'true') {
+    return {
+      authenticated: true,
+      userId: 'test-user',
+    };
+  }
+
   try {
     const { userId, has } = await auth();
 

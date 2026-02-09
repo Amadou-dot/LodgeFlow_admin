@@ -82,6 +82,7 @@ export function useCreateCabin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });
+      queryClient.invalidateQueries({ queryKey: ['cabin-stats'] });
       displayCabinToast('Cabin created successfully', 'success');
     },
   });
@@ -111,6 +112,7 @@ export function useUpdateCabin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });
+      queryClient.invalidateQueries({ queryKey: ['cabin-stats'] });
       displayCabinToast('Cabin updated successfully', 'success');
     },
   });
@@ -135,6 +137,7 @@ export function useDeleteCabin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });
+      queryClient.invalidateQueries({ queryKey: ['cabin-stats'] });
     },
   });
 }

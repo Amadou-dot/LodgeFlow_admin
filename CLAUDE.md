@@ -273,6 +273,14 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
 CLERK_SECRET_KEY=sk_...
 ```
 
+### Auth Bypass for Testing
+Set `NEXT_PUBLIC_TESTING=true` in `.env.local` to bypass all auth in non-production environments. This disables three layers:
+1. **Middleware** (`proxy.ts`) — skips Clerk session check and sign-in redirect
+2. **AuthGuard** (`components/AuthGuard.tsx`) — skips client-side redirect
+3. **API routes** (`lib/api-utils.ts` `requireApiAuth()`) — returns `userId: 'test-user'`
+
+All three check: `process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_TESTING === 'true'`. Requires dev server restart after changing the env var.
+
 ### Date Handling
 - Bookings use ISO date strings in API responses
 - Use `date-fns` for formatting (not moment.js)

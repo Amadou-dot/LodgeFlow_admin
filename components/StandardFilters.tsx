@@ -67,6 +67,7 @@ export default function StandardFilters({
         {/* Search Input */}
         <div className='flex gap-2'>
           <Input
+            aria-label={searchPlaceholder}
             placeholder={searchPlaceholder}
             startContent={<SearchIcon />}
             value={localSearchValue}
@@ -76,14 +77,15 @@ export default function StandardFilters({
             isClearable
             onClear={handleSearchClear}
           />
-          <Button
-            variant='solid'
-            color='primary'
-            onPress={handleSearchSubmit}
-            isDisabled={localSearchValue === searchValue}
-          >
-            Search
-          </Button>
+          {localSearchValue !== searchValue && (
+            <Button
+              variant='solid'
+              color='primary'
+              onPress={handleSearchSubmit}
+            >
+              Search
+            </Button>
+          )}
         </div>
 
         {/* Sort Options - Mobile: 2 rows x 3 columns, Desktop: single row */}
@@ -92,6 +94,7 @@ export default function StandardFilters({
             <Button
               key={option.key}
               variant={currentSort === option.value ? 'solid' : 'bordered'}
+              color={currentSort === option.value ? 'primary' : 'default'}
               size='sm'
               onPress={() => onSortChange(option.value)}
               className='text-xs md:text-sm'
@@ -105,6 +108,7 @@ export default function StandardFilters({
             isIconOnly
             variant='bordered'
             size='sm'
+            aria-label={`Sort ${sortOrder === 'asc' ? 'ascending' : 'descending'}`}
             onPress={() =>
               onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')
             }
