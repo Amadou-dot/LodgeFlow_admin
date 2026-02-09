@@ -17,6 +17,7 @@ import {
 } from '@heroui/navbar';
 
 import { ThemeSwitch } from '@/components/theme-switch';
+import { getDetailMemory } from '@/hooks/useDetailPageMemory';
 import { Button } from '@heroui/button';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
@@ -33,6 +34,11 @@ import {
   Users,
   Settings,
 } from 'lucide-react';
+
+const MEMORY_SECTIONS: Record<string, string> = {
+  '/guests': 'guests',
+  '/bookings': 'bookings',
+};
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -95,6 +101,9 @@ export const Navbar = () => {
 
       <NavbarMenu>
         {menuItems.map((item, index) => {
+          const sectionKey = MEMORY_SECTIONS[item.href];
+          const savedPath = sectionKey ? getDetailMemory(sectionKey) : null;
+          const effectiveHref = savedPath && savedPath.startsWith(item.href + '/') ? savedPath : item.href;
           const isLinkActive = pathName === item.href;
           const Icon = item.icon;
           return (
@@ -106,7 +115,7 @@ export const Navbar = () => {
                   'w-full p-2 flex items-center gap-3',
                   isLinkActive && 'font-bold rounded-lg bg-primary'
                 )}
-                href={item.href}
+                href={effectiveHref}
                 size='lg'
               >
                 <Icon size={20} />

@@ -26,6 +26,7 @@ import {
   useLockCustomer,
   useUnlockCustomer,
 } from '@/hooks/useCustomers';
+import { useDetailPageMemory } from '@/hooks/useDetailPageMemory';
 import {
   getInitials,
   getLoyaltyTier,
@@ -37,6 +38,7 @@ export default function GuestDetailPage() {
   const router = useRouter();
   const params = useParams();
   const customerId = params.id as string;
+  useDetailPageMemory('guests');
   const { data: customer, isLoading, error, mutate } = useCustomer(customerId);
   const deleteCustomerMutation = useDeleteCustomer();
   const lockCustomerMutation = useLockCustomer();
@@ -113,7 +115,7 @@ export default function GuestDetailPage() {
           <Button
             className='mt-2'
             variant='light'
-            onPress={() => router.back()}
+            onPress={() => router.push('/guests')}
           >
             Go Back
           </Button>
@@ -130,7 +132,7 @@ export default function GuestDetailPage() {
           <Button
             className='mt-2'
             variant='light'
-            onPress={() => router.back()}
+            onPress={() => router.push('/guests')}
           >
             Go Back
           </Button>
@@ -146,7 +148,7 @@ export default function GuestDetailPage() {
       {/* Header */}
       <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6'>
         <div className='flex items-center gap-4'>
-          <Button isIconOnly variant='light' onPress={() => router.back()}>
+          <Button isIconOnly variant='light' onPress={() => router.push('/guests')}>
             <ArrowLeftIcon />
           </Button>
           <div>

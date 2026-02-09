@@ -10,6 +10,7 @@ import {
   useDeleteBooking,
   useUpdateBooking,
 } from '@/hooks/useBookings';
+import { clearDetailMemory } from '@/hooks/useDetailPageMemory';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useURLFilters, bookingsFilterConfig } from '@/hooks/useURLFilters';
 import type {
@@ -49,6 +50,9 @@ function BookingsContent() {
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
   const { showConfirm, ConfirmDialog } = useConfirmDialog();
+
+  // Clear detail page memory when landing on the list page
+  useEffect(() => { clearDetailMemory('bookings'); }, []);
 
   // Check for success message in URL (when coming back from new booking page)
   useEffect(() => {

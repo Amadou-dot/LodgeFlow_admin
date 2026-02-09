@@ -3,8 +3,10 @@
 import clsx from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+import { getDetailMemory } from '@/hooks/useDetailPageMemory';
 
 const sidebarItems = [
   {
@@ -44,8 +46,14 @@ const sidebarItems = [
   },
 ];
 
+const MEMORY_SECTIONS: Record<string, string> = {
+  '/guests': 'guests',
+  '/bookings': 'bookings',
+};
+
 export const Sidebar = () => {
   const pathname = usePathname();
+  const router = useRouter();
   // const { resolvedTheme } = useTheme();
   const [_mounted, setMounted] = useState(false);
 
@@ -79,6 +87,16 @@ export const Sidebar = () => {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={(e) => {
+                    const sectionKey = MEMORY_SECTIONS[item.href];
+                    if (sectionKey) {
+                      const savedPath = getDetailMemory(sectionKey);
+                      if (savedPath && savedPath.startsWith(item.href + '/')) {
+                        e.preventDefault();
+                        router.push(savedPath);
+                      }
+                    }
+                  }}
                   className={clsx(
                     'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors w-full text-left',
                     isActive
