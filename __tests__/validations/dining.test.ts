@@ -8,7 +8,14 @@ import {
 describe('Dining Validation Schemas', () => {
   describe('diningTypeSchema', () => {
     it('accepts valid dining types', () => {
-      const validTypes = ['breakfast', 'lunch', 'dinner', 'snack', 'beverage', 'dessert'];
+      const validTypes = [
+        'breakfast',
+        'lunch',
+        'dinner',
+        'snack',
+        'beverage',
+        'dessert',
+      ];
       validTypes.forEach(type => {
         expect(diningTypeSchema.safeParse(type).success).toBe(true);
       });
@@ -22,7 +29,14 @@ describe('Dining Validation Schemas', () => {
 
   describe('mealTypeSchema', () => {
     it('accepts valid meal types', () => {
-      const validTypes = ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'regular'];
+      const validTypes = [
+        'vegetarian',
+        'vegan',
+        'gluten-free',
+        'dairy-free',
+        'nut-free',
+        'regular',
+      ];
       validTypes.forEach(type => {
         expect(mealTypeSchema.safeParse(type).success).toBe(true);
       });
@@ -37,7 +51,8 @@ describe('Dining Validation Schemas', () => {
   describe('createDiningSchema', () => {
     const validDining = {
       name: 'Continental Breakfast',
-      description: 'A delicious continental breakfast with fresh pastries and coffee.',
+      description:
+        'A delicious continental breakfast with fresh pastries and coffee.',
       type: 'breakfast',
       mealType: 'regular',
       category: 'Main',

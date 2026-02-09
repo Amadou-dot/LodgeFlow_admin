@@ -69,7 +69,10 @@ export async function GET(request: NextRequest) {
     return createSuccessResponse(dining);
   } catch (error) {
     console.error('Error fetching dining:', error);
-    return createErrorResponse('Failed to fetch dining items', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    return createErrorResponse(
+      'Failed to fetch dining items',
+      HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
   }
 }
 
@@ -119,10 +122,17 @@ export async function POST(request: NextRequest) {
     const dining = new Dining(body);
     await dining.save();
 
-    return createSuccessResponse(dining, 'Dining item created successfully', HTTP_STATUS.CREATED);
+    return createSuccessResponse(
+      dining,
+      'Dining item created successfully',
+      HTTP_STATUS.CREATED
+    );
   } catch (error) {
     console.error('Error creating dining item:', error);
-    return createErrorResponse('Failed to create dining item', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    return createErrorResponse(
+      'Failed to create dining item',
+      HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
   }
 }
 
@@ -138,7 +148,10 @@ export async function PUT(request: NextRequest) {
     const { _id, ...updateData } = body;
 
     if (!_id) {
-      return createErrorResponse('Dining item ID is required', HTTP_STATUS.BAD_REQUEST);
+      return createErrorResponse(
+        'Dining item ID is required',
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
 
     // Validate serving time format if provided
@@ -161,13 +174,19 @@ export async function PUT(request: NextRequest) {
     });
 
     if (!dining) {
-      return createErrorResponse('Dining item not found', HTTP_STATUS.NOT_FOUND);
+      return createErrorResponse(
+        'Dining item not found',
+        HTTP_STATUS.NOT_FOUND
+      );
     }
 
     return createSuccessResponse(dining, 'Dining item updated successfully');
   } catch (error) {
     console.error('Error updating dining item:', error);
-    return createErrorResponse('Failed to update dining item', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    return createErrorResponse(
+      'Failed to update dining item',
+      HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
   }
 }
 
@@ -183,18 +202,27 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return createErrorResponse('Dining item ID is required', HTTP_STATUS.BAD_REQUEST);
+      return createErrorResponse(
+        'Dining item ID is required',
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
 
     const dining = await Dining.findByIdAndDelete(id);
 
     if (!dining) {
-      return createErrorResponse('Dining item not found', HTTP_STATUS.NOT_FOUND);
+      return createErrorResponse(
+        'Dining item not found',
+        HTTP_STATUS.NOT_FOUND
+      );
     }
 
     return createSuccessResponse(null, 'Dining item deleted successfully');
   } catch (error) {
     console.error('Error deleting dining item:', error);
-    return createErrorResponse('Failed to delete dining item', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    return createErrorResponse(
+      'Failed to delete dining item',
+      HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
   }
 }

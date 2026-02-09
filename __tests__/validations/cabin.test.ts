@@ -4,7 +4,8 @@ describe('Cabin Validation Schemas', () => {
   describe('createCabinSchema', () => {
     const validCabin = {
       name: 'Lakeside Cabin',
-      description: 'A beautiful cabin with stunning lake views and modern amenities.',
+      description:
+        'A beautiful cabin with stunning lake views and modern amenities.',
       capacity: 4,
       price: 200,
     };
@@ -43,7 +44,9 @@ describe('Cabin Validation Schemas', () => {
       const result = createCabinSchema.safeParse(cabin);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('at least 10 characters');
+        expect(result.error.issues[0].message).toContain(
+          'at least 10 characters'
+        );
       }
     });
 
@@ -100,7 +103,9 @@ describe('Cabin Validation Schemas', () => {
       const result = createCabinSchema.safeParse(cabin);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Discount cannot be greater than or equal to the price');
+        expect(result.error.issues[0].message).toContain(
+          'Discount cannot be greater than or equal to the price'
+        );
       }
     });
 

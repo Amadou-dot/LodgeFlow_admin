@@ -58,9 +58,10 @@ export async function GET(
     // Create array of unavailable date ranges
     const unavailableDates = (bookings as unknown as BookingDateRange[]).map(
       booking => ({
-      start: booking.checkInDate.toISOString().split('T')[0],
-      end: booking.checkOutDate.toISOString().split('T')[0],
-    }));
+        start: booking.checkInDate.toISOString().split('T')[0],
+        end: booking.checkOutDate.toISOString().split('T')[0],
+      })
+    );
 
     return NextResponse.json({
       success: true,

@@ -6,7 +6,12 @@ import ActivityCard from './ActivityCard';
 interface Activity {
   id: string;
   name: string;
-  status: "unconfirmed" | "confirmed" | "checked-in" | "checked-out" | "cancelled";
+  status:
+    | 'unconfirmed'
+    | 'confirmed'
+    | 'checked-in'
+    | 'checked-out'
+    | 'cancelled';
   stayDuration: string;
 }
 
@@ -64,7 +69,6 @@ export default function TodayActivity() {
               stayDuration={activity.stayDuration}
             />
           ))}
-
 
         {activities && activities.length === 0 && !isLoading && !error && (
           <div className='flex-1 flex items-center justify-center'>

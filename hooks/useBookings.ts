@@ -238,9 +238,7 @@ export const useUpdateBooking = () => {
 
       if (!response.ok) {
         const result = await response.json();
-        throw new Error(
-          result.error || 'Failed to update booking'
-        );
+        throw new Error(result.error || 'Failed to update booking');
       }
       const result = await response.json();
       return result.success ? result.data : result;

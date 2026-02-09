@@ -156,17 +156,25 @@ export default function CabinModal({
               {/* Quick Info Row */}
               <div className='grid grid-cols-3 gap-3'>
                 <div className='bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700/40 rounded-lg p-3 text-center'>
-                  <p className='text-xs text-primary-600 dark:text-primary-400'>Capacity</p>
+                  <p className='text-xs text-primary-600 dark:text-primary-400'>
+                    Capacity
+                  </p>
                   <p className='text-lg font-bold text-primary-700 dark:text-primary-300'>
                     {formData.capacity} guests
                   </p>
                 </div>
                 <div className='bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-700/40 rounded-lg p-3 text-center'>
-                  <p className='text-xs text-success-600 dark:text-success-400'>Price/Night</p>
-                  <p className='text-lg font-bold text-success-700 dark:text-success-300'>${formData.price}</p>
+                  <p className='text-xs text-success-600 dark:text-success-400'>
+                    Price/Night
+                  </p>
+                  <p className='text-lg font-bold text-success-700 dark:text-success-300'>
+                    ${formData.price}
+                  </p>
                 </div>
                 <div className='bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-700/40 rounded-lg p-3 text-center'>
-                  <p className='text-xs text-warning-600 dark:text-warning-400'>Discount</p>
+                  <p className='text-xs text-warning-600 dark:text-warning-400'>
+                    Discount
+                  </p>
                   <p className='text-lg font-bold text-warning-700 dark:text-warning-300'>
                     {formData.discount > 0 ? `$${formData.discount}` : '-'}
                   </p>
@@ -206,11 +214,7 @@ export default function CabinModal({
                 {formData.amenities.length > 0 ? (
                   <div className='flex flex-wrap gap-2'>
                     {formData.amenities.map(amenity => (
-                      <Chip
-                        key={amenity}
-                        color='primary'
-                        variant='flat'
-                      >
+                      <Chip key={amenity} color='primary' variant='flat'>
                         {amenity}
                       </Chip>
                     ))}

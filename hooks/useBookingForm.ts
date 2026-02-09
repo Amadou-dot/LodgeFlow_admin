@@ -129,15 +129,18 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
   // Customer search with debouncing - use ref to avoid dependency issues
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleCustomerSearch = useCallback((searchValue: string) => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
+  const handleCustomerSearch = useCallback(
+    (searchValue: string) => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
 
-    searchTimeoutRef.current = setTimeout(() => {
-      searchCustomers(searchValue);
-    }, 300);
-  }, [searchCustomers]);
+      searchTimeoutRef.current = setTimeout(() => {
+        searchCustomers(searchValue);
+      }, 300);
+    },
+    [searchCustomers]
+  );
 
   // Cleanup timeout on unmount
   useEffect(() => {

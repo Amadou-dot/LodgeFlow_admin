@@ -1,83 +1,81 @@
+'use client';
+
 import { Dining } from '@/types';
 import { Button } from '@heroui/button';
-import { Card, CardBody, CardFooter } from '@heroui/card';
+import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+} from '@heroui/dropdown';
+import { Clock, Eye } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
-import DeletionModal from './DeletionModal';
-import { EditIcon } from './icons';
-import { Clock } from 'lucide-react';
+import { EditIcon, TrashIcon, VerticalDotsIcon } from './icons';
 
 interface DiningCardProps {
   dining: Dining;
+  onView?: (dining: Dining) => void;
   onEdit?: (dining: Dining) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (dining: Dining) => void;
 }
 
-export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
-  const [_isLoading, setIsLoading] = useState(false);
+export const getMealTypeColor = (mealType: string) => {
+  switch (mealType) {
+    case 'breakfast':
+      return 'warning';
+    case 'lunch':
+      return 'primary';
+    case 'dinner':
+      return 'secondary';
+    case 'all-day':
+      return 'success';
+    default:
+      return 'default';
+  }
+};
 
-  const handleDelete = async () => {
-    if (!onDelete || !dining._id) {
-      return;
-    }
-    setIsLoading(true);
-    await onDelete(dining._id);
-    setIsLoading(false);
-  };
+export const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'craft-beer':
+      return 'warning';
+    case 'wine':
+      return 'danger';
+    case 'spirits':
+      return 'secondary';
+    case 'non-alcoholic':
+      return 'success';
+    default:
+      return 'primary';
+  }
+};
 
-  const handleEdit = () => {
-    if (onEdit) {
-      onEdit(dining);
-    }
-  };
+const formatTime = (time: string) => {
+  const [hours, minutes] = time.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minutes} ${ampm}`;
+};
 
-  const getMealTypeColor = (mealType: string) => {
-    switch (mealType) {
-      case 'breakfast':
-        return 'warning';
-      case 'lunch':
-        return 'primary';
-      case 'dinner':
-        return 'secondary';
-      case 'all-day':
-        return 'success';
-      default:
-        return 'default';
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'craft-beer':
-        return 'warning';
-      case 'wine':
-        return 'danger';
-      case 'spirits':
-        return 'secondary';
-      case 'non-alcoholic':
-        return 'success';
-      default:
-        return 'primary';
-    }
-  };
-
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
-  };
-
+export const DiningCard = ({
+  dining,
+  onView,
+  onEdit,
+  onDelete,
+}: DiningCardProps) => {
   return (
-    <Card className='w-full max-w-[400px] shadow-md hover:shadow-lg transition-shadow'>
-      <CardBody className='p-0'>
+    <Card
+      shadow='sm'
+      className='w-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5'
+    >
+      <CardBody className='p-0 cursor-pointer' onClick={() => onView?.(dining)}>
         <div className='relative'>
           <Image
             src={dining.image}
             alt={dining.name}
-            className='w-full h-48 object-cover'
+            className='w-full h-48 object-cover rounded-t-lg'
             width={400}
             height={192}
           />
@@ -130,9 +128,55 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
             <h3 className='text-lg font-semibold line-clamp-2'>
               {dining.name}
             </h3>
-            <span className='text-lg font-bold text-primary ml-2'>
-              ${dining.price}
-            </span>
+            <div className='flex items-center gap-1 ml-2'>
+              <span className='text-lg font-bold text-primary'>
+                ${dining.price}
+              </span>
+              <Dropdown>
+                <DropdownTrigger>
+                  <Button
+                    isIconOnly
+                    variant='light'
+                    size='sm'
+                    aria-label='Dining actions'
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <VerticalDotsIcon size={18} />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu aria-label='Dining actions'>
+                  {onView ? (
+                    <DropdownItem
+                      key='view'
+                      startContent={<Eye className='w-4 h-4' />}
+                      onPress={() => onView(dining)}
+                    >
+                      View Details
+                    </DropdownItem>
+                  ) : null}
+                  {onEdit ? (
+                    <DropdownItem
+                      key='edit'
+                      startContent={<EditIcon size={16} />}
+                      onPress={() => onEdit(dining)}
+                    >
+                      Edit
+                    </DropdownItem>
+                  ) : null}
+                  {onDelete ? (
+                    <DropdownItem
+                      key='delete'
+                      className='text-danger'
+                      color='danger'
+                      startContent={<TrashIcon size={16} />}
+                      onPress={() => onDelete(dining)}
+                    >
+                      Delete
+                    </DropdownItem>
+                  ) : null}
+                </DropdownMenu>
+              </Dropdown>
+            </div>
           </div>
 
           <p className='text-sm text-default-600 line-clamp-2 mb-3'>
@@ -171,29 +215,6 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
             {dining.duration && <span>{dining.duration}</span>}
           </div>
 
-          {dining.beverages && dining.beverages.length > 0 && (
-            <div className='mt-3'>
-              <p className='text-sm font-medium mb-1'>Includes beverages:</p>
-              <div className='flex gap-1 flex-wrap'>
-                {dining.beverages.slice(0, 3).map((beverage, index) => (
-                  <Chip
-                    key={index}
-                    color='default'
-                    variant='bordered'
-                    size='sm'
-                  >
-                    {beverage.name}
-                  </Chip>
-                ))}
-                {dining.beverages.length > 3 && (
-                  <Chip color='default' variant='bordered' size='sm'>
-                    +{dining.beverages.length - 3} more
-                  </Chip>
-                )}
-              </div>
-            </div>
-          )}
-
           {dining.dietary && dining.dietary.length > 0 && (
             <div className='mt-2'>
               <div className='flex gap-1 flex-wrap'>
@@ -207,35 +228,6 @@ export const DiningCard = ({ dining, onEdit, onDelete }: DiningCardProps) => {
           )}
         </div>
       </CardBody>
-
-      <CardFooter className='pt-0 px-4 pb-4'>
-        <div className='flex gap-2 w-full'>
-          <Button
-            variant='solid'
-            color='primary'
-            startContent={<EditIcon />}
-            onPress={handleEdit}
-            className='flex-1'
-            size='sm'
-          >
-            Edit
-          </Button>
-          {onDelete && dining._id && (
-            <DeletionModal
-              resourceId={dining._id}
-              resourceName='Dining Item'
-              itemName={dining.name}
-              onDelete={handleDelete}
-              buttonProps={{
-                variant: 'light',
-                color: 'danger',
-                size: 'sm',
-                className: 'flex-1',
-              }}
-            />
-          )}
-        </div>
-      </CardFooter>
     </Card>
   );
 };

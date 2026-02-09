@@ -103,7 +103,10 @@ export const Navbar = () => {
         {menuItems.map((item, index) => {
           const sectionKey = MEMORY_SECTIONS[item.href];
           const savedPath = sectionKey ? getDetailMemory(sectionKey) : null;
-          const effectiveHref = savedPath && savedPath.startsWith(item.href + '/') ? savedPath : item.href;
+          const effectiveHref =
+            savedPath && savedPath.startsWith(item.href + '/')
+              ? savedPath
+              : item.href;
           const isLinkActive = pathName === item.href;
           const Icon = item.icon;
           return (

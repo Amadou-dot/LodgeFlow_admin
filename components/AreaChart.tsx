@@ -29,8 +29,8 @@ export default function AreaChart() {
 
   const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
-      const salesData = payload.find((p) => p.dataKey === 'sales');
-      const bookingsData = payload.find((p) => p.dataKey === 'bookings');
+      const salesData = payload.find(p => p.dataKey === 'sales');
+      const bookingsData = payload.find(p => p.dataKey === 'bookings');
 
       return (
         <div className='bg-content1 p-3 border border-divider rounded-lg shadow-lg'>

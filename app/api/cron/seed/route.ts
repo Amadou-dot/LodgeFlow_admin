@@ -179,7 +179,10 @@ export async function GET(request: Request) {
   } catch (error: unknown) {
     console.error('Error seeding database:', error);
     return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : String(error) },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }

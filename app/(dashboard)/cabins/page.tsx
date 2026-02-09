@@ -219,7 +219,9 @@ export default function CabinsPage() {
           ) : (
             <>
               {/* Grid view — shown on desktop when grid selected, always on mobile */}
-              <div className={viewMode === 'grid' ? 'block' : 'block md:hidden'}>
+              <div
+                className={viewMode === 'grid' ? 'block' : 'block md:hidden'}
+              >
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
                   {cabins.map(cabin => (
                     <CabinCard

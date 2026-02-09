@@ -24,7 +24,8 @@ describe('Experience Validation Schemas', () => {
   describe('createExperienceSchema', () => {
     const validExperience = {
       name: 'Mountain Hiking Tour',
-      description: 'An exciting hiking tour through scenic mountain trails with breathtaking views.',
+      description:
+        'An exciting hiking tour through scenic mountain trails with breathtaking views.',
       duration: '4 hours',
       price: 75,
       difficulty: 'moderate',
@@ -66,7 +67,9 @@ describe('Experience Validation Schemas', () => {
       const result = createExperienceSchema.safeParse(experience);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('at least 10 characters');
+        expect(result.error.issues[0].message).toContain(
+          'at least 10 characters'
+        );
       }
     });
 
@@ -143,7 +146,10 @@ describe('Experience Validation Schemas', () => {
     });
 
     it('accepts valid image URL', () => {
-      const experience = { ...validExperience, image: 'https://example.com/tour.jpg' };
+      const experience = {
+        ...validExperience,
+        image: 'https://example.com/tour.jpg',
+      };
       const result = createExperienceSchema.safeParse(experience);
       expect(result.success).toBe(true);
     });

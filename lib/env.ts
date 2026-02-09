@@ -122,7 +122,9 @@ function createEnv(): EnvConfig {
     // Required
     MONGODB_URI: getRequired('MONGODB_URI'),
     CLERK_SECRET_KEY: getRequired('CLERK_SECRET_KEY'),
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: getRequired('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'),
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: getRequired(
+      'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'
+    ),
     RESEND_API_KEY: getRequired('RESEND_API_KEY'),
 
     // Optional
@@ -130,7 +132,9 @@ function createEnv(): EnvConfig {
     CLERK_API_CONCURRENT_LIMIT: getOptionalNumber('CLERK_API_CONCURRENT_LIMIT'),
 
     // Runtime
-    NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
+    NODE_ENV:
+      (process.env.NODE_ENV as 'development' | 'production' | 'test') ||
+      'development',
   };
 }
 

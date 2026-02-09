@@ -3,14 +3,22 @@ import { z } from 'zod';
 /**
  * Difficulty enum
  */
-export const difficultySchema = z.enum(['easy', 'moderate', 'challenging', 'expert']);
+export const difficultySchema = z.enum([
+  'easy',
+  'moderate',
+  'challenging',
+  'expert',
+]);
 
 /**
  * Create experience request schema
  */
 export const createExperienceSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(2000),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(2000),
   duration: z.string().min(1, 'Duration is required').max(50),
   price: z.number().min(0, 'Price cannot be negative'),
   difficulty: difficultySchema,

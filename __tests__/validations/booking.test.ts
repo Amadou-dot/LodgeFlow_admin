@@ -10,7 +10,13 @@ import {
 describe('Booking Validation Schemas', () => {
   describe('bookingStatusSchema', () => {
     it('accepts valid status values', () => {
-      const validStatuses = ['unconfirmed', 'confirmed', 'checked-in', 'checked-out', 'cancelled'];
+      const validStatuses = [
+        'unconfirmed',
+        'confirmed',
+        'checked-in',
+        'checked-out',
+        'cancelled',
+      ];
       validStatuses.forEach(status => {
         expect(bookingStatusSchema.safeParse(status).success).toBe(true);
       });
@@ -89,7 +95,9 @@ describe('Booking Validation Schemas', () => {
       const result = createBookingSchema.safeParse(invalidBooking);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Check-out date must be after check-in date');
+        expect(result.error.issues[0].message).toContain(
+          'Check-out date must be after check-in date'
+        );
       }
     });
 

@@ -119,7 +119,10 @@ export interface ApiAuthResult {
  */
 export async function requireApiAuth(): Promise<ApiAuthResult> {
   // Bypass auth in non-production environments when TESTING=true
-  if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_TESTING === 'true') {
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    process.env.NEXT_PUBLIC_TESTING === 'true'
+  ) {
     return {
       authenticated: true,
       userId: 'test-user',
@@ -151,10 +154,16 @@ export async function requireApiAuth(): Promise<ApiAuthResult> {
       userId,
     };
   } catch (error) {
-    logger.error('Auth check failed', error instanceof Error ? error : undefined);
+    logger.error(
+      'Auth check failed',
+      error instanceof Error ? error : undefined
+    );
     return {
       authenticated: false,
-      error: createErrorResponse('Authentication failed', HTTP_STATUS.UNAUTHORIZED),
+      error: createErrorResponse(
+        'Authentication failed',
+        HTTP_STATUS.UNAUTHORIZED
+      ),
     };
   }
 }
@@ -250,7 +259,9 @@ export function createRateLimitResponse(resetTime: number) {
 /**
  * Format Zod validation errors into a user-friendly format
  */
-export function formatZodErrors(error: import('zod').ZodError): Record<string, string[]> {
+export function formatZodErrors(
+  error: import('zod').ZodError
+): Record<string, string[]> {
   const formatted: Record<string, string[]> = {};
 
   for (const issue of error.issues) {
@@ -299,7 +310,12 @@ export function parsePagination(searchParams: URLSearchParams): {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
   const limit = Math.min(
     API_CONFIG.MAX_PAGE_SIZE,
-    Math.max(1, parseInt(searchParams.get('limit') || String(API_CONFIG.DEFAULT_PAGE_SIZE)))
+    Math.max(
+      1,
+      parseInt(
+        searchParams.get('limit') || String(API_CONFIG.DEFAULT_PAGE_SIZE)
+      )
+    )
   );
   const skip = (page - 1) * limit;
 

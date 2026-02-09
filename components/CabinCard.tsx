@@ -34,10 +34,7 @@ export default function CabinCard({
       shadow='sm'
       className='w-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5'
     >
-      <CardBody
-        className='p-0 cursor-pointer'
-        onClick={() => onView?.(cabin)}
-      >
+      <CardBody className='p-0 cursor-pointer' onClick={() => onView?.(cabin)}>
         <div className='relative'>
           <Image
             src={cabin.image}
@@ -57,7 +54,12 @@ export default function CabinCard({
             </Chip>
           )}
           <div className='absolute bottom-2 left-2'>
-            <Chip color='primary' variant='solid' size='sm' className='shadow-md'>
+            <Chip
+              color='primary'
+              variant='solid'
+              size='sm'
+              className='shadow-md'
+            >
               {cabin.capacity} guests
             </Chip>
           </div>

@@ -8,7 +8,11 @@ import {
   getClerkUsers,
   searchClerkUsers,
 } from '@/lib/clerk-users';
-import { checkRateLimit, createRateLimitKey, RATE_LIMIT_CONFIGS } from '@/lib/rate-limit';
+import {
+  checkRateLimit,
+  createRateLimitKey,
+  RATE_LIMIT_CONFIGS,
+} from '@/lib/rate-limit';
 import { createCustomerSchema } from '@/lib/validations';
 import { getErrorMessage } from '@/types/errors';
 import { NextRequest, NextResponse } from 'next/server';
@@ -19,7 +23,6 @@ export async function GET(request: NextRequest) {
   if (!authResult.authenticated) return authResult.error;
 
   try {
-
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -92,7 +95,10 @@ export async function POST(request: NextRequest) {
 
   // Rate limit customer creation
   const rateLimitKey = createRateLimitKey(authResult.userId, 'customer-create');
-  const rateLimitResult = checkRateLimit(rateLimitKey, RATE_LIMIT_CONFIGS.CUSTOMER_CREATE);
+  const rateLimitResult = checkRateLimit(
+    rateLimitKey,
+    RATE_LIMIT_CONFIGS.CUSTOMER_CREATE
+  );
   if (!rateLimitResult.success) {
     return createRateLimitResponse(rateLimitResult.resetTime);
   }

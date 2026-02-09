@@ -4,12 +4,18 @@
 
 import { NextRequest } from 'next/server';
 import { GET, POST, PUT, DELETE } from '@/app/api/dining/route';
-import { GET as getById, PUT as updateById, DELETE as deleteById } from '@/app/api/dining/[id]/route';
+import {
+  GET as getById,
+  PUT as updateById,
+  DELETE as deleteById,
+} from '@/app/api/dining/[id]/route';
 import connectToDatabase from '@/lib/mongodb';
 
 // Mock the database connection
 jest.mock('@/lib/mongodb');
-const mockConnectToDatabase = connectToDatabase as jest.MockedFunction<typeof connectToDatabase>;
+const mockConnectToDatabase = connectToDatabase as jest.MockedFunction<
+  typeof connectToDatabase
+>;
 
 // Mock the Dining model (default export)
 const mockDiningModel = {
@@ -28,7 +34,8 @@ jest.mock('@/models/Dining', () => ({
 
 // Get the mocked module
 import Dining from '@/models/Dining';
-const MockDining = Dining as jest.MockedFunction<typeof Dining> & typeof mockDiningModel;
+const MockDining = Dining as jest.MockedFunction<typeof Dining> &
+  typeof mockDiningModel;
 
 // Mock auth to bypass authentication
 jest.mock('@/lib/api-utils', () => ({
@@ -37,14 +44,17 @@ jest.mock('@/lib/api-utils', () => ({
     authenticated: true,
     userId: 'test-user-id',
   }),
-  escapeRegex: jest.fn((str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+  escapeRegex: jest.fn((str: string) =>
+    str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  ),
 }));
 
 // Mock dining data
 const mockDiningData = {
   _id: '507f1f77bcf86cd799439011',
   name: 'Continental Breakfast',
-  description: 'A delicious continental breakfast with fresh pastries and coffee.',
+  description:
+    'A delicious continental breakfast with fresh pastries and coffee.',
   type: 'menu',
   mealType: 'breakfast',
   category: 'regular',
@@ -78,7 +88,9 @@ const mockDiningList = [
 describe('/api/dining', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockConnectToDatabase.mockResolvedValue({} as ReturnType<typeof connectToDatabase>);
+    mockConnectToDatabase.mockResolvedValue(
+      {} as ReturnType<typeof connectToDatabase>
+    );
     // Set up static method mocks on the constructor
     Object.assign(MockDining, mockDiningModel);
   });
@@ -108,42 +120,54 @@ describe('/api/dining', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(mockDiningModel.find).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'menu',
-      }));
+      expect(mockDiningModel.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'menu',
+        })
+      );
     });
 
     it('should filter by mealType', async () => {
       const mockSort = jest.fn().mockResolvedValue([mockDiningData]);
       mockDiningModel.find.mockReturnValue({ sort: mockSort });
 
-      const request = new NextRequest('http://localhost/api/dining?mealType=breakfast');
+      const request = new NextRequest(
+        'http://localhost/api/dining?mealType=breakfast'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
-      expect(mockDiningModel.find).toHaveBeenCalledWith(expect.objectContaining({
-        mealType: 'breakfast',
-      }));
+      expect(mockDiningModel.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mealType: 'breakfast',
+        })
+      );
     });
 
     it('should filter by availability', async () => {
       const mockSort = jest.fn().mockResolvedValue([mockDiningData]);
       mockDiningModel.find.mockReturnValue({ sort: mockSort });
 
-      const request = new NextRequest('http://localhost/api/dining?isAvailable=true');
+      const request = new NextRequest(
+        'http://localhost/api/dining?isAvailable=true'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
-      expect(mockDiningModel.find).toHaveBeenCalledWith(expect.objectContaining({
-        isAvailable: true,
-      }));
+      expect(mockDiningModel.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isAvailable: true,
+        })
+      );
     });
 
     it('should sort by price', async () => {
       const mockSort = jest.fn().mockResolvedValue(mockDiningList);
       mockDiningModel.find.mockReturnValue({ sort: mockSort });
 
-      const request = new NextRequest('http://localhost/api/dining?sortBy=price&sortOrder=asc');
+      const request = new NextRequest(
+        'http://localhost/api/dining?sortBy=price&sortOrder=asc'
+      );
       const response = await GET(request);
 
       expect(mockSort).toHaveBeenCalledWith({ price: 1 });
@@ -234,15 +258,20 @@ describe('/api/dining', () => {
     it('should delete a dining item', async () => {
       mockDiningModel.findByIdAndDelete.mockResolvedValue(mockDiningData);
 
-      const request = new NextRequest('http://localhost/api/dining?id=507f1f77bcf86cd799439011', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/dining?id=507f1f77bcf86cd799439011',
+        {
+          method: 'DELETE',
+        }
+      );
 
       const response = await DELETE(request);
       const data = await response.json();
 
       expect(mockConnectToDatabase).toHaveBeenCalledTimes(1);
-      expect(mockDiningModel.findByIdAndDelete).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      expect(mockDiningModel.findByIdAndDelete).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011'
+      );
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
     });
@@ -250,9 +279,12 @@ describe('/api/dining', () => {
     it('should return 404 when item not found', async () => {
       mockDiningModel.findByIdAndDelete.mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost/api/dining?id=nonexistent', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/dining?id=nonexistent',
+        {
+          method: 'DELETE',
+        }
+      );
 
       const response = await DELETE(request);
       const data = await response.json();
@@ -266,7 +298,9 @@ describe('/api/dining', () => {
 describe('/api/dining/[id]', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockConnectToDatabase.mockResolvedValue({} as ReturnType<typeof connectToDatabase>);
+    mockConnectToDatabase.mockResolvedValue(
+      {} as ReturnType<typeof connectToDatabase>
+    );
     Object.assign(MockDining, mockDiningModel);
   });
 
@@ -274,14 +308,18 @@ describe('/api/dining/[id]', () => {
     it('should return a specific dining item', async () => {
       mockDiningModel.findById.mockResolvedValue(mockDiningData);
 
-      const request = new NextRequest('http://localhost/api/dining/507f1f77bcf86cd799439011');
+      const request = new NextRequest(
+        'http://localhost/api/dining/507f1f77bcf86cd799439011'
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await getById(request, { params });
       const data = await response.json();
 
       expect(mockConnectToDatabase).toHaveBeenCalledTimes(1);
-      expect(mockDiningModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      expect(mockDiningModel.findById).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011'
+      );
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
     });
@@ -289,7 +327,9 @@ describe('/api/dining/[id]', () => {
     it('should return 404 when item not found', async () => {
       mockDiningModel.findById.mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost/api/dining/nonexistent');
+      const request = new NextRequest(
+        'http://localhost/api/dining/nonexistent'
+      );
       const params = Promise.resolve({ id: 'nonexistent' });
 
       const response = await getById(request, { params });
@@ -305,10 +345,13 @@ describe('/api/dining/[id]', () => {
       const updatedDining = { ...mockDiningData, isAvailable: false };
       mockDiningModel.findByIdAndUpdate.mockResolvedValue(updatedDining);
 
-      const request = new NextRequest('http://localhost/api/dining/507f1f77bcf86cd799439011', {
-        method: 'PUT',
-        body: JSON.stringify({ isAvailable: false }),
-      });
+      const request = new NextRequest(
+        'http://localhost/api/dining/507f1f77bcf86cd799439011',
+        {
+          method: 'PUT',
+          body: JSON.stringify({ isAvailable: false }),
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await updateById(request, { params });
@@ -319,12 +362,15 @@ describe('/api/dining/[id]', () => {
     });
 
     it('should reject invalid serving time format', async () => {
-      const request = new NextRequest('http://localhost/api/dining/507f1f77bcf86cd799439011', {
-        method: 'PUT',
-        body: JSON.stringify({
-          servingTime: { start: '7 AM', end: '10 AM' },
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost/api/dining/507f1f77bcf86cd799439011',
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            servingTime: { start: '7 AM', end: '10 AM' },
+          }),
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await updateById(request, { params });
@@ -339,9 +385,12 @@ describe('/api/dining/[id]', () => {
     it('should delete a dining item by ID', async () => {
       mockDiningModel.findByIdAndDelete.mockResolvedValue(mockDiningData);
 
-      const request = new NextRequest('http://localhost/api/dining/507f1f77bcf86cd799439011', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/dining/507f1f77bcf86cd799439011',
+        {
+          method: 'DELETE',
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await deleteById(request, { params });
@@ -354,9 +403,12 @@ describe('/api/dining/[id]', () => {
     it('should return 404 when item not found', async () => {
       mockDiningModel.findByIdAndDelete.mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost/api/dining/nonexistent', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/dining/nonexistent',
+        {
+          method: 'DELETE',
+        }
+      );
       const params = Promise.resolve({ id: 'nonexistent' });
 
       const response = await deleteById(request, { params });

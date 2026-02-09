@@ -46,7 +46,9 @@ function GuestsContent() {
   }, [customers, user?.id]);
 
   // Clear detail page memory when landing on the list page
-  useEffect(() => { clearDetailMemory('guests'); }, []);
+  useEffect(() => {
+    clearDetailMemory('guests');
+  }, []);
 
   // Check for success message in URL (when coming back from new guest page)
   useEffect(() => {
