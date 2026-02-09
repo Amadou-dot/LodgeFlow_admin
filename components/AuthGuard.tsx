@@ -2,7 +2,7 @@
 
 import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { hasAuthorizedRole } from '@/lib/auth-helpers';
 
@@ -10,7 +10,23 @@ interface AuthGuardProps {
   children: React.ReactNode;
 }
 
+const isTestMode =
+  process.env.NODE_ENV !== 'production' &&
+  process.env.NEXT_PUBLIC_TESTING === 'true';
+
 export function AuthGuard({ children }: AuthGuardProps) {
+  if (isTestMode) return <TestModeGuard>{children}</TestModeGuard>;
+  return <ClerkAuthGuard>{children}</ClerkAuthGuard>;
+}
+
+function TestModeGuard({ children }: AuthGuardProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <>{children}</>;
+}
+
+function ClerkAuthGuard({ children }: AuthGuardProps) {
   const { isLoaded, isSignedIn, has } = useAuth();
   const router = useRouter();
 
