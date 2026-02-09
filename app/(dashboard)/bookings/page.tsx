@@ -52,7 +52,9 @@ function BookingsContent() {
   const { showConfirm, ConfirmDialog } = useConfirmDialog();
 
   // Clear detail page memory when landing on the list page
-  useEffect(() => { clearDetailMemory('bookings'); }, []);
+  useEffect(() => {
+    clearDetailMemory('bookings');
+  }, []);
 
   // Check for success message in URL (when coming back from new booking page)
   useEffect(() => {

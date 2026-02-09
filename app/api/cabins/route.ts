@@ -92,7 +92,10 @@ export async function GET(request: NextRequest) {
     return createSuccessResponse(cabins);
   } catch (error) {
     console.error('Error fetching cabins:', error);
-    return createErrorResponse('Failed to fetch cabins', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    return createErrorResponse(
+      'Failed to fetch cabins',
+      HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
   }
 }
 
@@ -122,10 +125,17 @@ export async function POST(request: NextRequest) {
 
     // Handle validation errors
     if (isMongooseValidationError(error)) {
-      return createErrorResponse('Validation failed', HTTP_STATUS.BAD_REQUEST, error.errors);
+      return createErrorResponse(
+        'Validation failed',
+        HTTP_STATUS.BAD_REQUEST,
+        error.errors
+      );
     }
 
-    return createErrorResponse('Failed to create cabin', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    return createErrorResponse(
+      'Failed to create cabin',
+      HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
   }
 }
 
@@ -141,7 +151,10 @@ export async function PUT(request: NextRequest) {
     const { _id, ...updateData } = body;
 
     if (!_id) {
-      return createErrorResponse('Cabin ID is required', HTTP_STATUS.BAD_REQUEST);
+      return createErrorResponse(
+        'Cabin ID is required',
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
 
     const cabin = await Cabin.findByIdAndUpdate(_id, updateData, {
@@ -158,10 +171,17 @@ export async function PUT(request: NextRequest) {
     console.error('Error updating cabin:', error);
 
     if (isMongooseValidationError(error)) {
-      return createErrorResponse('Validation failed', HTTP_STATUS.BAD_REQUEST, error.errors);
+      return createErrorResponse(
+        'Validation failed',
+        HTTP_STATUS.BAD_REQUEST,
+        error.errors
+      );
     }
 
-    return createErrorResponse('Failed to update cabin', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    return createErrorResponse(
+      'Failed to update cabin',
+      HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
   }
 }
 
@@ -177,7 +197,10 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return createErrorResponse('Cabin ID is required', HTTP_STATUS.BAD_REQUEST);
+      return createErrorResponse(
+        'Cabin ID is required',
+        HTTP_STATUS.BAD_REQUEST
+      );
     }
 
     const cabin = await Cabin.findByIdAndDelete(id);
@@ -189,6 +212,9 @@ export async function DELETE(request: NextRequest) {
     return createSuccessResponse(null, 'Cabin deleted successfully');
   } catch (error) {
     console.error('Error deleting cabin:', error);
-    return createErrorResponse('Failed to delete cabin', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+    return createErrorResponse(
+      'Failed to delete cabin',
+      HTTP_STATUS.INTERNAL_SERVER_ERROR
+    );
   }
 }

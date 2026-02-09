@@ -34,7 +34,9 @@ jest.mock('@/lib/api-utils', () => ({
 import { GET, PUT } from '@/app/api/settings/route';
 import Settings from '@/models/Settings';
 
-const mockConnectToDatabase = connectToDatabase as jest.MockedFunction<typeof connectToDatabase>;
+const mockConnectToDatabase = connectToDatabase as jest.MockedFunction<
+  typeof connectToDatabase
+>;
 const mockSettings = Settings as jest.Mocked<typeof Settings>;
 
 // Mock settings data
@@ -78,7 +80,9 @@ const mockSettingsData = {
 describe('/api/settings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockConnectToDatabase.mockResolvedValue({} as ReturnType<typeof connectToDatabase>);
+    mockConnectToDatabase.mockResolvedValue(
+      {} as ReturnType<typeof connectToDatabase>
+    );
   });
 
   describe('GET /api/settings', () => {
@@ -114,7 +118,9 @@ describe('/api/settings', () => {
     });
 
     it('should handle database errors', async () => {
-      (mockSettings.findOne as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (mockSettings.findOne as jest.Mock).mockRejectedValue(
+        new Error('Database error')
+      );
 
       const response = await GET();
       const data = await response.json();

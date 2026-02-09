@@ -17,9 +17,9 @@ interface BookingPrefillData {
 function NewBookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [prefillData, setPrefillData] = useState<BookingPrefillData | undefined>(
-    undefined
-  );
+  const [prefillData, setPrefillData] = useState<
+    BookingPrefillData | undefined
+  >(undefined);
 
   // Extract prefill data from URL parameters
   useEffect(() => {

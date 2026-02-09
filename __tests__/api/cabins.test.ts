@@ -4,12 +4,18 @@
 
 import { NextRequest } from 'next/server';
 import { GET, POST, PUT, DELETE } from '@/app/api/cabins/route';
-import { GET as getById, PUT as updateById, DELETE as deleteById } from '@/app/api/cabins/[id]/route';
+import {
+  GET as getById,
+  PUT as updateById,
+  DELETE as deleteById,
+} from '@/app/api/cabins/[id]/route';
 import connectToDatabase from '@/lib/mongodb';
 
 // Mock the database connection
 jest.mock('@/lib/mongodb');
-const mockConnectToDatabase = connectToDatabase as jest.MockedFunction<typeof connectToDatabase>;
+const mockConnectToDatabase = connectToDatabase as jest.MockedFunction<
+  typeof connectToDatabase
+>;
 
 // Mock the Cabin model (default export)
 const mockCabinModel = {
@@ -28,7 +34,8 @@ jest.mock('@/models/Cabin', () => ({
 
 // Get the mocked module
 import Cabin from '@/models/Cabin';
-const MockCabin = Cabin as jest.MockedFunction<typeof Cabin> & typeof mockCabinModel;
+const MockCabin = Cabin as jest.MockedFunction<typeof Cabin> &
+  typeof mockCabinModel;
 
 // Mock auth to bypass authentication
 jest.mock('@/lib/api-utils', () => ({
@@ -37,7 +44,9 @@ jest.mock('@/lib/api-utils', () => ({
     authenticated: true,
     userId: 'test-user-id',
   }),
-  escapeRegex: jest.fn((str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+  escapeRegex: jest.fn((str: string) =>
+    str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  ),
 }));
 
 // Mock cabin data
@@ -74,7 +83,9 @@ const mockCabinList = [
 describe('/api/cabins', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockConnectToDatabase.mockResolvedValue({} as ReturnType<typeof connectToDatabase>);
+    mockConnectToDatabase.mockResolvedValue(
+      {} as ReturnType<typeof connectToDatabase>
+    );
     Object.assign(MockCabin, mockCabinModel);
   });
 
@@ -98,36 +109,46 @@ describe('/api/cabins', () => {
       const mockSort = jest.fn().mockResolvedValue([mockCabinData]);
       mockCabinModel.find.mockReturnValue({ sort: mockSort });
 
-      const request = new NextRequest('http://localhost/api/cabins?capacity=small');
+      const request = new NextRequest(
+        'http://localhost/api/cabins?capacity=small'
+      );
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      expect(mockCabinModel.find).toHaveBeenCalledWith(expect.objectContaining({
-        capacity: { $lte: 3 },
-      }));
+      expect(mockCabinModel.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          capacity: { $lte: 3 },
+        })
+      );
     });
 
     it('should filter by discount', async () => {
       const mockSort = jest.fn().mockResolvedValue([mockCabinData]);
       mockCabinModel.find.mockReturnValue({ sort: mockSort });
 
-      const request = new NextRequest('http://localhost/api/cabins?discount=with');
+      const request = new NextRequest(
+        'http://localhost/api/cabins?discount=with'
+      );
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(mockCabinModel.find).toHaveBeenCalledWith(expect.objectContaining({
-        discount: { $gt: 0 },
-      }));
+      expect(mockCabinModel.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          discount: { $gt: 0 },
+        })
+      );
     });
 
     it('should sort by price ascending', async () => {
       const mockSort = jest.fn().mockResolvedValue(mockCabinList);
       mockCabinModel.find.mockReturnValue({ sort: mockSort });
 
-      const request = new NextRequest('http://localhost/api/cabins?sortBy=price&sortOrder=asc');
+      const request = new NextRequest(
+        'http://localhost/api/cabins?sortBy=price&sortOrder=asc'
+      );
       const response = await GET(request);
 
       expect(mockSort).toHaveBeenCalledWith({ price: 1 });
@@ -215,15 +236,20 @@ describe('/api/cabins', () => {
     it('should delete a cabin', async () => {
       mockCabinModel.findByIdAndDelete.mockResolvedValue(mockCabinData);
 
-      const request = new NextRequest('http://localhost/api/cabins?id=507f1f77bcf86cd799439011', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/cabins?id=507f1f77bcf86cd799439011',
+        {
+          method: 'DELETE',
+        }
+      );
 
       const response = await DELETE(request);
       const data = await response.json();
 
       expect(mockConnectToDatabase).toHaveBeenCalledTimes(1);
-      expect(mockCabinModel.findByIdAndDelete).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      expect(mockCabinModel.findByIdAndDelete).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011'
+      );
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
     });
@@ -231,9 +257,12 @@ describe('/api/cabins', () => {
     it('should return 404 when cabin not found', async () => {
       mockCabinModel.findByIdAndDelete.mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost/api/cabins?id=nonexistent', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/cabins?id=nonexistent',
+        {
+          method: 'DELETE',
+        }
+      );
 
       const response = await DELETE(request);
       const data = await response.json();
@@ -247,7 +276,9 @@ describe('/api/cabins', () => {
 describe('/api/cabins/[id]', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockConnectToDatabase.mockResolvedValue({} as ReturnType<typeof connectToDatabase>);
+    mockConnectToDatabase.mockResolvedValue(
+      {} as ReturnType<typeof connectToDatabase>
+    );
     Object.assign(MockCabin, mockCabinModel);
   });
 
@@ -255,14 +286,18 @@ describe('/api/cabins/[id]', () => {
     it('should return a specific cabin', async () => {
       mockCabinModel.findById.mockResolvedValue(mockCabinData);
 
-      const request = new NextRequest('http://localhost/api/cabins/507f1f77bcf86cd799439011');
+      const request = new NextRequest(
+        'http://localhost/api/cabins/507f1f77bcf86cd799439011'
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await getById(request, { params });
       const data = await response.json();
 
       expect(mockConnectToDatabase).toHaveBeenCalledTimes(1);
-      expect(mockCabinModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      expect(mockCabinModel.findById).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011'
+      );
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
     });
@@ -270,7 +305,9 @@ describe('/api/cabins/[id]', () => {
     it('should return 404 when cabin not found', async () => {
       mockCabinModel.findById.mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost/api/cabins/nonexistent');
+      const request = new NextRequest(
+        'http://localhost/api/cabins/nonexistent'
+      );
       const params = Promise.resolve({ id: 'nonexistent' });
 
       const response = await getById(request, { params });
@@ -283,7 +320,9 @@ describe('/api/cabins/[id]', () => {
     it('should handle database errors', async () => {
       mockCabinModel.findById.mockRejectedValue(new Error('Database error'));
 
-      const request = new NextRequest('http://localhost/api/cabins/507f1f77bcf86cd799439011');
+      const request = new NextRequest(
+        'http://localhost/api/cabins/507f1f77bcf86cd799439011'
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await getById(request, { params });
@@ -301,10 +340,13 @@ describe('/api/cabins/[id]', () => {
       mockCabinModel.findById.mockResolvedValue(mockCabinData);
       mockCabinModel.findByIdAndUpdate.mockResolvedValue(updatedCabin);
 
-      const request = new NextRequest('http://localhost/api/cabins/507f1f77bcf86cd799439011', {
-        method: 'PUT',
-        body: JSON.stringify({ price: 250 }),
-      });
+      const request = new NextRequest(
+        'http://localhost/api/cabins/507f1f77bcf86cd799439011',
+        {
+          method: 'PUT',
+          body: JSON.stringify({ price: 250 }),
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await updateById(request, { params });
@@ -318,10 +360,13 @@ describe('/api/cabins/[id]', () => {
       // Route first calls findById to check current values
       mockCabinModel.findById.mockResolvedValue(mockCabinData);
 
-      const request = new NextRequest('http://localhost/api/cabins/507f1f77bcf86cd799439011', {
-        method: 'PUT',
-        body: JSON.stringify({ price: 100, discount: 150 }),
-      });
+      const request = new NextRequest(
+        'http://localhost/api/cabins/507f1f77bcf86cd799439011',
+        {
+          method: 'PUT',
+          body: JSON.stringify({ price: 100, discount: 150 }),
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await updateById(request, { params });
@@ -336,9 +381,12 @@ describe('/api/cabins/[id]', () => {
     it('should delete a cabin by ID', async () => {
       mockCabinModel.findByIdAndDelete.mockResolvedValue(mockCabinData);
 
-      const request = new NextRequest('http://localhost/api/cabins/507f1f77bcf86cd799439011', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/cabins/507f1f77bcf86cd799439011',
+        {
+          method: 'DELETE',
+        }
+      );
       const params = Promise.resolve({ id: '507f1f77bcf86cd799439011' });
 
       const response = await deleteById(request, { params });
@@ -351,9 +399,12 @@ describe('/api/cabins/[id]', () => {
     it('should return 404 when cabin not found', async () => {
       mockCabinModel.findByIdAndDelete.mockResolvedValue(null);
 
-      const request = new NextRequest('http://localhost/api/cabins/nonexistent', {
-        method: 'DELETE',
-      });
+      const request = new NextRequest(
+        'http://localhost/api/cabins/nonexistent',
+        {
+          method: 'DELETE',
+        }
+      );
       const params = Promise.resolve({ id: 'nonexistent' });
 
       const response = await deleteById(request, { params });

@@ -36,7 +36,13 @@ export const getInitials = (name: string) => {
 };
 
 // HeroUI Chip color type
-type ChipColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
+type ChipColor =
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'warning'
+  | 'danger';
 
 export const getStatusColor = (status: string): ChipColor => {
   switch (status) {

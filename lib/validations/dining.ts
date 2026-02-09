@@ -42,7 +42,10 @@ export const mealTypeSchema = z.enum([
  */
 export const createDiningSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(1000),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(1000),
   type: diningTypeSchema,
   mealType: mealTypeSchema,
   category: z.string().min(1, 'Category is required').max(50),

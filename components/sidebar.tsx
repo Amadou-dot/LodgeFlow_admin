@@ -66,12 +66,7 @@ export const Sidebar = () => {
     <aside className='hidden md:flex w-64 bg-background border-r border-default-200 h-full flex-col'>
       <div className='p-6 '>
         <Link href='/' className='flex justify-center'>
-          <Image
-            src='/logo.svg'
-            alt='LodgeFlow'
-            width={120}
-            height={120}
-          />
+          <Image src='/logo.svg' alt='LodgeFlow' width={120} height={120} />
         </Link>
       </div>
 
@@ -87,7 +82,7 @@ export const Sidebar = () => {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  onClick={(e) => {
+                  onClick={e => {
                     const sectionKey = MEMORY_SECTIONS[item.href];
                     if (sectionKey) {
                       const savedPath = getDetailMemory(sectionKey);
@@ -114,9 +109,7 @@ export const Sidebar = () => {
       </nav>
 
       <div className='p-4 border-t border-default-200'>
-        <p className='text-xs text-default-400 text-center'>
-          © 2025 LodgeFlow
-        </p>
+        <p className='text-xs text-default-400 text-center'>© 2025 LodgeFlow</p>
       </div>
     </aside>
   );

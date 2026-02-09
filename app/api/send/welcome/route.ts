@@ -1,5 +1,9 @@
 import { createRateLimitResponse, requireApiAuth } from '@/lib/api-utils';
-import { checkRateLimit, createRateLimitKey, RATE_LIMIT_CONFIGS } from '@/lib/rate-limit';
+import {
+  checkRateLimit,
+  createRateLimitKey,
+  RATE_LIMIT_CONFIGS,
+} from '@/lib/rate-limit';
 import { WelcomeEmail } from '@/components/EmailTemplates';
 import { Resend } from 'resend';
 
@@ -12,7 +16,10 @@ export async function POST(request: Request) {
 
   // Rate limit email sending (stricter limits)
   const rateLimitKey = createRateLimitKey(authResult.userId, 'send-welcome');
-  const rateLimitResult = checkRateLimit(rateLimitKey, RATE_LIMIT_CONFIGS.EMAIL);
+  const rateLimitResult = checkRateLimit(
+    rateLimitKey,
+    RATE_LIMIT_CONFIGS.EMAIL
+  );
   if (!rateLimitResult.success) {
     return createRateLimitResponse(rateLimitResult.resetTime);
   }

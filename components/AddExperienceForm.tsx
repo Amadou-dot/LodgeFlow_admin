@@ -125,9 +125,7 @@ export default function AddExperienceForm({
               aria-label='Seasonal Availability'
               radius='sm'
               selectionMode='multiple'
-              selectedKeys={
-                new Set(formData.seasonalAvailability ?? [])
-              }
+              selectedKeys={new Set(formData.seasonalAvailability ?? [])}
               onSelectionChange={keys => {
                 const selectedKeys = Array.from(keys) as string[];
                 handleInputChange('seasonalAvailability', selectedKeys);

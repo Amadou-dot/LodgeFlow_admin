@@ -42,7 +42,10 @@ export const createCustomerSchema = z.object({
   nationality: z.string().max(100).optional(),
   nationalId: z
     .string()
-    .regex(/^[A-Za-z0-9]{5,20}$/, 'National ID must be 5-20 alphanumeric characters')
+    .regex(
+      /^[A-Za-z0-9]{5,20}$/,
+      'National ID must be 5-20 alphanumeric characters'
+    )
     .optional(),
   address: addressSchema.optional(),
   emergencyContact: emergencyContactSchema.optional(),

@@ -1,6 +1,6 @@
 'use client';
 
-import type { Cabin } from '@/types';
+import type { Dining } from '@/types';
 import { Button } from '@heroui/button';
 import { Chip } from '@heroui/chip';
 import {
@@ -22,40 +22,71 @@ import { Eye } from 'lucide-react';
 import Image from 'next/image';
 import { EditIcon, TrashIcon, VerticalDotsIcon } from './icons';
 
-interface CabinTableViewProps {
-  cabins: Cabin[];
+interface DiningTableViewProps {
+  dining: Dining[];
   isLoading: boolean;
-  onView?: (cabin: Cabin) => void;
-  onEdit: (cabin: Cabin) => void;
-  onDelete: (cabin: Cabin) => void;
+  onView?: (dining: Dining) => void;
+  onEdit: (dining: Dining) => void;
+  onDelete: (dining: Dining) => void;
 }
 
 const columns = [
   { key: 'image', label: '' },
   { key: 'name', label: 'Name' },
-  { key: 'capacity', label: 'Capacity' },
+  { key: 'type', label: 'Type' },
+  { key: 'mealType', label: 'Meal' },
+  { key: 'category', label: 'Category' },
   { key: 'price', label: 'Price' },
-  { key: 'discount', label: 'Discount' },
-  { key: 'amenities', label: 'Amenities' },
+  { key: 'availability', label: 'Status' },
   { key: 'actions', label: '' },
 ];
 
-export default function CabinTableView({
-  cabins,
+const getMealTypeColor = (mealType: string) => {
+  switch (mealType) {
+    case 'breakfast':
+      return 'warning';
+    case 'lunch':
+      return 'primary';
+    case 'dinner':
+      return 'secondary';
+    case 'all-day':
+      return 'success';
+    default:
+      return 'default';
+  }
+};
+
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'craft-beer':
+      return 'warning';
+    case 'wine':
+      return 'danger';
+    case 'spirits':
+      return 'secondary';
+    case 'non-alcoholic':
+      return 'success';
+    default:
+      return 'primary';
+  }
+};
+
+export default function DiningTableView({
+  dining,
   isLoading,
   onView,
   onEdit,
   onDelete,
-}: CabinTableViewProps) {
-  const loadingState = isLoading && cabins.length === 0 ? 'loading' : 'idle';
+}: DiningTableViewProps) {
+  const loadingState = isLoading && dining.length === 0 ? 'loading' : 'idle';
 
-  const renderCell = (cabin: Cabin, columnKey: string) => {
+  const renderCell = (item: Dining, columnKey: string) => {
     switch (columnKey) {
       case 'image':
         return (
           <Image
-            src={cabin.image}
-            alt={cabin.name}
+            src={item.image}
+            alt={item.name}
             width={48}
             height={48}
             className='w-12 h-12 rounded-md object-cover'
@@ -64,45 +95,54 @@ export default function CabinTableView({
       case 'name':
         return (
           <div>
-            <p className='font-semibold'>{cabin.name}</p>
-            {cabin.description && (
+            <p className='font-semibold'>{item.name}</p>
+            {item.description && (
               <p className='text-xs text-default-400 line-clamp-1 max-w-[200px]'>
-                {cabin.description}
+                {item.description}
               </p>
             )}
           </div>
         );
-      case 'capacity':
+      case 'type':
         return (
-          <Chip size='sm' variant='flat' color='primary'>
-            {cabin.capacity} guests
+          <Chip
+            size='sm'
+            variant='flat'
+            color={item.type === 'experience' ? 'secondary' : 'default'}
+          >
+            {item.type}
+          </Chip>
+        );
+      case 'mealType':
+        return (
+          <Chip
+            size='sm'
+            variant='flat'
+            color={getMealTypeColor(item.mealType)}
+          >
+            {item.mealType}
+          </Chip>
+        );
+      case 'category':
+        return (
+          <Chip
+            size='sm'
+            variant='flat'
+            color={getCategoryColor(item.category)}
+          >
+            {item.category.replace('-', ' ')}
           </Chip>
         );
       case 'price':
-        return cabin.discount > 0 ? (
-          <div className='flex items-center gap-1'>
-            <span className='font-semibold text-success'>
-              ${cabin.price - cabin.discount}
-            </span>
-            <span className='text-xs text-default-400 line-through'>
-              ${cabin.price}
-            </span>
-          </div>
-        ) : (
-          <span className='font-semibold'>${cabin.price}</span>
-        );
-      case 'discount':
-        return cabin.discount > 0 ? (
-          <Chip size='sm' color='danger' variant='flat'>
-            ${cabin.discount} off
-          </Chip>
-        ) : (
-          <span className='text-default-400'>-</span>
-        );
-      case 'amenities':
+        return <span className='font-semibold'>${item.price}</span>;
+      case 'availability':
         return (
-          <Chip size='sm' variant='flat' color='default'>
-            {cabin.amenities.length} amenities
+          <Chip
+            size='sm'
+            variant='flat'
+            color={item.isAvailable ? 'success' : 'default'}
+          >
+            {item.isAvailable ? 'Available' : 'Unavailable'}
           </Chip>
         );
       case 'actions':
@@ -113,17 +153,17 @@ export default function CabinTableView({
                 isIconOnly
                 variant='light'
                 size='sm'
-                aria-label='Cabin actions'
+                aria-label='Dining actions'
               >
                 <VerticalDotsIcon size={18} />
               </Button>
             </DropdownTrigger>
-            <DropdownMenu aria-label='Cabin actions'>
+            <DropdownMenu aria-label='Dining actions'>
               {onView ? (
                 <DropdownItem
                   key='view'
                   startContent={<Eye className='w-4 h-4' />}
-                  onPress={() => onView(cabin)}
+                  onPress={() => onView(item)}
                 >
                   View Details
                 </DropdownItem>
@@ -131,7 +171,7 @@ export default function CabinTableView({
               <DropdownItem
                 key='edit'
                 startContent={<EditIcon size={16} />}
-                onPress={() => onEdit(cabin)}
+                onPress={() => onEdit(item)}
               >
                 Edit
               </DropdownItem>
@@ -140,7 +180,7 @@ export default function CabinTableView({
                 className='text-danger'
                 color='danger'
                 startContent={<TrashIcon size={16} />}
-                onPress={() => onDelete(cabin)}
+                onPress={() => onDelete(item)}
               >
                 Delete
               </DropdownItem>
@@ -154,7 +194,7 @@ export default function CabinTableView({
 
   return (
     <Table
-      aria-label='Cabins table'
+      aria-label='Dining items table'
       removeWrapper
       classNames={{
         base: 'max-h-[600px] overflow-auto',
@@ -177,16 +217,16 @@ export default function CabinTableView({
         )}
       </TableHeader>
       <TableBody
-        items={cabins}
+        items={dining}
         isLoading={isLoading}
-        loadingContent={<Spinner label='Loading cabins...' />}
+        loadingContent={<Spinner label='Loading dining items...' />}
         loadingState={loadingState}
-        emptyContent='No cabins found'
+        emptyContent='No dining items found'
       >
-        {cabin => (
-          <TableRow key={cabin.id} onClick={() => onView?.(cabin)}>
+        {item => (
+          <TableRow key={item._id} onClick={() => onView?.(item)}>
             {columnKey => (
-              <TableCell>{renderCell(cabin, columnKey as string)}</TableCell>
+              <TableCell>{renderCell(item, columnKey as string)}</TableCell>
             )}
           </TableRow>
         )}

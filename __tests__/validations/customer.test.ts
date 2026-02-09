@@ -1,4 +1,7 @@
-import { createCustomerSchema, updateCustomerSchema } from '@/lib/validations/customer';
+import {
+  createCustomerSchema,
+  updateCustomerSchema,
+} from '@/lib/validations/customer';
 
 describe('Customer Validation Schemas', () => {
   describe('createCustomerSchema', () => {
@@ -25,7 +28,9 @@ describe('Customer Validation Schemas', () => {
       const result = createCustomerSchema.safeParse(customer);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('First name is required');
+        expect(result.error.issues[0].message).toContain(
+          'First name is required'
+        );
       }
     });
 
@@ -54,7 +59,12 @@ describe('Customer Validation Schemas', () => {
     });
 
     it('rejects invalid email format', () => {
-      const invalidEmails = ['invalid', 'invalid@', '@example.com', 'invalid.com'];
+      const invalidEmails = [
+        'invalid',
+        'invalid@',
+        '@example.com',
+        'invalid.com',
+      ];
       invalidEmails.forEach(email => {
         const customer = { ...validCustomer, email };
         const result = createCustomerSchema.safeParse(customer);
@@ -87,7 +97,9 @@ describe('Customer Validation Schemas', () => {
       const result = createCustomerSchema.safeParse(customer);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('at least 8 characters');
+        expect(result.error.issues[0].message).toContain(
+          'at least 8 characters'
+        );
       }
     });
 

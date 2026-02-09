@@ -1,45 +1,23 @@
 'use client';
 
+import type { DiningFilters } from '@/types';
 import { Button } from '@heroui/button';
 import { Select, SelectItem } from '@heroui/select';
+import type { SharedSelection } from '@heroui/system';
 import StandardFilters, { FilterOption } from './StandardFilters';
 
 interface DiningFiltersProps {
-  type: string;
-  mealType: string;
-  category: string;
-  isAvailable: boolean | null;
-  onTypeChange: (type: string) => void;
-  onMealTypeChange: (mealType: string) => void;
-  onCategoryChange: (category: string) => void;
-  onAvailabilityChange: (isAvailable: boolean | null) => void;
-  onClearFilters: () => void;
+  filters: DiningFilters;
+  onFiltersChange: (filters: DiningFilters) => void;
+  onReset: () => void;
   totalCount?: number;
-  searchTerm?: string;
-  onSearchChange?: (search: string) => void;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-  onSortChange?: (sortBy: string) => void;
-  onSortOrderChange?: (sortOrder: 'asc' | 'desc') => void;
 }
 
-export default function DiningFilters({
-  type,
-  mealType,
-  category,
-  isAvailable,
-  onTypeChange,
-  onMealTypeChange,
-  onCategoryChange,
-  onAvailabilityChange,
-  onClearFilters,
+export default function DiningFiltersComponent({
+  filters,
+  onFiltersChange,
+  onReset,
   totalCount,
-  searchTerm = '',
-  onSearchChange = () => {},
-  sortBy = 'name',
-  sortOrder = 'asc',
-  onSortChange = () => {},
-  onSortOrderChange = () => {},
 }: DiningFiltersProps) {
   const sortOptions: FilterOption[] = [
     { key: 'name', label: 'Name', value: 'name' },
@@ -47,17 +25,39 @@ export default function DiningFilters({
     { key: 'type', label: 'Type', value: 'type' },
   ];
 
+  const handleSearchChange = (search: string) => {
+    onFiltersChange({
+      ...filters,
+      search: search || undefined,
+    });
+  };
+
+  const handleSortChange = (sortBy: string) => {
+    onFiltersChange({
+      ...filters,
+      sortBy,
+    });
+  };
+
+  const handleSortOrderChange = (sortOrder: 'asc' | 'desc') => {
+    onFiltersChange({
+      ...filters,
+      sortOrder,
+    });
+  };
+
   const hasActiveFilters =
-    [type, mealType, category, isAvailable !== null].filter(Boolean).length > 0;
+    filters.type || filters.mealType || filters.category || filters.isAvailable;
 
   const additionalFilters = (
     <>
       <Select
+        aria-label='Filter by type'
         placeholder='All types'
-        selectedKeys={type ? [type] : []}
-        onSelectionChange={keys => {
+        selectedKeys={filters.type ? [filters.type] : []}
+        onSelectionChange={(keys: SharedSelection) => {
           const selected = Array.from(keys)[0] as string;
-          onTypeChange(selected || '');
+          onFiltersChange({ ...filters, type: selected || undefined });
         }}
         className='w-36'
         size='sm'
@@ -68,11 +68,12 @@ export default function DiningFilters({
       </Select>
 
       <Select
+        aria-label='Filter by meal type'
         placeholder='All meals'
-        selectedKeys={mealType ? [mealType] : []}
-        onSelectionChange={keys => {
+        selectedKeys={filters.mealType ? [filters.mealType] : []}
+        onSelectionChange={(keys: SharedSelection) => {
           const selected = Array.from(keys)[0] as string;
-          onMealTypeChange(selected || '');
+          onFiltersChange({ ...filters, mealType: selected || undefined });
         }}
         className='w-36'
         size='sm'
@@ -85,11 +86,12 @@ export default function DiningFilters({
       </Select>
 
       <Select
+        aria-label='Filter by category'
         placeholder='All categories'
-        selectedKeys={category ? [category] : []}
-        onSelectionChange={keys => {
+        selectedKeys={filters.category ? [filters.category] : []}
+        onSelectionChange={(keys: SharedSelection) => {
           const selected = Array.from(keys)[0] as string;
-          onCategoryChange(selected || '');
+          onFiltersChange({ ...filters, category: selected || undefined });
         }}
         className='w-36'
         size='sm'
@@ -103,15 +105,12 @@ export default function DiningFilters({
       </Select>
 
       <Select
+        aria-label='Filter by availability'
         placeholder='All items'
-        selectedKeys={isAvailable !== null ? [isAvailable.toString()] : []}
-        onSelectionChange={keys => {
+        selectedKeys={filters.isAvailable ? [filters.isAvailable] : []}
+        onSelectionChange={(keys: SharedSelection) => {
           const selected = Array.from(keys)[0] as string;
-          if (!selected) {
-            onAvailabilityChange(null);
-          } else {
-            onAvailabilityChange(selected === 'true');
-          }
+          onFiltersChange({ ...filters, isAvailable: selected || undefined });
         }}
         className='w-36'
         size='sm'
@@ -122,12 +121,7 @@ export default function DiningFilters({
       </Select>
 
       {hasActiveFilters && (
-        <Button
-          color='default'
-          variant='light'
-          onPress={onClearFilters}
-          size='sm'
-        >
+        <Button color='default' variant='light' onPress={onReset} size='sm'>
           Clear
         </Button>
       )}
@@ -137,13 +131,13 @@ export default function DiningFilters({
   return (
     <StandardFilters
       searchPlaceholder='Search dining items...'
-      searchValue={searchTerm}
-      onSearchChange={onSearchChange}
+      searchValue={filters.search}
+      onSearchChange={handleSearchChange}
       sortOptions={sortOptions}
-      currentSort={sortBy}
-      onSortChange={onSortChange}
-      sortOrder={sortOrder}
-      onSortOrderChange={onSortOrderChange}
+      currentSort={filters.sortBy}
+      onSortChange={handleSortChange}
+      sortOrder={filters.sortOrder || 'asc'}
+      onSortOrderChange={handleSortOrderChange}
       additionalFilters={additionalFilters}
       totalCount={totalCount}
       itemName='item'

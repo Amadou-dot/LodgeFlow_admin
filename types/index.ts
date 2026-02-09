@@ -148,6 +148,17 @@ export interface CabinFilters {
   search?: string;
 }
 
+export interface DiningFilters {
+  [key: string]: FilterValue;
+  type?: string;
+  mealType?: string;
+  category?: string;
+  isAvailable?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 export interface BookingsFilters {
   [key: string]: FilterValue;
   page?: number;

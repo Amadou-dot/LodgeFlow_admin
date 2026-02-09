@@ -115,7 +115,10 @@ async function deleteClerkUsers(): Promise<number> {
           await client.users.deleteUser(user.id);
           deleted++;
         } catch (error) {
-          console.warn(`⚠️ Failed to delete user ${user.id} (${user.emailAddress}):`, error);
+          console.warn(
+            `⚠️ Failed to delete user ${user.id} (${user.emailAddress}):`,
+            error
+          );
         }
       })
     );
