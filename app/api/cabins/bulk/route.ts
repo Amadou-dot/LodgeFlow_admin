@@ -9,6 +9,7 @@ import { Booking, Cabin } from '@/models';
 import { NextRequest } from 'next/server';
 
 const MAX_BULK_ITEMS = 50;
+const OBJECT_ID_REGEX = /^[a-f0-9]{24}$/i;
 
 export async function POST(request: NextRequest) {
   const authResult = await requireApiAuth();
@@ -22,6 +23,13 @@ export async function POST(request: NextRequest) {
     if (!action || !ids || !Array.isArray(ids) || ids.length === 0) {
       return createErrorResponse(
         'action and ids (non-empty array) are required',
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
+    if (!ids.every((id: unknown) => typeof id === 'string' && OBJECT_ID_REGEX.test(id))) {
+      return createErrorResponse(
+        'Each id must be a valid ObjectId string',
         HTTP_STATUS.BAD_REQUEST
       );
     }
