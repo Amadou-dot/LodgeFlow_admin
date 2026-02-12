@@ -141,3 +141,69 @@ export function useDeleteCabin() {
     },
   });
 }
+
+export function useBulkDeleteCabins() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      const response = await fetch('/api/cabins/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', ids }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete cabins');
+      }
+
+      const result = await response.json();
+      return result.data;
+    },
+    onSuccess: (data: { deletedCount: number }) => {
+      queryClient.invalidateQueries({ queryKey: ['cabins'] });
+      queryClient.invalidateQueries({ queryKey: ['cabin-stats'] });
+      displayCabinToast(
+        `${data.deletedCount} cabin${data.deletedCount === 1 ? '' : 's'} deleted`,
+        'success'
+      );
+    },
+  });
+}
+
+export function useBulkUpdateDiscount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      ids,
+      discount,
+    }: {
+      ids: string[];
+      discount: number;
+    }) => {
+      const response = await fetch('/api/cabins/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update-discount', ids, discount }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update discounts');
+      }
+
+      const result = await response.json();
+      return result.data;
+    },
+    onSuccess: (data: { modifiedCount: number }) => {
+      queryClient.invalidateQueries({ queryKey: ['cabins'] });
+      queryClient.invalidateQueries({ queryKey: ['cabin-stats'] });
+      displayCabinToast(
+        `Discount updated for ${data.modifiedCount} cabin${data.modifiedCount === 1 ? '' : 's'}`,
+        'success'
+      );
+    },
+  });
+}

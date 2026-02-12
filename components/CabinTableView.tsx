@@ -11,6 +11,7 @@ import {
 } from '@heroui/dropdown';
 import { Spinner } from '@heroui/spinner';
 import {
+  type Selection,
   Table,
   TableBody,
   TableCell,
@@ -20,6 +21,7 @@ import {
 } from '@heroui/table';
 import { Eye } from 'lucide-react';
 import Image from 'next/image';
+import { Key } from 'react';
 import { EditIcon, TrashIcon, VerticalDotsIcon } from './icons';
 
 interface CabinTableViewProps {
@@ -28,6 +30,8 @@ interface CabinTableViewProps {
   onView?: (cabin: Cabin) => void;
   onEdit: (cabin: Cabin) => void;
   onDelete: (cabin: Cabin) => void;
+  selectedKeys?: Set<string>;
+  onSelectionChange?: (keys: Selection) => void;
 }
 
 const columns = [
@@ -46,8 +50,15 @@ export default function CabinTableView({
   onView,
   onEdit,
   onDelete,
+  selectedKeys,
+  onSelectionChange,
 }: CabinTableViewProps) {
   const loadingState = isLoading && cabins.length === 0 ? 'loading' : 'idle';
+
+  const handleRowAction = (key: Key) => {
+    const cabin = cabins.find(c => c.id === String(key));
+    if (cabin) onView?.(cabin);
+  };
 
   const renderCell = (cabin: Cabin, columnKey: string) => {
     switch (columnKey) {
@@ -156,6 +167,10 @@ export default function CabinTableView({
     <Table
       aria-label='Cabins table'
       removeWrapper
+      selectionMode='multiple'
+      selectedKeys={selectedKeys}
+      onSelectionChange={onSelectionChange}
+      onRowAction={handleRowAction}
       classNames={{
         base: 'max-h-[600px] overflow-auto',
         table: 'min-h-[200px] table-fixed w-full',
@@ -184,7 +199,7 @@ export default function CabinTableView({
         emptyContent='No cabins found'
       >
         {cabin => (
-          <TableRow key={cabin.id} onClick={() => onView?.(cabin)}>
+          <TableRow key={cabin.id}>
             {columnKey => (
               <TableCell>{renderCell(cabin, columnKey as string)}</TableCell>
             )}

@@ -1,5 +1,6 @@
 'use client';
 
+import BulkActionsToolbar from '@/components/BulkActionsToolbar';
 import CabinCard from '@/components/CabinCard';
 import CabinFilters from '@/components/CabinFilters';
 import CabinModal from '@/components/CabinModal';
@@ -7,11 +8,18 @@ import CabinStats from '@/components/CabinStats';
 import CabinTableView from '@/components/CabinTableView';
 import DeletionModal from '@/components/DeletionModal';
 import { GridIcon, ListIcon, PlusIcon } from '@/components/icons';
-import { useCabins, useDeleteCabin } from '@/hooks/useCabins';
+import {
+  useBulkDeleteCabins,
+  useBulkUpdateDiscount,
+  useCabins,
+  useDeleteCabin,
+} from '@/hooks/useCabins';
 import type { Cabin, CabinFilters as CabinFiltersType } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
-import { useEffect, useState } from 'react';
+import { Checkbox } from '@heroui/checkbox';
+import { type Selection } from '@heroui/table';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type ViewMode = 'grid' | 'list';
 
@@ -42,6 +50,7 @@ export default function CabinsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cabinToDelete, setCabinToDelete] = useState<Cabin | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const saved = localStorage.getItem('cabin-view-mode') as ViewMode | null;
@@ -50,6 +59,11 @@ export default function CabinsPage() {
     }
   }, []);
 
+  // Clear selection when filters change
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [filters]);
+
   const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode);
     localStorage.setItem('cabin-view-mode', mode);
@@ -57,6 +71,51 @@ export default function CabinsPage() {
 
   const { data: cabins, isLoading, error, refetch } = useCabins(filters);
   const deleteCabin = useDeleteCabin();
+  const bulkDelete = useBulkDeleteCabins();
+  const bulkUpdateDiscount = useBulkUpdateDiscount();
+
+  const selectedNames = useMemo(() => {
+    if (!cabins) return [];
+    return cabins
+      .filter(c => selectedIds.has(c.id))
+      .map(c => c.name);
+  }, [cabins, selectedIds]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const handleTableSelectionChange = useCallback(
+    (keys: Selection) => {
+      if (keys === 'all') {
+        setSelectedIds(new Set(cabins?.map(c => c.id) || []));
+      } else {
+        setSelectedIds(new Set(keys as Set<string>));
+      }
+    },
+    [cabins]
+  );
+
+  const handleGridSelectAll = useCallback(() => {
+    if (!cabins) return;
+    if (selectedIds.size === cabins.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(cabins.map(c => c.id)));
+    }
+  }, [cabins, selectedIds.size]);
+
+  const handleToggleCardSelect = useCallback((cabinId: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(cabinId)) {
+        next.delete(cabinId);
+      } else {
+        next.add(cabinId);
+      }
+      return next;
+    });
+  }, []);
 
   const handleViewCabin = (cabin: Cabin) => {
     setSelectedCabin(cabin);
@@ -90,6 +149,7 @@ export default function CabinsPage() {
   };
 
   const hasActiveFilters = Object.values(filters).some(v => v);
+  const isSelectionMode = selectedIds.size > 0;
 
   return (
     <div className='container mx-auto px-4 py-8'>
@@ -150,6 +210,20 @@ export default function CabinsPage() {
           totalCount={cabins?.length || 0}
         />
       </div>
+
+      {/* Bulk Actions Toolbar */}
+      {isSelectionMode && (
+        <div className='mb-4'>
+          <BulkActionsToolbar
+            selectedCount={selectedIds.size}
+            selectedNames={selectedNames}
+            selectedIds={Array.from(selectedIds)}
+            onClearSelection={handleClearSelection}
+            bulkDelete={bulkDelete}
+            bulkUpdateDiscount={bulkUpdateDiscount}
+          />
+        </div>
+      )}
 
       {/* Error State */}
       {error && (
@@ -222,6 +296,23 @@ export default function CabinsPage() {
               <div
                 className={viewMode === 'grid' ? 'block' : 'block md:hidden'}
               >
+                {/* Grid Select All */}
+                <div className='flex items-center gap-2 mb-4'>
+                  <Checkbox
+                    isSelected={selectedIds.size === cabins.length}
+                    isIndeterminate={
+                      selectedIds.size > 0 &&
+                      selectedIds.size < cabins.length
+                    }
+                    onValueChange={handleGridSelectAll}
+                    aria-label='Select all cabins'
+                    size='sm'
+                  />
+                  <span className='text-sm text-default-500'>
+                    Select all ({cabins.length})
+                  </span>
+                </div>
+
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
                   {cabins.map(cabin => (
                     <CabinCard
@@ -230,6 +321,9 @@ export default function CabinsPage() {
                       onView={handleViewCabin}
                       onEdit={() => handleEditCabin(cabin)}
                       onDelete={() => handleDeleteCabin(cabin)}
+                      isSelected={selectedIds.has(cabin.id)}
+                      onToggleSelect={() => handleToggleCardSelect(cabin.id)}
+                      selectionMode={isSelectionMode}
                     />
                   ))}
                 </div>
@@ -244,6 +338,8 @@ export default function CabinsPage() {
                     onView={handleViewCabin}
                     onEdit={handleEditCabin}
                     onDelete={handleDeleteCabin}
+                    selectedKeys={selectedIds}
+                    onSelectionChange={handleTableSelectionChange}
                   />
                 </div>
               )}

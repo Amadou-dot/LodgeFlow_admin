@@ -3,6 +3,7 @@
 import type { Cabin } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
+import { Checkbox } from '@heroui/checkbox';
 import { Chip } from '@heroui/chip';
 import {
   Dropdown,
@@ -19,6 +20,9 @@ interface CabinCardProps {
   onView?: (cabin: Cabin) => void;
   onEdit: (cabin: Cabin) => void;
   onDelete: (cabin: Cabin) => void;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
+  selectionMode?: boolean;
 }
 
 export default function CabinCard({
@@ -26,16 +30,41 @@ export default function CabinCard({
   onView,
   onEdit,
   onDelete,
+  isSelected,
+  onToggleSelect,
+  selectionMode,
 }: CabinCardProps) {
   const discountedPrice = cabin.price - cabin.discount;
 
   return (
     <Card
       shadow='sm'
-      className='w-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5'
+      className={`group w-full transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
+        isSelected ? 'ring-2 ring-primary' : ''
+      }`}
     >
       <CardBody className='p-0 cursor-pointer' onClick={() => onView?.(cabin)}>
         <div className='relative'>
+          {onToggleSelect && (
+            <div
+              className={`absolute top-2 left-2 z-10 transition-opacity ${
+                selectionMode || isSelected
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover:opacity-100'
+              }`}
+              onClick={e => e.stopPropagation()}
+            >
+              <Checkbox
+                isSelected={isSelected}
+                onValueChange={onToggleSelect}
+                aria-label={`Select ${cabin.name}`}
+                classNames={{
+                  wrapper:
+                    'bg-white/80 dark:bg-black/50 backdrop-blur-sm shadow-sm',
+                }}
+              />
+            </div>
+          )}
           <Image
             src={cabin.image}
             alt={cabin.name}
