@@ -277,7 +277,7 @@ export async function GET() {
         const customerIds = bookingsList
           .map(b => b.customer)
           .filter((id): id is string => !!id);
-        const customerMap = await getClerkUsersBatch(customerIds);
+        const { users: customerMap } = await getClerkUsersBatch(customerIds);
 
         return bookingsList.map(booking => {
           let customerName = 'Customer';

@@ -199,9 +199,7 @@ export default function BulkActionsToolbar({
                   color='primary'
                   onPress={handleBulkDiscount}
                   isLoading={bulkUpdateDiscount.isPending}
-                  isDisabled={
-                    !discountAmount || parseFloat(discountAmount) < 0
-                  }
+                  isDisabled={!discountAmount || parseFloat(discountAmount) < 0}
                 >
                   {bulkUpdateDiscount.isPending
                     ? 'Updating...'

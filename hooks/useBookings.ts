@@ -46,6 +46,7 @@ interface BookingsResponse {
     hasNextPage: boolean;
     hasPrevPage: boolean;
   };
+  _clerkWarning?: string;
 }
 
 // Fetcher function for SWR
@@ -63,6 +64,7 @@ const fetcher = (url: string): Promise<BookingsResponse> =>
         return {
           bookings: result.data as PopulatedBooking[],
           pagination: result.pagination,
+          _clerkWarning: result._clerkWarning,
         };
       }
       throw new Error(result.error || 'Failed to fetch bookings');
