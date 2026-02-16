@@ -15,6 +15,7 @@ import {
   useConfirmBooking,
 } from '@/hooks/useBookings';
 import { Button } from '@heroui/button';
+import { addToast } from '@heroui/toast';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -84,7 +85,14 @@ export default function ActivityCard({
           return;
       }
     } catch (error) {
-      // Handle error silently or with toast notification
+      addToast({
+        title: 'Action failed',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to update booking status',
+        color: 'danger',
+      });
     } finally {
       setIsLoading(false);
     }

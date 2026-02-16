@@ -14,10 +14,20 @@ export async function GET(_req: Request, { params }: IdParam) {
     await connectDB();
     const booking = await Booking.findById(bookingId).populate('cabin');
 
-    if (!booking) throw new Error('Booking not found');
+    if (!booking) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Booking not found' }),
+        { status: 404 }
+      );
+    }
 
-    // Get customer data from Clerk
-    const customer = await getClerkUser(booking.customer);
+    // Get customer data from Clerk (best-effort — don't fail the request)
+    let customer = null;
+    try {
+      customer = await getClerkUser(booking.customer);
+    } catch (clerkError) {
+      console.error('Error fetching customer from Clerk:', clerkError);
+    }
 
     // Build populated booking response
     const populatedBooking = {
@@ -29,16 +39,13 @@ export async function GET(_req: Request, { params }: IdParam) {
 
     return new Response(
       JSON.stringify({ success: true, data: populatedBooking }),
-      {
-        status: 200,
-      }
+      { status: 200 }
     );
   } catch (error) {
+    console.error('Error fetching booking:', error);
     return new Response(
-      JSON.stringify({ success: false, error: (error as Error).message }),
-      {
-        status: 404,
-      }
+      JSON.stringify({ success: false, error: 'Failed to fetch booking' }),
+      { status: 500 }
     );
   }
 }
@@ -120,8 +127,14 @@ export async function PATCH(req: Request, { params }: IdParam) {
     const updatedBooking = await booking.save();
     await updatedBooking.populate('cabin');
 
-    // Get customer data from Clerk
-    const customer = await getClerkUser(updatedBooking.customer);
+    // Get customer data from Clerk (best-effort — don't fail the request
+    // since the booking save already succeeded)
+    let customer = null;
+    try {
+      customer = await getClerkUser(updatedBooking.customer);
+    } catch (clerkError) {
+      console.error('Error fetching customer from Clerk:', clerkError);
+    }
 
     // Build populated booking response
     const populatedBooking = {
@@ -136,8 +149,9 @@ export async function PATCH(req: Request, { params }: IdParam) {
       { status: 200 }
     );
   } catch (error) {
+    console.error('Error updating booking:', error);
     return new Response(
-      JSON.stringify({ success: false, error: (error as Error).message }),
+      JSON.stringify({ success: false, error: 'Failed to update booking' }),
       { status: 500 }
     );
   }

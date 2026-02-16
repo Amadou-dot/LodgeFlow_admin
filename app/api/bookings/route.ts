@@ -31,7 +31,8 @@ async function populateBookingsWithClerkCustomers(
   const uniqueCustomerIds = Array.from(new Set(customerIds)) as string[];
 
   // Batch fetch all customers with optimized caching
-  const customerMap = await getClerkUsersBatch(uniqueCustomerIds);
+  const { users: customerMap, errors: clerkErrors } =
+    await getClerkUsersBatch(uniqueCustomerIds);
 
   // Populate bookings with customer data
   const populatedBookings = bookings.map(booking => {
@@ -52,7 +53,13 @@ async function populateBookingsWithClerkCustomers(
     };
   });
 
-  return populatedBookings;
+  return {
+    bookings: populatedBookings,
+    _clerkWarning:
+      clerkErrors > 0
+        ? `Failed to fetch ${clerkErrors} customer record(s) from Clerk. Some customer data may be unavailable.`
+        : undefined,
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -104,7 +111,7 @@ export async function GET(request: NextRequest) {
         .sort(sort);
 
       // Populate with Clerk customer data
-      const populatedBookings =
+      const { bookings: populatedBookings, _clerkWarning } =
         await populateBookingsWithClerkCustomers(matchingBookings);
 
       // Additional client-side filtering for customer name/email
@@ -147,6 +154,7 @@ export async function GET(request: NextRequest) {
           hasNextPage: page < totalPages,
           hasPrevPage: page > 1,
         },
+        ...(_clerkWarning ? { _clerkWarning } : {}),
       });
     } else {
       // No search term - use database pagination for better performance
@@ -159,7 +167,7 @@ export async function GET(request: NextRequest) {
         .limit(limit);
 
       // Populate with Clerk customer data
-      const populatedBookings =
+      const { bookings: populatedBookings, _clerkWarning } =
         await populateBookingsWithClerkCustomers(bookings);
 
       const totalBookings = await Booking.countDocuments(query);
@@ -176,6 +184,7 @@ export async function GET(request: NextRequest) {
           hasNextPage: page < totalPages,
           hasPrevPage: page > 1,
         },
+        ...(_clerkWarning ? { _clerkWarning } : {}),
       });
     }
   } catch (error) {
@@ -214,14 +223,16 @@ export async function POST(request: NextRequest) {
     );
 
     // Populate with Clerk customer data
-    const [populatedWithClerk] = await populateBookingsWithClerkCustomers([
-      populatedBooking,
-    ]);
+    const {
+      bookings: [populatedWithClerk],
+      _clerkWarning,
+    } = await populateBookingsWithClerkCustomers([populatedBooking]);
 
     return NextResponse.json(
       {
         success: true,
         data: populatedWithClerk,
+        ...(_clerkWarning ? { _clerkWarning } : {}),
       },
       { status: 201 }
     );
@@ -344,13 +355,15 @@ export async function PUT(request: NextRequest) {
     }
 
     // Populate with Clerk customer data
-    const [populatedWithClerk] = await populateBookingsWithClerkCustomers([
-      booking,
-    ]);
+    const {
+      bookings: [populatedWithClerk],
+      _clerkWarning,
+    } = await populateBookingsWithClerkCustomers([booking]);
 
     return NextResponse.json({
       success: true,
       data: populatedWithClerk,
+      ...(_clerkWarning ? { _clerkWarning } : {}),
     });
   } catch (error: unknown) {
     if (isMongooseValidationError(error)) {

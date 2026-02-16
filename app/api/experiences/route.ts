@@ -1,4 +1,4 @@
-import { requireApiAuth } from '@/lib/api-utils';
+import { escapeRegex, requireApiAuth } from '@/lib/api-utils';
 import connectToDatabase from '@/lib/mongodb';
 import { Experience } from '@/models/Experience';
 import { NextRequest, NextResponse } from 'next/server';
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const query: Record<string, unknown> = {};
 
     if (search) {
-      const regex = { $regex: search, $options: 'i' };
+      const regex = { $regex: escapeRegex(search), $options: 'i' };
       query.$or = [
         { name: regex },
         { description: regex },

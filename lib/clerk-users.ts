@@ -247,9 +247,9 @@ export async function getClerkUser(userId: string): Promise<Customer | null> {
 
     return customer;
   } catch (error: unknown) {
-    console.error('Error fetching user from Clerk:', error);
-
-    // Handle different types of errors gracefully
+    // Only return null for genuine 404 (user deleted). All other errors
+    // (429 rate limit, 500+ server errors, network errors) should propagate
+    // so callers can distinguish "user not found" from "Clerk is down."
     if (error && typeof error === 'object') {
       const typedError = error as {
         status?: number;
@@ -263,23 +263,9 @@ export async function getClerkUser(userId: string): Promise<Customer | null> {
         setCachedUser(userId, null);
         return null;
       }
-
-      if (typedError.status === 429) {
-        console.warn(
-          'Rate limited by Clerk API after retries, returning null for user:',
-          userId
-        );
-        return null;
-      }
-
-      if (typedError.status && typedError.status >= 500) {
-        console.warn('Clerk server error, returning null for user:', userId);
-        return null;
-      }
     }
 
-    console.warn('Unknown Clerk error, returning null for user:', userId);
-    return null;
+    throw error;
   }
 }
 
@@ -321,9 +307,10 @@ export async function searchClerkUsers(
  */
 export async function getClerkUsersBatch(
   userIds: string[]
-): Promise<Map<string, Customer | null>> {
+): Promise<{ users: Map<string, Customer | null>; errors: number }> {
   const results = new Map<string, Customer | null>();
   const uncachedIds: string[] = [];
+  let errorCount = 0;
 
   // Check cache first for all IDs
   for (const userId of userIds) {
@@ -336,7 +323,7 @@ export async function getClerkUsersBatch(
   }
 
   if (uncachedIds.length === 0) {
-    return results;
+    return { users: results, errors: 0 };
   }
 
   // Fetch Clerk users in batches with concurrency limit
@@ -357,30 +344,35 @@ export async function getClerkUsersBatch(
           const customer = convertClerkUserToCustomer(clerkUser);
 
           setCachedUser(userId, customer);
-          return { userId, customer };
+          return { userId, customer, failed: false };
         } catch (error: unknown) {
           console.error(`Error fetching user ${userId}:`, error);
 
-          if (
+          const is404 =
             error &&
             typeof error === 'object' &&
             'status' in error &&
-            (error.status === 404 || error.status === 429)
-          ) {
+            error.status === 404;
+
+          // Only cache null for genuine 404 (user deleted).
+          // Transient errors (429, 500+, network) should NOT be cached
+          // so they can be retried on the next request.
+          if (is404) {
             setCachedUser(userId, null);
           }
 
-          return { userId, customer: null };
+          return { userId, customer: null, failed: !is404 };
         }
       })
     );
 
-    for (const { userId, customer } of clerkResults) {
+    for (const { userId, customer, failed } of clerkResults) {
       results.set(userId, customer);
+      if (failed) errorCount++;
     }
   }
 
-  return results;
+  return { users: results, errors: errorCount };
 }
 
 /**

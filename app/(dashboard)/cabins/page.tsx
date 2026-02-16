@@ -76,9 +76,7 @@ export default function CabinsPage() {
 
   const selectedNames = useMemo(() => {
     if (!cabins) return [];
-    return cabins
-      .filter(c => selectedIds.has(c.id))
-      .map(c => c.name);
+    return cabins.filter(c => selectedIds.has(c.id)).map(c => c.name);
   }, [cabins, selectedIds]);
 
   const handleClearSelection = useCallback(() => {
@@ -301,8 +299,7 @@ export default function CabinsPage() {
                   <Checkbox
                     isSelected={selectedIds.size === cabins.length}
                     isIndeterminate={
-                      selectedIds.size > 0 &&
-                      selectedIds.size < cabins.length
+                      selectedIds.size > 0 && selectedIds.size < cabins.length
                     }
                     onValueChange={handleGridSelectAll}
                     aria-label='Select all cabins'

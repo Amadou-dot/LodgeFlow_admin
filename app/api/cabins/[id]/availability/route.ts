@@ -1,6 +1,7 @@
 import { requireApiAuth } from '@/lib/api-utils';
 import connectDB from '@/lib/mongodb';
 import Booking from '@/models/Booking';
+import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface BookingDateRange {
@@ -48,7 +49,13 @@ export async function GET(
 
     // When editing a booking, exclude its own dates from the unavailable list
     if (excludeBookingId) {
-      query._id = { $ne: excludeBookingId };
+      if (!mongoose.Types.ObjectId.isValid(excludeBookingId)) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid excludeBookingId format' },
+          { status: 400 }
+        );
+      }
+      query._id = { $ne: new mongoose.Types.ObjectId(excludeBookingId) };
     }
 
     const bookings = await Booking.find(query)

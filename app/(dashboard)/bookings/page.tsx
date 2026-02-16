@@ -21,7 +21,7 @@ import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { addToast } from '@heroui/toast';
 import { useRouter } from 'next/navigation';
-import { useEffect, Suspense } from 'react';
+import { useEffect, useRef, Suspense } from 'react';
 
 function BookingsContent() {
   const router = useRouter();
@@ -76,6 +76,22 @@ function BookingsContent() {
     }
   }, [mutate]);
 
+  // Surface Clerk API warnings (e.g. when Clerk is down and customer data is unavailable)
+  const lastClerkWarning = useRef<string | undefined>();
+  useEffect(() => {
+    const warning = bookingsData?._clerkWarning;
+    if (warning && warning !== lastClerkWarning.current) {
+      lastClerkWarning.current = warning;
+      addToast({
+        title: 'Customer data partially unavailable',
+        description: warning,
+        color: 'warning',
+      });
+    } else if (!warning) {
+      lastClerkWarning.current = undefined;
+    }
+  }, [bookingsData?._clerkWarning]);
+
   const handlePageChange = (page: number) => {
     updateFilter('page', page, true); // Add to history for pagination
   };
@@ -113,7 +129,14 @@ function BookingsContent() {
         // Manually revalidate SWR data
         mutate();
       } catch (error) {
-        console.error('Error updating booking status:', error);
+        addToast({
+          title: 'Status update failed',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Failed to update booking status',
+          color: 'danger',
+        });
       }
     }
   };
@@ -139,7 +162,14 @@ function BookingsContent() {
           // Manually revalidate SWR data
           mutate();
         } catch (error) {
-          console.error('Error deleting booking:', error);
+          addToast({
+            title: 'Delete failed',
+            description:
+              error instanceof Error
+                ? error.message
+                : 'Failed to delete booking',
+            color: 'danger',
+          });
         }
       },
       isLoading: deleteBooking.isPending,

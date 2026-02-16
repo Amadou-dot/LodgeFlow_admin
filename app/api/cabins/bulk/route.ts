@@ -27,7 +27,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!ids.every((id: unknown) => typeof id === 'string' && OBJECT_ID_REGEX.test(id))) {
+    if (
+      !ids.every(
+        (id: unknown) => typeof id === 'string' && OBJECT_ID_REGEX.test(id)
+      )
+    ) {
       return createErrorResponse(
         'Each id must be a valid ObjectId string',
         HTTP_STATUS.BAD_REQUEST
@@ -91,7 +95,11 @@ async function handleBulkDelete(ids: string[]) {
 }
 
 async function handleBulkUpdateDiscount(ids: string[], discount: number) {
-  if (discount === undefined || discount === null || typeof discount !== 'number') {
+  if (
+    discount === undefined ||
+    discount === null ||
+    typeof discount !== 'number'
+  ) {
     return createErrorResponse(
       'discount (number) is required',
       HTTP_STATUS.BAD_REQUEST
