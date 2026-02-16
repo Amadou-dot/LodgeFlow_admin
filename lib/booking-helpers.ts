@@ -9,45 +9,60 @@ interface PopulatedBooking extends Omit<IBooking, 'customer'> {
   customer: ClerkUser | null;
 }
 
+interface PopulateResult {
+  booking: PopulatedBooking;
+  clerkError: boolean;
+}
+
 /**
- * Populates booking data with customer information from Clerk
+ * Populates booking data with customer information from Clerk.
+ * Returns a clerkError flag when customer data could not be fetched
+ * due to transient errors (rate limits, server errors, network issues),
+ * so callers can surface a warning to the user.
  */
 export async function populateBookingWithClerkCustomer(
   booking: BookingDocument
-): Promise<PopulatedBooking> {
+): Promise<PopulateResult> {
+  const bookingObj =
+    typeof booking.toObject === 'function' ? booking.toObject() : booking;
+
   if (!booking.customer) {
     return {
-      ...(typeof booking.toObject === 'function'
-        ? booking.toObject()
-        : booking),
-      customer: null,
-    } as PopulatedBooking;
+      booking: { ...bookingObj, customer: null } as PopulatedBooking,
+      clerkError: false,
+    };
   }
 
   try {
     const customer = await getClerkUser(booking.customer);
     return {
-      ...(typeof booking.toObject === 'function'
-        ? booking.toObject()
-        : booking),
-      customer: customer || null,
-    } as PopulatedBooking;
+      booking: {
+        ...bookingObj,
+        customer: customer || null,
+      } as PopulatedBooking,
+      clerkError: false,
+    };
   } catch (error) {
     console.error('Error fetching customer for booking:', error);
     return {
-      ...(typeof booking.toObject === 'function'
-        ? booking.toObject()
-        : booking),
-      customer: null,
-    } as PopulatedBooking;
+      booking: { ...bookingObj, customer: null } as PopulatedBooking,
+      clerkError: true,
+    };
   }
 }
 
 /**
- * Populates multiple bookings with customer information from Clerk
+ * Populates multiple bookings with customer information from Clerk.
+ * Returns the populated bookings and the count of Clerk fetch errors.
  */
 export async function populateBookingsWithClerkCustomers(
   bookings: BookingDocument[]
-): Promise<PopulatedBooking[]> {
-  return Promise.all(bookings.map(populateBookingWithClerkCustomer));
+): Promise<{ bookings: PopulatedBooking[]; clerkErrors: number }> {
+  const results = await Promise.all(
+    bookings.map(populateBookingWithClerkCustomer)
+  );
+  return {
+    bookings: results.map(r => r.booking),
+    clerkErrors: results.filter(r => r.clerkError).length,
+  };
 }

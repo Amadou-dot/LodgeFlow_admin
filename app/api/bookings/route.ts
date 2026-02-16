@@ -225,12 +225,14 @@ export async function POST(request: NextRequest) {
     // Populate with Clerk customer data
     const {
       bookings: [populatedWithClerk],
+      _clerkWarning,
     } = await populateBookingsWithClerkCustomers([populatedBooking]);
 
     return NextResponse.json(
       {
         success: true,
         data: populatedWithClerk,
+        ...(_clerkWarning ? { _clerkWarning } : {}),
       },
       { status: 201 }
     );
@@ -355,11 +357,13 @@ export async function PUT(request: NextRequest) {
     // Populate with Clerk customer data
     const {
       bookings: [populatedWithClerk],
+      _clerkWarning,
     } = await populateBookingsWithClerkCustomers([booking]);
 
     return NextResponse.json({
       success: true,
       data: populatedWithClerk,
+      ...(_clerkWarning ? { _clerkWarning } : {}),
     });
   } catch (error: unknown) {
     if (isMongooseValidationError(error)) {

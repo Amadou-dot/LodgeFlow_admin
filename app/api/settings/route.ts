@@ -1,6 +1,8 @@
 import { requireApiAuth } from '@/lib/api-utils';
+import { AUTHORIZED_ROLES } from '@/lib/auth-helpers';
 import connectDB from '@/lib/mongodb';
 import { isMongooseValidationError } from '@/types/errors';
+import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { Settings } from '../../../models';
 
@@ -146,6 +148,22 @@ export async function POST() {
   // Require authentication
   const authResult = await requireApiAuth();
   if (!authResult.authenticated) return authResult.error;
+
+  // Resetting settings is a destructive operation — require admin role
+  if (
+    !(
+      process.env.NODE_ENV !== 'production' &&
+      process.env.NEXT_PUBLIC_TESTING === 'true'
+    )
+  ) {
+    const { has } = await auth();
+    if (!has?.({ role: AUTHORIZED_ROLES.ADMIN })) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden: Admin role required' },
+        { status: 403 }
+      );
+    }
+  }
 
   try {
     await connectDB();
