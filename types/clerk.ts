@@ -221,7 +221,7 @@ export interface Customer {
   }>;
 
   // Computed properties
-  loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum';
+  loyaltyTier: 'Bronze' | 'Silver' | 'Gold' | 'Diamond';
   fullAddress?: string;
 }
 

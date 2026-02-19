@@ -15,9 +15,10 @@ import {
   RATE_LIMIT_CONFIGS,
 } from '@/lib/rate-limit';
 import { createCustomerSchema } from '@/lib/validations';
+import { Booking } from '@/models';
 import { Customer } from '@/types/clerk';
 import { getErrorMessage } from '@/types/errors';
-import { Booking } from '@/models';
+import { getLoyaltyTier } from '@/utils/utilityFunctions';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -91,33 +92,20 @@ export async function GET(request: NextRequest) {
       },
     ]);
 
-    const statsMap = new Map<
-      string,
-      { totalBookings: number; totalSpent: number }
-    >();
-    for (const stat of statsResults) {
-      statsMap.set(stat._id, {
-        totalBookings: stat.totalBookings,
-        totalSpent: stat.totalSpent,
-      });
-    }
+    const statsMap = new Map(
+      statsResults.map(stat => [
+        stat._id as string,
+        { totalBookings: stat.totalBookings as number, totalSpent: stat.totalSpent as number },
+      ])
+    );
 
     const enrichedData = response.data.map((customer: Customer) => {
-      const stats = statsMap.get(customer.id) || {
-        totalBookings: 0,
-        totalSpent: 0,
-      };
-
-      let loyaltyTier: Customer['loyaltyTier'] = 'bronze';
-      if (stats.totalBookings >= 10) loyaltyTier = 'platinum';
-      else if (stats.totalBookings >= 5) loyaltyTier = 'gold';
-      else if (stats.totalBookings >= 2) loyaltyTier = 'silver';
-
+      const stats = statsMap.get(customer.id) ?? { totalBookings: 0, totalSpent: 0 };
       return {
         ...customer,
         totalBookings: stats.totalBookings,
         totalSpent: stats.totalSpent,
-        loyaltyTier,
+        loyaltyTier: getLoyaltyTier(stats.totalSpent).tier,
       };
     });
 
@@ -143,8 +131,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    console.error('Error fetching customers:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch customers' },
+      { success: false, error: getErrorMessage(error, 'Failed to fetch customers') },
       { status: 500 }
     );
   }
