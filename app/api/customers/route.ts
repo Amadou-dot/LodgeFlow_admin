@@ -8,13 +8,17 @@ import {
   getClerkUsers,
   searchClerkUsers,
 } from '@/lib/clerk-users';
+import connectDB from '@/lib/mongodb';
 import {
   checkRateLimit,
   createRateLimitKey,
   RATE_LIMIT_CONFIGS,
 } from '@/lib/rate-limit';
 import { createCustomerSchema } from '@/lib/validations';
+import { Booking } from '@/models';
+import { Customer } from '@/types/clerk';
 import { getErrorMessage } from '@/types/errors';
+import { getLoyaltyTier } from '@/utils/utilityFunctions';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -68,9 +72,55 @@ export async function GET(request: NextRequest) {
     const totalCustomers = response.totalCount;
     const totalPages = Math.ceil(totalCustomers / limit);
 
+    // Enrich customers with real booking stats from MongoDB
+    await connectDB();
+
+    const userIds = response.data.map((customer: Customer) => customer.id);
+
+    const statsResults = await Booking.aggregate([
+      { $match: { customer: { $in: userIds } } },
+      {
+        $group: {
+          _id: '$customer',
+          totalBookings: { $sum: 1 },
+          totalSpent: {
+            $sum: {
+              $cond: [{ $eq: ['$isPaid', true] }, '$totalPrice', 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    const statsMap = new Map(
+      statsResults.map(stat => [
+        stat._id as string,
+        { totalBookings: stat.totalBookings as number, totalSpent: stat.totalSpent as number },
+      ])
+    );
+
+    const enrichedData = response.data.map((customer: Customer) => {
+      const stats = statsMap.get(customer.id) ?? { totalBookings: 0, totalSpent: 0 };
+      return {
+        ...customer,
+        totalBookings: stats.totalBookings,
+        totalSpent: stats.totalSpent,
+        loyaltyTier: getLoyaltyTier(stats.totalSpent).tier,
+      };
+    });
+
+    // Sort by stats fields in-memory (not available in Clerk)
+    if (sortBy === 'totalSpent' || sortBy === 'totalBookings') {
+      enrichedData.sort((a, b) => {
+        const aVal = a[sortBy];
+        const bVal = b[sortBy];
+        return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
+      });
+    }
+
     return NextResponse.json({
       success: true,
-      data: response.data,
+      data: enrichedData,
       pagination: {
         currentPage: page,
         totalPages,
@@ -81,8 +131,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    console.error('Error fetching customers:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch customers' },
+      { success: false, error: getErrorMessage(error, 'Failed to fetch customers') },
       { status: 500 }
     );
   }

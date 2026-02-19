@@ -90,7 +90,7 @@ const mockBooking: PopulatedBooking = {
     banned: false,
     locked: false,
     lockout_expires_in_seconds: null,
-    loyaltyTier: 'bronze',
+    loyaltyTier: 'Bronze',
     totalBookings: 1,
     totalSpent: 550,
   },

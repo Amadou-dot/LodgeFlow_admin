@@ -137,10 +137,10 @@ CustomerSchema.index({ totalBookings: -1 });
 CustomerSchema.index({ lastBookingDate: -1 });
 
 CustomerSchema.virtual('loyaltyTier').get(function (this: ICustomer) {
-  if (this.totalBookings >= 10) return 'platinum';
-  if (this.totalBookings >= 5) return 'gold';
-  if (this.totalBookings >= 2) return 'silver';
-  return 'bronze';
+  if (this.totalSpent >= 10000) return 'Diamond';
+  if (this.totalSpent >= 5000) return 'Gold';
+  if (this.totalSpent >= 2000) return 'Silver';
+  return 'Bronze';
 });
 
 CustomerSchema.virtual('fullAddress').get(function (this: ICustomer) {

@@ -5,8 +5,9 @@ import {
   updateCompleteCustomer,
 } from '@/lib/clerk-users';
 import connectDB from '@/lib/mongodb';
+import { Booking } from '@/models';
+import { getLoyaltyTier } from '@/utils/utilityFunctions';
 import { NextRequest, NextResponse } from 'next/server';
-import { Booking } from '../../../../models';
 
 export async function GET(
   _req: NextRequest,
@@ -85,19 +86,13 @@ export async function GET(
       lastBookingDate: undefined,
     };
 
-    // Compute loyalty tier from booking count
-    let loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum' = 'bronze';
-    if (stats.totalBookings >= 10) loyaltyTier = 'platinum';
-    else if (stats.totalBookings >= 5) loyaltyTier = 'gold';
-    else if (stats.totalBookings >= 2) loyaltyTier = 'silver';
-
     const customerData = {
       ...customer,
       // Override computed fields with actual booking stats
       totalBookings: stats.totalBookings,
       totalSpent: stats.totalRevenue,
       lastBookingDate: stats.lastBookingDate,
-      loyaltyTier,
+      loyaltyTier: getLoyaltyTier(stats.totalRevenue).tier,
       // Additional calculated stats for display
       completedBookings: stats.completedBookings,
       totalRevenue: stats.totalRevenue,

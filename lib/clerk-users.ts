@@ -122,7 +122,7 @@ export function convertClerkUserToCustomer(clerkUser: User): Customer {
   // totalBookings/totalSpent are computed on demand from Booking collection,
   // default to 0 here since they aren't stored in Clerk metadata
   const totalBookings = 0;
-  const loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum' = 'bronze';
+  const loyaltyTier: 'Bronze' | 'Silver' | 'Gold' | 'Diamond' = 'Bronze';
 
   // Build full address from privateMetadata
   let fullAddress = '';
