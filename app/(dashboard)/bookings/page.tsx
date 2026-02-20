@@ -1,5 +1,6 @@
 'use client';
 
+import BookingStats from '@/components/BookingStats';
 import BookingsFilters, {
   type BookingsFiltersData,
 } from '@/components/BookingsFilters';
@@ -217,6 +218,11 @@ function BookingsContent() {
             New Booking
           </Button>
         </div>
+      </div>
+
+      {/* Stats */}
+      <div className='mb-8'>
+        <BookingStats />
       </div>
 
       {/* Filters */}
