@@ -6,7 +6,6 @@ import {
   parseDate,
   toCalendarDate,
   today,
-  type CalendarDate,
   type DateValue,
 } from '@internationalized/date';
 import type { RangeValue } from '@react-types/shared';
@@ -54,7 +53,7 @@ export default function BookingDatesGuests({
   }>(availabilityUrl, fetcher);
 
   // Convert string dates to CalendarDate objects for the DateRangePicker
-  const dateRange: RangeValue<CalendarDate> | null =
+  const dateRange: RangeValue<DateValue> | null =
     formData.checkInDate && formData.checkOutDate
       ? {
           start: parseDate(formData.checkInDate),
@@ -63,7 +62,7 @@ export default function BookingDatesGuests({
       : null;
 
   // Handle date range changes from the DateRangePicker
-  const handleDateRangeChange = (value: RangeValue<CalendarDate> | null) => {
+  const handleDateRangeChange = (value: RangeValue<DateValue> | null) => {
     if (value) {
       onInputChange('checkInDate', value.start.toString());
       if (value.end) {
@@ -121,7 +120,8 @@ export default function BookingDatesGuests({
       >
         <DateRangePicker
           label='Stay Duration'
-          value={dateRange}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          value={dateRange as any}
           onChange={handleDateRangeChange}
           minValue={todayDate}
           showMonthAndYearPickers
