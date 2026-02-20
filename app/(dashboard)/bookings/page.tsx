@@ -200,14 +200,23 @@ function BookingsContent() {
             Manage cabin reservations and guest check-ins
           </p>
         </div>
-        <Button
-          color='primary'
-          startContent={<PlusIcon />}
-          onPress={() => router.push('/bookings/new')}
-          className='w-full sm:w-auto'
-        >
-          New Booking
-        </Button>
+        <div className='flex gap-2 w-full sm:w-auto'>
+          <Button
+            variant='bordered'
+            onPress={() => router.push('/bookings/analytics')}
+            className='flex-1 sm:flex-none'
+          >
+            Analytics
+          </Button>
+          <Button
+            color='primary'
+            startContent={<PlusIcon />}
+            onPress={() => router.push('/bookings/new')}
+            className='flex-1 sm:flex-none'
+          >
+            New Booking
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
