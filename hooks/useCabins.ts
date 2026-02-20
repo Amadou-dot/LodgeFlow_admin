@@ -22,6 +22,7 @@ export function useCabins(filters: CabinFilters = {}) {
   if (filters.search) queryParams.append('search', filters.search);
   if (filters.capacity) queryParams.append('capacity', filters.capacity);
   if (filters.discount) queryParams.append('discount', filters.discount);
+  if (filters.status) queryParams.append('status', filters.status);
   if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
   if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
 

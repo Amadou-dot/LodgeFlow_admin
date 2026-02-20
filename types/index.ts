@@ -79,11 +79,18 @@ export type AppSettings = ISettings;
 export interface CreateCabinData {
   name: string;
   image: string;
+  images?: string[];
+  status?: 'active' | 'maintenance' | 'inactive';
   capacity: number;
   price: number;
   discount: number;
   description: string;
   amenities: string[];
+  bedrooms?: number;
+  bathrooms?: number;
+  size?: number;
+  minNights?: number;
+  extraGuestFee?: number;
 }
 
 export interface UpdateCabinData extends Partial<CreateCabinData> {
@@ -145,6 +152,7 @@ export interface CabinFilters {
   sortOrder?: 'asc' | 'desc';
   capacity?: 'small' | 'medium' | 'large';
   discount?: 'with' | 'without';
+  status?: 'active' | 'maintenance' | 'inactive';
   search?: string;
 }
 

@@ -141,10 +141,7 @@ export default function BookingAnalyticsPage() {
 
       {/* Stats Cards */}
       <div className='mb-6'>
-        <BookingAnalyticsStats
-          summary={data?.summary}
-          isLoading={isLoading}
-        />
+        <BookingAnalyticsStats summary={data?.summary} isLoading={isLoading} />
       </div>
 
       {/* Revenue Chart */}
@@ -161,10 +158,7 @@ export default function BookingAnalyticsPage() {
           data={data?.statusDistribution}
           isLoading={isLoading}
         />
-        <PopularCabinsChart
-          data={data?.popularCabins}
-          isLoading={isLoading}
-        />
+        <PopularCabinsChart data={data?.popularCabins} isLoading={isLoading} />
       </div>
 
       {/* Demographics */}

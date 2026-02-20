@@ -24,11 +24,17 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const capacity = searchParams.get('capacity');
     const discount = searchParams.get('discount');
+    const status = searchParams.get('status');
     const sortBy = searchParams.get('sortBy') || 'name';
     const sortOrder = searchParams.get('sortOrder') || 'asc';
 
     // Build query
     const query: CabinQueryFilter = {};
+
+    // Apply status filter (default to active only unless explicitly requesting all or specific status)
+    if (status && status !== 'all') {
+      query.status = status;
+    }
 
     // Apply search (sanitize to prevent regex injection)
     if (search) {

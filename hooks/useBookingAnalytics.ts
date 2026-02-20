@@ -45,9 +45,7 @@ export function useBookingAnalytics(period: AnalyticsPeriod = '30d') {
   return useQuery<BookingAnalyticsData>({
     queryKey: ['booking-analytics', period],
     queryFn: async () => {
-      const response = await fetch(
-        `/api/bookings/analytics?period=${period}`
-      );
+      const response = await fetch(`/api/bookings/analytics?period=${period}`);
       if (!response.ok) {
         throw new Error('Failed to fetch booking analytics');
       }

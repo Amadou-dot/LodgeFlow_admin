@@ -95,12 +95,18 @@ export async function GET(request: NextRequest) {
     const statsMap = new Map(
       statsResults.map(stat => [
         stat._id as string,
-        { totalBookings: stat.totalBookings as number, totalSpent: stat.totalSpent as number },
+        {
+          totalBookings: stat.totalBookings as number,
+          totalSpent: stat.totalSpent as number,
+        },
       ])
     );
 
     const enrichedData = response.data.map((customer: Customer) => {
-      const stats = statsMap.get(customer.id) ?? { totalBookings: 0, totalSpent: 0 };
+      const stats = statsMap.get(customer.id) ?? {
+        totalBookings: 0,
+        totalSpent: 0,
+      };
       return {
         ...customer,
         totalBookings: stats.totalBookings,
@@ -133,7 +139,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching customers:', error);
     return NextResponse.json(
-      { success: false, error: getErrorMessage(error, 'Failed to fetch customers') },
+      {
+        success: false,
+        error: getErrorMessage(error, 'Failed to fetch customers'),
+      },
       { status: 500 }
     );
   }

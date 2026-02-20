@@ -51,131 +51,136 @@ export async function GET(request: NextRequest) {
 
     const dateFilter = startDate ? { createdAt: { $gte: startDate } } : {};
 
-    const [summaryResult, cancelledCount, revenueOverTime, statusDist, popularCabins] =
-      await Promise.all([
-        // 1. Summary stats (exclude cancelled)
-        Booking.aggregate([
-          {
-            $match: {
-              ...dateFilter,
-              status: { $ne: 'cancelled' },
+    const [
+      summaryResult,
+      cancelledCount,
+      revenueOverTime,
+      statusDist,
+      popularCabins,
+    ] = await Promise.all([
+      // 1. Summary stats (exclude cancelled)
+      Booking.aggregate([
+        {
+          $match: {
+            ...dateFilter,
+            status: { $ne: 'cancelled' },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: {
+              $sum: { $cond: [{ $eq: ['$isPaid', true] }, '$totalPrice', 0] },
+            },
+            totalBookings: { $sum: 1 },
+            avgBookingValue: { $avg: '$totalPrice' },
+            avgNumGuests: { $avg: '$numGuests' },
+            avgNumNights: { $avg: '$numNights' },
+            breakfastCount: {
+              $sum: { $cond: ['$extras.hasBreakfast', 1, 0] },
+            },
+            petCount: { $sum: { $cond: ['$extras.hasPets', 1, 0] } },
+            parkingCount: {
+              $sum: { $cond: ['$extras.hasParking', 1, 0] },
+            },
+            earlyCheckInCount: {
+              $sum: { $cond: ['$extras.hasEarlyCheckIn', 1, 0] },
+            },
+            lateCheckOutCount: {
+              $sum: { $cond: ['$extras.hasLateCheckOut', 1, 0] },
             },
           },
-          {
-            $group: {
-              _id: null,
-              totalRevenue: {
-                $sum: { $cond: [{ $eq: ['$isPaid', true] }, '$totalPrice', 0] },
-              },
-              totalBookings: { $sum: 1 },
-              avgBookingValue: { $avg: '$totalPrice' },
-              avgNumGuests: { $avg: '$numGuests' },
-              avgNumNights: { $avg: '$numNights' },
-              breakfastCount: {
-                $sum: { $cond: ['$extras.hasBreakfast', 1, 0] },
-              },
-              petCount: { $sum: { $cond: ['$extras.hasPets', 1, 0] } },
-              parkingCount: {
-                $sum: { $cond: ['$extras.hasParking', 1, 0] },
-              },
-              earlyCheckInCount: {
-                $sum: { $cond: ['$extras.hasEarlyCheckIn', 1, 0] },
-              },
-              lateCheckOutCount: {
-                $sum: { $cond: ['$extras.hasLateCheckOut', 1, 0] },
-              },
-            },
-          },
-        ]),
+        },
+      ]),
 
-        // 2. Cancellation count
-        Booking.countDocuments({
-          ...dateFilter,
-          status: 'cancelled',
-        }),
+      // 2. Cancellation count
+      Booking.countDocuments({
+        ...dateFilter,
+        status: 'cancelled',
+      }),
 
-        // 3. Revenue over time
-        Booking.aggregate([
-          {
-            $match: {
-              ...dateFilter,
-              status: { $ne: 'cancelled' },
-            },
+      // 3. Revenue over time
+      Booking.aggregate([
+        {
+          $match: {
+            ...dateFilter,
+            status: { $ne: 'cancelled' },
           },
-          {
-            $group: {
-              _id:
-                getGroupFormat(period) === 'daily'
-                  ? {
-                      $dateToString: {
-                        format: '%Y-%m-%d',
-                        date: '$createdAt',
-                      },
-                    }
-                  : {
-                      $dateToString: {
-                        format: '%Y-%U',
-                        date: '$createdAt',
-                      },
+        },
+        {
+          $group: {
+            _id:
+              getGroupFormat(period) === 'daily'
+                ? {
+                    $dateToString: {
+                      format: '%Y-%m-%d',
+                      date: '$createdAt',
                     },
-              revenue: {
-                $sum: {
-                  $cond: [{ $eq: ['$isPaid', true] }, '$totalPrice', 0],
-                },
+                  }
+                : {
+                    $dateToString: {
+                      format: '%Y-%U',
+                      date: '$createdAt',
+                    },
+                  },
+            revenue: {
+              $sum: {
+                $cond: [{ $eq: ['$isPaid', true] }, '$totalPrice', 0],
               },
-              bookings: { $sum: 1 },
             },
+            bookings: { $sum: 1 },
           },
-          { $sort: { _id: 1 } },
-        ]),
+        },
+        { $sort: { _id: 1 } },
+      ]),
 
-        // 4. Status distribution
-        Booking.aggregate([
-          { $match: dateFilter },
-          {
-            $group: {
-              _id: '$status',
-              count: { $sum: 1 },
-            },
+      // 4. Status distribution
+      Booking.aggregate([
+        { $match: dateFilter },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
           },
-        ]),
+        },
+      ]),
 
-        // 5. Popular cabins
-        Booking.aggregate([
-          {
-            $match: {
-              ...dateFilter,
-              status: { $ne: 'cancelled' },
-            },
+      // 5. Popular cabins
+      Booking.aggregate([
+        {
+          $match: {
+            ...dateFilter,
+            status: { $ne: 'cancelled' },
           },
-          {
-            $group: {
-              _id: '$cabin',
-              bookingCount: { $sum: 1 },
-              revenue: { $sum: '$totalPrice' },
-            },
+        },
+        {
+          $group: {
+            _id: '$cabin',
+            bookingCount: { $sum: 1 },
+            revenue: { $sum: '$totalPrice' },
           },
-          {
-            $lookup: {
-              from: 'cabins',
-              localField: '_id',
-              foreignField: '_id',
-              as: 'cabinInfo',
-            },
+        },
+        {
+          $lookup: {
+            from: 'cabins',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'cabinInfo',
           },
-          { $unwind: '$cabinInfo' },
-          {
-            $project: {
-              _id: 0,
-              name: '$cabinInfo.name',
-              bookingCount: 1,
-              revenue: { $round: ['$revenue', 0] },
-            },
+        },
+        { $unwind: '$cabinInfo' },
+        {
+          $project: {
+            _id: 0,
+            name: '$cabinInfo.name',
+            bookingCount: 1,
+            revenue: { $round: ['$revenue', 0] },
           },
-          { $sort: { bookingCount: -1 } },
-          { $limit: 10 },
-        ]),
-      ]);
+        },
+        { $sort: { bookingCount: -1 } },
+        { $limit: 10 },
+      ]),
+    ]);
 
     const summary = summaryResult[0] || {
       totalRevenue: 0,
@@ -247,10 +252,8 @@ export async function GET(request: NextRequest) {
       ),
       popularCabins,
       demographics: {
-        avgPartySize:
-          Math.round((summary.avgNumGuests || 0) * 10) / 10,
-        avgStayLength:
-          Math.round((summary.avgNumNights || 0) * 10) / 10,
+        avgPartySize: Math.round((summary.avgNumGuests || 0) * 10) / 10,
+        avgStayLength: Math.round((summary.avgNumNights || 0) * 10) / 10,
         extras: {
           breakfast: {
             count: summary.breakfastCount,
@@ -266,15 +269,11 @@ export async function GET(request: NextRequest) {
           },
           earlyCheckIn: {
             count: summary.earlyCheckInCount,
-            rate: Math.round(
-              (summary.earlyCheckInCount / totalBookings) * 100
-            ),
+            rate: Math.round((summary.earlyCheckInCount / totalBookings) * 100),
           },
           lateCheckOut: {
             count: summary.lateCheckOutCount,
-            rate: Math.round(
-              (summary.lateCheckOutCount / totalBookings) * 100
-            ),
+            rate: Math.round((summary.lateCheckOutCount / totalBookings) * 100),
           },
         },
       },
