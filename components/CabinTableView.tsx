@@ -37,12 +37,20 @@ interface CabinTableViewProps {
 const columns = [
   { key: 'image', label: '' },
   { key: 'name', label: 'Name' },
+  { key: 'status', label: 'Status' },
   { key: 'capacity', label: 'Capacity' },
+  { key: 'rooms', label: 'Rooms' },
   { key: 'price', label: 'Price' },
   { key: 'discount', label: 'Discount' },
   { key: 'amenities', label: 'Amenities' },
   { key: 'actions', label: '' },
 ];
+
+const statusColorMap = {
+  active: 'success',
+  maintenance: 'warning',
+  inactive: 'danger',
+} as const;
 
 export default function CabinTableView({
   cabins,
@@ -83,11 +91,32 @@ export default function CabinTableView({
             )}
           </div>
         );
+      case 'status':
+        return (
+          <Chip
+            size='sm'
+            variant='flat'
+            color={statusColorMap[cabin.status || 'active']}
+            className='capitalize'
+          >
+            {cabin.status || 'active'}
+          </Chip>
+        );
       case 'capacity':
         return (
           <Chip size='sm' variant='flat' color='primary'>
             {cabin.capacity} guests
           </Chip>
+        );
+      case 'rooms':
+        return cabin.bedrooms || cabin.bathrooms ? (
+          <span className='text-sm text-default-600'>
+            {cabin.bedrooms && `${cabin.bedrooms} bd`}
+            {cabin.bedrooms && cabin.bathrooms && ' / '}
+            {cabin.bathrooms && `${cabin.bathrooms} ba`}
+          </span>
+        ) : (
+          <span className='text-default-400'>-</span>
         );
       case 'price':
         return cabin.discount > 0 ? (

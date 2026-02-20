@@ -60,10 +60,35 @@ export default function CabinFiltersComponent({
     });
   };
 
-  const hasActiveFilters = filters.capacity || filters.discount;
+  const handleStatusChange = (status: string) => {
+    onFiltersChange({
+      ...filters,
+      status: status as 'active' | 'maintenance' | 'inactive' | undefined,
+    });
+  };
+
+  const hasActiveFilters =
+    filters.capacity || filters.discount || filters.status;
 
   const additionalFilters = (
     <>
+      <Select
+        aria-label='Filter by status'
+        placeholder='All statuses'
+        selectedKeys={filters.status ? [filters.status] : []}
+        onSelectionChange={(keys: SharedSelection) => {
+          const value = Array.from(keys)[0] as string;
+          handleStatusChange(value);
+        }}
+        className='w-36'
+        size='sm'
+        variant='bordered'
+      >
+        <SelectItem key='active'>Active</SelectItem>
+        <SelectItem key='maintenance'>Maintenance</SelectItem>
+        <SelectItem key='inactive'>Inactive</SelectItem>
+      </Select>
+
       <Select
         aria-label='Filter by capacity'
         placeholder='All capacities'

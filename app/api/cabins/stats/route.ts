@@ -24,6 +24,21 @@ export async function GET() {
           cabinsWithDiscount: {
             $sum: { $cond: [{ $gt: ['$discount', 0] }, 1, 0] },
           },
+          activeCabins: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'active'] }, 1, 0],
+            },
+          },
+          maintenanceCabins: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'maintenance'] }, 1, 0],
+            },
+          },
+          inactiveCabins: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'inactive'] }, 1, 0],
+            },
+          },
         },
       },
       {
@@ -33,6 +48,9 @@ export async function GET() {
           totalCapacity: 1,
           averagePrice: { $round: ['$averagePrice', 0] },
           cabinsWithDiscount: 1,
+          activeCabins: 1,
+          maintenanceCabins: 1,
+          inactiveCabins: 1,
         },
       },
     ]);
@@ -42,6 +60,9 @@ export async function GET() {
       totalCapacity: 0,
       averagePrice: 0,
       cabinsWithDiscount: 0,
+      activeCabins: 0,
+      maintenanceCabins: 0,
+      inactiveCabins: 0,
     };
 
     return createSuccessResponse(stats);

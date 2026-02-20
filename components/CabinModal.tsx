@@ -13,6 +13,8 @@ import {
   ModalFooter,
   ModalHeader,
 } from '@heroui/modal';
+import { Select, SelectItem } from '@heroui/select';
+import type { SharedSelection } from '@heroui/system';
 import { addToast } from '@heroui/toast';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
@@ -35,14 +37,22 @@ export default function CabinModal({
   const [formData, setFormData] = useState({
     name: '',
     image: '',
+    images: [] as string[],
+    status: 'active' as 'active' | 'maintenance' | 'inactive',
     capacity: 0,
     price: 0,
     discount: 0,
     description: '',
     amenities: [] as string[],
+    bedrooms: undefined as number | undefined,
+    bathrooms: undefined as number | undefined,
+    size: undefined as number | undefined,
+    minNights: undefined as number | undefined,
+    extraGuestFee: 0,
   });
 
   const [newAmenity, setNewAmenity] = useState('');
+  const [newGalleryImage, setNewGalleryImage] = useState('');
   const [isValidImage, setIsValidImage] = useState(false);
   const createCabin = useCreateCabin();
   const updateCabin = useUpdateCabin();
@@ -52,21 +62,35 @@ export default function CabinModal({
       setFormData({
         name: cabin.name,
         image: cabin.image,
+        images: cabin.images || [],
+        status: cabin.status || 'active',
         capacity: cabin.capacity,
         price: cabin.price,
         discount: cabin.discount,
         description: cabin.description,
         amenities: cabin.amenities,
+        bedrooms: cabin.bedrooms,
+        bathrooms: cabin.bathrooms,
+        size: cabin.size,
+        minNights: cabin.minNights,
+        extraGuestFee: cabin.extraGuestFee || 0,
       });
     } else if (mode === 'create') {
       setFormData({
         name: '',
         image: '',
+        images: [],
+        status: 'active',
         capacity: 0,
         price: 0,
         discount: 0,
         description: '',
         amenities: [],
+        bedrooms: undefined,
+        bathrooms: undefined,
+        size: undefined,
+        minNights: undefined,
+        extraGuestFee: 0,
       });
     }
   }, [cabin, mode, isOpen]);
@@ -127,6 +151,32 @@ export default function CabinModal({
     }));
   };
 
+  const addGalleryImage = () => {
+    if (
+      newGalleryImage.trim() &&
+      !formData.images.includes(newGalleryImage.trim())
+    ) {
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, newGalleryImage.trim()],
+      }));
+      setNewGalleryImage('');
+    }
+  };
+
+  const removeGalleryImage = (url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter(img => img !== url),
+    }));
+  };
+
+  const statusColorMap = {
+    active: 'success',
+    maintenance: 'warning',
+    inactive: 'danger',
+  } as const;
+
   const isViewMode = mode === 'view';
   const isLoading = createCabin.isPending || updateCabin.isPending;
 
@@ -144,13 +194,39 @@ export default function CabinModal({
             <div className='space-y-5'>
               {/* Hero Image */}
               {isValidImage && (
-                <Image
-                  src={formData.image}
-                  alt={formData.name}
-                  width={600}
-                  height={300}
-                  className='w-full h-56 object-cover rounded-lg'
-                />
+                <div className='relative'>
+                  <Image
+                    src={formData.image}
+                    alt={formData.name}
+                    width={600}
+                    height={300}
+                    className='w-full h-56 object-cover rounded-lg'
+                  />
+                  <Chip
+                    color={statusColorMap[formData.status]}
+                    variant='solid'
+                    size='sm'
+                    className='absolute top-2 right-2 shadow-md capitalize'
+                  >
+                    {formData.status}
+                  </Chip>
+                </div>
+              )}
+
+              {/* Gallery Images */}
+              {formData.images.length > 0 && (
+                <div className='flex gap-2 overflow-x-auto pb-1'>
+                  {formData.images.map((img, idx) => (
+                    <Image
+                      key={idx}
+                      src={img}
+                      alt={`${formData.name} gallery ${idx + 1}`}
+                      width={120}
+                      height={80}
+                      className='w-24 h-16 object-cover rounded-md flex-shrink-0'
+                    />
+                  ))}
+                </div>
               )}
 
               {/* Quick Info Row */}
@@ -180,6 +256,58 @@ export default function CabinModal({
                   </p>
                 </div>
               </div>
+
+              {/* Property Details */}
+              {(formData.bedrooms || formData.bathrooms || formData.size) && (
+                <div className='grid grid-cols-3 gap-3'>
+                  {formData.bedrooms && (
+                    <div className='bg-default-50 dark:bg-default-100/10 border border-default-200 dark:border-default-700/40 rounded-lg p-3 text-center'>
+                      <p className='text-xs text-default-500'>Bedrooms</p>
+                      <p className='text-lg font-bold'>{formData.bedrooms}</p>
+                    </div>
+                  )}
+                  {formData.bathrooms && (
+                    <div className='bg-default-50 dark:bg-default-100/10 border border-default-200 dark:border-default-700/40 rounded-lg p-3 text-center'>
+                      <p className='text-xs text-default-500'>Bathrooms</p>
+                      <p className='text-lg font-bold'>{formData.bathrooms}</p>
+                    </div>
+                  )}
+                  {formData.size && (
+                    <div className='bg-default-50 dark:bg-default-100/10 border border-default-200 dark:border-default-700/40 rounded-lg p-3 text-center'>
+                      <p className='text-xs text-default-500'>Size</p>
+                      <p className='text-lg font-bold'>
+                        {formData.size} ft&sup2;
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Booking Rules */}
+              {(formData.minNights || formData.extraGuestFee > 0) && (
+                <div className='grid grid-cols-2 gap-3'>
+                  {formData.minNights && (
+                    <div className='bg-secondary-50 dark:bg-secondary-900/20 border border-secondary-200 dark:border-secondary-700/40 rounded-lg p-3 text-center'>
+                      <p className='text-xs text-secondary-600 dark:text-secondary-400'>
+                        Min. Nights
+                      </p>
+                      <p className='text-lg font-bold text-secondary-700 dark:text-secondary-300'>
+                        {formData.minNights}
+                      </p>
+                    </div>
+                  )}
+                  {formData.extraGuestFee > 0 && (
+                    <div className='bg-secondary-50 dark:bg-secondary-900/20 border border-secondary-200 dark:border-secondary-700/40 rounded-lg p-3 text-center'>
+                      <p className='text-xs text-secondary-600 dark:text-secondary-400'>
+                        Extra Guest Fee
+                      </p>
+                      <p className='text-lg font-bold text-secondary-700 dark:text-secondary-300'>
+                        ${formData.extraGuestFee}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Effective Price */}
               {formData.discount > 0 && (
@@ -312,6 +440,123 @@ export default function CabinModal({
                 />
               </div>
 
+              {/* Status (edit mode only) */}
+              {mode === 'edit' && (
+                <Select
+                  label='Status'
+                  selectedKeys={[formData.status]}
+                  onSelectionChange={(keys: SharedSelection) => {
+                    const value = Array.from(keys)[0] as
+                      | 'active'
+                      | 'maintenance'
+                      | 'inactive';
+                    if (value)
+                      setFormData(prev => ({ ...prev, status: value }));
+                  }}
+                  variant='bordered'
+                >
+                  <SelectItem key='active'>Active</SelectItem>
+                  <SelectItem key='maintenance'>Maintenance</SelectItem>
+                  <SelectItem key='inactive'>Inactive</SelectItem>
+                </Select>
+              )}
+
+              {/* Property Details */}
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                <Input
+                  label='Bedrooms'
+                  type='number'
+                  placeholder='e.g. 2'
+                  value={
+                    formData.bedrooms !== undefined
+                      ? formData.bedrooms.toString()
+                      : ''
+                  }
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      bedrooms: e.target.value
+                        ? parseInt(e.target.value)
+                        : undefined,
+                    }))
+                  }
+                  min='1'
+                />
+                <Input
+                  label='Bathrooms'
+                  type='number'
+                  placeholder='e.g. 1'
+                  value={
+                    formData.bathrooms !== undefined
+                      ? formData.bathrooms.toString()
+                      : ''
+                  }
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      bathrooms: e.target.value
+                        ? parseInt(e.target.value)
+                        : undefined,
+                    }))
+                  }
+                  min='1'
+                />
+                <Input
+                  label='Size (sq ft)'
+                  type='number'
+                  placeholder='e.g. 1200'
+                  value={
+                    formData.size !== undefined ? formData.size.toString() : ''
+                  }
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      size: e.target.value
+                        ? parseInt(e.target.value)
+                        : undefined,
+                    }))
+                  }
+                  min='1'
+                />
+              </div>
+
+              {/* Booking Rules */}
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <Input
+                  label='Min. Nights'
+                  type='number'
+                  placeholder='Override global minimum'
+                  value={
+                    formData.minNights !== undefined
+                      ? formData.minNights.toString()
+                      : ''
+                  }
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      minNights: e.target.value
+                        ? parseInt(e.target.value)
+                        : undefined,
+                    }))
+                  }
+                  min='1'
+                />
+                <Input
+                  label='Extra Guest Fee'
+                  type='number'
+                  placeholder='Per guest above base'
+                  value={formData.extraGuestFee.toString()}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      extraGuestFee: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                  startContent='$'
+                  min='0'
+                />
+              </div>
+
               {/* Description */}
               <Textarea
                 label='Description'
@@ -325,6 +570,53 @@ export default function CabinModal({
                 }
                 minRows={3}
               />
+
+              {/* Gallery Images */}
+              <div>
+                <label className='text-sm font-medium mb-2 block'>
+                  Gallery Images
+                </label>
+
+                <div className='flex gap-2 mb-3'>
+                  <Input
+                    placeholder='Add image URL'
+                    value={newGalleryImage}
+                    onChange={e => setNewGalleryImage(e.target.value)}
+                    onKeyPress={e => e.key === 'Enter' && addGalleryImage()}
+                    className='flex-1'
+                  />
+                  <Button
+                    color='primary'
+                    onPress={addGalleryImage}
+                    isDisabled={!newGalleryImage.trim()}
+                  >
+                    Add
+                  </Button>
+                </div>
+
+                {formData.images.length > 0 && (
+                  <div className='flex flex-wrap gap-2'>
+                    {formData.images.map((img, idx) => (
+                      <div key={idx} className='relative group'>
+                        <Image
+                          src={img}
+                          alt={`Gallery ${idx + 1}`}
+                          width={80}
+                          height={60}
+                          className='w-20 h-14 object-cover rounded-md'
+                        />
+                        <button
+                          type='button'
+                          onClick={() => removeGalleryImage(img)}
+                          className='absolute -top-1 -right-1 w-5 h-5 bg-danger text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Amenities */}
               <div>

@@ -25,6 +25,12 @@ interface CabinCardProps {
   selectionMode?: boolean;
 }
 
+const statusColorMap = {
+  active: 'success',
+  maintenance: 'warning',
+  inactive: 'danger',
+} as const;
+
 export default function CabinCard({
   cabin,
   onView,
@@ -35,6 +41,7 @@ export default function CabinCard({
   selectionMode,
 }: CabinCardProps) {
   const discountedPrice = cabin.price - cabin.discount;
+  const cabinStatus = cabin.status || 'active';
 
   return (
     <Card
@@ -72,16 +79,28 @@ export default function CabinCard({
             height={250}
             className='w-full h-48 object-cover rounded-t-lg'
           />
-          {cabin.discount > 0 && (
-            <Chip
-              color='danger'
-              variant='solid'
-              size='sm'
-              className='absolute top-2 right-2 shadow-md'
-            >
-              ${cabin.discount} off
-            </Chip>
-          )}
+          <div className='absolute top-2 right-2 flex gap-1'>
+            {cabinStatus !== 'active' && (
+              <Chip
+                color={statusColorMap[cabinStatus]}
+                variant='solid'
+                size='sm'
+                className='shadow-md capitalize'
+              >
+                {cabinStatus}
+              </Chip>
+            )}
+            {cabin.discount > 0 && (
+              <Chip
+                color='danger'
+                variant='solid'
+                size='sm'
+                className='shadow-md'
+              >
+                ${cabin.discount} off
+              </Chip>
+            )}
+          </div>
           <div className='absolute bottom-2 left-2'>
             <Chip
               color='primary'
@@ -157,6 +176,14 @@ export default function CabinCard({
               </>
             )}
           </div>
+
+          {(cabin.bedrooms || cabin.bathrooms || cabin.size) && (
+            <div className='flex items-center gap-3 mb-3 text-sm text-default-500'>
+              {cabin.bedrooms && <span>{cabin.bedrooms} bd</span>}
+              {cabin.bathrooms && <span>{cabin.bathrooms} ba</span>}
+              {cabin.size && <span>{cabin.size} ft&sup2;</span>}
+            </div>
+          )}
 
           {cabin.description && (
             <p className='text-sm text-default-500 line-clamp-2 mb-3'>
