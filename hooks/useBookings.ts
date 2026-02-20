@@ -184,6 +184,7 @@ export const useCreateBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       queryClient.invalidateQueries({ queryKey: ['overview'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-analytics'] });
       // Note: SWR will be revalidated automatically on focus or manually via mutate
     },
   });
@@ -220,6 +221,7 @@ export const useRecordPayment = () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       queryClient.invalidateQueries({ queryKey: ['overview'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-analytics'] });
     },
   });
 };
@@ -249,6 +251,7 @@ export const useUpdateBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       queryClient.invalidateQueries({ queryKey: ['overview'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-analytics'] });
       addToast({
         title: 'Booking updated',
         description: 'The booking has been updated successfully.',
@@ -283,6 +286,7 @@ export const useDeleteBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       queryClient.invalidateQueries({ queryKey: ['overview'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-analytics'] });
     },
   });
 };
@@ -315,6 +319,7 @@ export const useCheckInBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       queryClient.invalidateQueries({ queryKey: ['overview'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-analytics'] });
     },
   });
 };
@@ -347,6 +352,7 @@ export const useCheckOutBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       queryClient.invalidateQueries({ queryKey: ['overview'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-analytics'] });
     },
   });
 };
@@ -378,6 +384,7 @@ export const useConfirmBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['activities'] });
       queryClient.invalidateQueries({ queryKey: ['overview'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-analytics'] });
     },
   });
 };
