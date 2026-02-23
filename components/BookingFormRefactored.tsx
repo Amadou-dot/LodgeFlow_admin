@@ -246,7 +246,8 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
       onSuccess?.();
     } catch (error) {
       console.error('Error creating booking:', error);
-      alert('Failed to create booking. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to create booking. Please try again.';
+      alert(message);
     }
   };
 

@@ -3,11 +3,18 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface ICabin extends Document {
   name: string;
   image: string;
+  images: string[];
+  status: 'active' | 'maintenance' | 'inactive';
   capacity: number;
   price: number;
   discount: number;
   description: string;
   amenities: string[];
+  bedrooms?: number;
+  bathrooms?: number;
+  size?: number;
+  minNights?: number;
+  extraGuestFee: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -58,6 +65,43 @@ const CabinSchema: Schema = new Schema(
         trim: true,
       },
     ],
+    images: [
+      {
+        type: String,
+        validate: {
+          validator: function (v: string) {
+            return /^https?:\/\/.+\..+/.test(v);
+          },
+          message: 'Please provide a valid image URL',
+        },
+      },
+    ],
+    status: {
+      type: String,
+      enum: ['active', 'maintenance', 'inactive'],
+      default: 'active',
+    },
+    bedrooms: {
+      type: Number,
+      min: [1, 'Bedrooms must be at least 1'],
+    },
+    bathrooms: {
+      type: Number,
+      min: [1, 'Bathrooms must be at least 1'],
+    },
+    size: {
+      type: Number,
+      min: [1, 'Size must be at least 1 sq ft'],
+    },
+    minNights: {
+      type: Number,
+      min: [1, 'Minimum nights must be at least 1'],
+    },
+    extraGuestFee: {
+      type: Number,
+      min: [0, 'Extra guest fee must be positive'],
+      default: 0,
+    },
   },
   {
     timestamps: true,
@@ -67,6 +111,7 @@ const CabinSchema: Schema = new Schema(
 // Indexes for better query performance
 CabinSchema.index({ capacity: 1 });
 CabinSchema.index({ price: 1 });
+CabinSchema.index({ status: 1 });
 CabinSchema.index({ name: 'text', description: 'text' });
 
 // Virtual for discounted price

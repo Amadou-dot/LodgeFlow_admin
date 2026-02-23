@@ -174,7 +174,8 @@ export const useCreateBooking = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create booking');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create booking');
       }
       const result = await response.json();
       return result.success ? result.data : result;

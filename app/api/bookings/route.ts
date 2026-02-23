@@ -214,6 +214,24 @@ export async function POST(request: NextRequest) {
       return createValidationErrorResponse(validationResult.error);
     }
 
+    // Verify cabin is active before creating booking
+    const cabin = await Cabin.findById(validationResult.data.cabin);
+    if (!cabin) {
+      return NextResponse.json(
+        { success: false, error: 'Cabin not found' },
+        { status: 404 }
+      );
+    }
+    if (cabin.status && cabin.status !== 'active') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Cannot create booking: cabin is currently ${cabin.status}`,
+        },
+        { status: 400 }
+      );
+    }
+
     const booking = await Booking.create(validationResult.data);
 
     // Populate the response
