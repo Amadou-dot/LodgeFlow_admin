@@ -50,5 +50,4 @@ bun.lockb
 # clerk configuration (can include secrets)
 /.clerk/
 
-screenshots/*
-plans/*
+local/*
