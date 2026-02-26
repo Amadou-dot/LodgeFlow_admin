@@ -122,6 +122,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
       return {
         cabinPrice: 0,
         breakfastPrice: 0,
+        extraGuestFee: 0,
         petFee: 0,
         parkingFee: 0,
         earlyCheckInFee: 0,
@@ -161,6 +162,7 @@ export default function BookingForm({ onSuccess, onCancel }: BookingFormProps) {
     return {
       cabinPrice,
       breakfastPrice,
+      extraGuestFee: 0,
       petFee,
       parkingFee,
       earlyCheckInFee,

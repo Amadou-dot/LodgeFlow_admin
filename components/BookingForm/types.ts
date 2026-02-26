@@ -19,6 +19,7 @@ export interface BookingFormData {
 export interface PriceBreakdown {
   cabinPrice: number;
   breakfastPrice: number;
+  extraGuestFee: number;
   petFee: number;
   parkingFee: number;
   earlyCheckInFee: number;

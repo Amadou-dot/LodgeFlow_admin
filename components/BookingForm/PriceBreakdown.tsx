@@ -44,6 +44,13 @@ export default function PriceBreakdown({
             </div>
           )}
 
+          {priceBreakdown.extraGuestFee > 0 && (
+            <div className='flex justify-between text-sm'>
+              <span>Extra Guests</span>
+              <span>{formatCurrency(priceBreakdown.extraGuestFee)}</span>
+            </div>
+          )}
+
           {priceBreakdown.petFee > 0 && (
             <div className='flex justify-between text-sm'>
               <span>Pet Fee</span>

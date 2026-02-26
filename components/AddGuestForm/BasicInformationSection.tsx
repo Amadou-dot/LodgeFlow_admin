@@ -52,7 +52,6 @@ export default function BasicInformationSection({
           name='email'
         />
         <Input
-          isRequired
           label='Phone'
           placeholder='Enter phone number'
           value={formData.phone}
