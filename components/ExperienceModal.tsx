@@ -107,35 +107,35 @@ export const ExperienceModal = ({
 
               {/* Quick Info Boxes */}
               <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
-                <div className='bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700/40 rounded-lg p-3 text-center'>
-                  <p className='text-xs text-primary-600 dark:text-primary-400'>
+                <div className='bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700/60 rounded-lg p-3 text-center'>
+                  <p className='text-xs text-blue-600 dark:text-blue-300'>
                     Category
                   </p>
-                  <p className='text-lg font-bold text-primary-700 dark:text-primary-300 capitalize'>
+                  <p className='text-lg font-bold text-blue-700 dark:text-blue-100 capitalize'>
                     {experience.category}
                   </p>
                 </div>
-                <div className='bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-700/40 rounded-lg p-3 text-center'>
-                  <p className='text-xs text-success-600 dark:text-success-400'>
+                <div className='bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-700/60 rounded-lg p-3 text-center'>
+                  <p className='text-xs text-green-600 dark:text-green-300'>
                     Price
                   </p>
-                  <p className='text-lg font-bold text-success-700 dark:text-success-300'>
+                  <p className='text-lg font-bold text-green-700 dark:text-green-100'>
                     ${experience.price}
                   </p>
                 </div>
-                <div className='bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-700/40 rounded-lg p-3 text-center'>
-                  <p className='text-xs text-warning-600 dark:text-warning-400'>
+                <div className='bg-orange-50 dark:bg-orange-900/40 border border-orange-200 dark:border-orange-700/60 rounded-lg p-3 text-center'>
+                  <p className='text-xs text-orange-600 dark:text-orange-300'>
                     Difficulty
                   </p>
-                  <p className='text-lg font-bold text-warning-700 dark:text-warning-300 capitalize'>
+                  <p className='text-lg font-bold text-orange-700 dark:text-orange-100 capitalize'>
                     {experience.difficulty}
                   </p>
                 </div>
-                <div className='bg-secondary-50 dark:bg-secondary-900/20 border border-secondary-200 dark:border-secondary-700/40 rounded-lg p-3 text-center'>
-                  <p className='text-xs text-secondary-600 dark:text-secondary-400'>
+                <div className='bg-purple-50 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-700/60 rounded-lg p-3 text-center'>
+                  <p className='text-xs text-purple-600 dark:text-purple-300'>
                     Duration
                   </p>
-                  <p className='text-lg font-bold text-secondary-700 dark:text-secondary-300'>
+                  <p className='text-lg font-bold text-purple-700 dark:text-purple-100'>
                     {experience.duration}
                   </p>
                 </div>
