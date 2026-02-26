@@ -33,6 +33,7 @@ import {
   UtensilsCrossed,
   Users,
   Settings,
+  ExternalLink,
 } from 'lucide-react';
 
 const MEMORY_SECTIONS: Record<string, string> = {
@@ -93,6 +94,11 @@ export const Navbar = () => {
                   theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />
                 }
                 onClick={toggleTheme}
+              />
+              <UserButton.Action
+                label='Customer site'
+                labelIcon={<ExternalLink size={16} />}
+                onClick={() => window.open('https://lodgeflow.app', '_blank')}
               />
             </UserButton.MenuItems>
           </UserButton>
