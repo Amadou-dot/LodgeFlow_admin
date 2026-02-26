@@ -27,6 +27,7 @@ export interface BookingFormData {
 export interface PriceBreakdown {
   cabinPrice: number;
   breakfastPrice: number;
+  extraGuestFee: number;
   petFee: number;
   parkingFee: number;
   earlyCheckInFee: number;
@@ -168,6 +169,7 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
       setPriceBreakdown({
         cabinPrice: 0,
         breakfastPrice: 0,
+        extraGuestFee: 0,
         petFee: 0,
         parkingFee: 0,
         earlyCheckInFee: 0,
@@ -189,6 +191,12 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
       ? settings.breakfastPrice * formData.numGuests * numNights
       : 0;
 
+    const cabinExtraGuestFee = selectedCabin.extraGuestFee ?? 0;
+    const extraGuestFee =
+      formData.numGuests > 1 && cabinExtraGuestFee > 0
+        ? (formData.numGuests - 1) * cabinExtraGuestFee * numNights
+        : 0;
+
     const petFee = formData.hasPets ? settings.petFee * numNights : 0;
 
     const parkingFee =
@@ -204,7 +212,12 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
       : 0;
 
     const extrasPrice =
-      breakfastPrice + petFee + parkingFee + earlyCheckInFee + lateCheckOutFee;
+      breakfastPrice +
+      extraGuestFee +
+      petFee +
+      parkingFee +
+      earlyCheckInFee +
+      lateCheckOutFee;
     const totalPrice = cabinPrice + extrasPrice;
     const depositAmount = settings.requireDeposit
       ? Math.round(totalPrice * (settings.depositPercentage / 100))
@@ -213,6 +226,7 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
     setPriceBreakdown({
       cabinPrice,
       breakfastPrice,
+      extraGuestFee,
       petFee,
       parkingFee,
       earlyCheckInFee,

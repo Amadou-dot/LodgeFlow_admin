@@ -20,7 +20,7 @@ export default function BookingExtras({
         <h3 className='text-lg font-semibold'>Extras & Services</h3>
       </CardHeader>
       <CardBody className='space-y-4'>
-        <div className='space-y-4'>
+        <div className='flex flex-col gap-4'>
           <Switch
             isSelected={formData.hasBreakfast}
             onValueChange={checked => onInputChange('hasBreakfast', checked)}

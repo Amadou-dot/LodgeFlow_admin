@@ -10,13 +10,11 @@ import type { CustomersFilters } from '@/types';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { addToast } from '@heroui/toast';
-import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useEffect, Suspense, useMemo } from 'react';
+import { useEffect, Suspense } from 'react';
 
 function GuestsContent() {
   const router = useRouter();
-  const { user } = useUser();
 
   // Use URL-based filter state
   const { filters, updateFilter, updateFilters } =
@@ -38,12 +36,6 @@ function GuestsContent() {
     sortBy: filters.sortBy,
     sortOrder: filters.sortOrder,
   });
-
-  // Filter out the signed-in user from the customers list to avoid managing themselves
-  const filteredCustomers = useMemo(() => {
-    if (!user?.id || !customers) return customers;
-    return customers.filter(customer => customer.id !== user.id);
-  }, [customers, user?.id]);
 
   // Clear detail page memory when landing on the list page
   useEffect(() => {
@@ -142,14 +134,14 @@ function GuestsContent() {
           onSortChange={handleSortChange}
           sortOrder={filters.sortOrder || 'asc'}
           onSortOrderChange={handleSortOrderChange}
-          totalCount={pagination?.totalItems || filteredCustomers?.length || 0}
+          totalCount={pagination?.totalItems || customers?.length || 0}
           itemName='guest'
         />
       </div>
 
       {/* Guest Grid Component */}
       <GuestGrid
-        customers={filteredCustomers || []}
+        customers={customers || []}
         pagination={pagination}
         isLoading={isLoading}
         currentPage={filters.page || 1}

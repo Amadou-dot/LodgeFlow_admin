@@ -129,7 +129,7 @@ export default function BookingDatesGuests({
           calendarWidth={400}
           description={
             selectedCabin
-              ? 'Select your check-in and check-out dates. Unavailable dates are marked.'
+              ? 'Select check-in and check-out dates for the customer. Unavailable dates are marked.'
               : 'Please select a cabin first to see availability'
           }
           isDateUnavailable={selectedCabin ? isDateUnavailable : undefined}
@@ -165,13 +165,9 @@ export default function BookingDatesGuests({
       )}
 
       {/* Availability Info */}
-      {selectedCabin && availabilityData?.success && (
+      {selectedCabin && availabilityData?.success && availabilityData.data.unavailableDates.length === 0 && (
         <div className='text-xs text-default-500'>
-          {availabilityData.data.unavailableDates.length > 0 ? (
-            <>Unavailable dates are shown in red and cannot be selected.</>
-          ) : (
-            <>All dates in the next 6 months are available for booking.</>
-          )}
+          All dates in the next 6 months are available for booking.
         </div>
       )}
     </>
