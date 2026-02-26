@@ -40,7 +40,7 @@ function ClerkAuthGuard({ children }: AuthGuardProps) {
       return;
     }
 
-    // Check user role - only allow admin and staff
+    // Check user role - only allow admin
     if (!hasAuthorizedRole(has)) {
       router.replace('/unauthorized');
       return;

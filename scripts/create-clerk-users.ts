@@ -6,109 +6,153 @@ import { resolve } from 'path';
 // Load environment variables from .env.local
 config({ path: resolve(process.cwd(), '.env.local') });
 
-// Verify environment variables are loaded
-console.log('🔧 Environment check:');
-console.log('- CLERK_SECRET_KEY present:', !!process.env.CLERK_SECRET_KEY);
-console.log(
-  '- CLERK_SECRET_KEY starts with sk_:',
-  process.env.CLERK_SECRET_KEY?.startsWith('sk_')
-);
+const BATCH_SIZE = 3;
+const BATCH_DELAY_MS = 500;
+const DEFAULT_USER_COUNT = 50;
 
-interface ClerkUserData {
-  id: string;
-  emailAddress: string;
-  firstName: string;
-  lastName: string;
-  profileImageUrl?: string;
-}
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function createClerkUsers(count: number = 50): Promise<ClerkUserData[]> {
-  try {
-    console.log(`👤 Creating ${count} users in Clerk...`);
+async function createClerkUsers(count: number = DEFAULT_USER_COUNT) {
+  if (!process.env.CLERK_SECRET_KEY) {
+    throw new Error('CLERK_SECRET_KEY environment variable is not set');
+  }
 
-    // Verify the secret key is available
-    if (!process.env.CLERK_SECRET_KEY) {
-      throw new Error('CLERK_SECRET_KEY environment variable is not set');
-    }
+  const client = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
-    const createdUsers: ClerkUserData[] = [];
-    const client = createClerkClient({
-      secretKey: process.env.CLERK_SECRET_KEY,
-    });
+  console.log(`👤 Creating ${count} Clerk users...`);
 
-    for (let i = 0; i < count; i++) {
+  const createdIds: string[] = [];
+
+  for (let i = 0; i < count; i += BATCH_SIZE) {
+    const batchSize = Math.min(BATCH_SIZE, count - i);
+
+    const batchPromises = Array.from({ length: batchSize }, async () => {
       const firstName = faker.person.firstName();
       const lastName = faker.person.lastName();
       const email = faker.internet.email({ firstName, lastName });
       const password = faker.internet.password({ length: 12, memorable: true });
 
       try {
-        // Create user in Clerk (without phone number - not enabled in Clerk Dashboard)
         const user = await client.users.createUser({
           emailAddress: [email],
-          firstName: firstName,
-          lastName: lastName,
-          password: password,
+          firstName,
+          lastName,
+          password,
         });
 
-        createdUsers.push({
-          id: user.id,
-          emailAddress: email,
-          firstName: firstName,
-          lastName: lastName,
-          profileImageUrl: user.imageUrl,
-        });
+        // Build public metadata
+        const publicMetadata: Record<string, unknown> = {
+          nationality: faker.location.country(),
+        };
 
-        if ((i + 1) % 10 === 0) {
-          console.log(`✅ Created ${i + 1}/${count} users...`);
+        if (faker.datatype.boolean({ probability: 0.6 })) {
+          publicMetadata.preferences = {
+            smokingPreference: faker.helpers.arrayElement([
+              'smoking',
+              'non-smoking',
+              'no-preference',
+            ]),
+            dietaryRestrictions: faker.datatype.boolean({ probability: 0.3 })
+              ? faker.helpers.arrayElements(
+                  [
+                    'vegetarian',
+                    'vegan',
+                    'gluten-free',
+                    'halal',
+                    'kosher',
+                    'nut-free',
+                    'dairy-free',
+                  ],
+                  { min: 1, max: 2 }
+                )
+              : [],
+            accessibilityNeeds: faker.datatype.boolean({ probability: 0.1 })
+              ? faker.helpers.arrayElements(
+                  [
+                    'wheelchair access',
+                    'ground floor',
+                    'visual aids',
+                    'hearing aids',
+                  ],
+                  { min: 1, max: 2 }
+                )
+              : [],
+          };
         }
-      } catch (userError) {
-        console.warn(`⚠️ Failed to create user ${i + 1}: ${email}`, userError);
-        continue;
+
+        // Build private metadata
+        const privateMetadata: Record<string, unknown> = {};
+
+        if (faker.datatype.boolean({ probability: 0.4 })) {
+          privateMetadata.nationalId = faker.string.alphanumeric({
+            length: { min: 8, max: 12 },
+            casing: 'upper',
+          });
+        }
+
+        if (faker.datatype.boolean({ probability: 0.7 })) {
+          privateMetadata.address = {
+            street: faker.location.streetAddress(),
+            city: faker.location.city(),
+            state: faker.location.state(),
+            country: faker.location.country(),
+            zipCode: faker.location.zipCode(),
+          };
+        }
+
+        if (faker.datatype.boolean({ probability: 0.3 })) {
+          privateMetadata.emergencyContact = {
+            firstName: faker.person.firstName(),
+            lastName: faker.person.lastName(),
+            phone: faker.phone.number({ style: 'international' }),
+            relationship: faker.helpers.arrayElement([
+              'spouse',
+              'parent',
+              'sibling',
+              'friend',
+              'partner',
+            ]),
+          };
+        }
+
+        await client.users.updateUserMetadata(user.id, {
+          publicMetadata,
+          privateMetadata,
+        });
+
+        return user.id;
+      } catch (err) {
+        console.warn(`⚠️  Failed to create user (${email}):`, err);
+        return null;
       }
+    });
+
+    const ids = (await Promise.all(batchPromises)).filter(Boolean) as string[];
+    createdIds.push(...ids);
+
+    if ((i + batchSize) % 10 === 0 || i + batchSize >= count) {
+      console.log(`✅ ${createdIds.length}/${count} users created...`);
     }
 
-    console.log(
-      `✅ Successfully created ${createdUsers.length} users in Clerk`
-    );
-    return createdUsers;
-  } catch (error) {
-    console.error('❌ Error creating Clerk users:', error);
-    throw error;
+    if (i + BATCH_SIZE < count) {
+      await delay(BATCH_DELAY_MS);
+    }
   }
+
+  console.log(
+    `🎉 Done. Created ${createdIds.length} Clerk users with extended metadata.`
+  );
+  return createdIds;
 }
 
-// Function to create sample bookings using Clerk user IDs
-async function createSampleBookings(clerkUsers: ClerkUserData[]) {
-  console.log('📝 Sample booking creation would go here...');
-  console.log(`Using ${clerkUsers.length} Clerk users for bookings`);
+export { createClerkUsers };
 
-  // Note: This would integrate with the existing seed.ts booking creation logic
-  // but instead of customer._id, we'd use the Clerk user ID
-
-  return clerkUsers.map(user => ({
-    clerkUserId: user.id,
-    email: user.emailAddress,
-    name: `${user.firstName} ${user.lastName}`,
-  }));
-}
-
-// Export the function for use in other scripts
-export { createClerkUsers, createSampleBookings };
-
-// Run creation if this file is executed directly
 if (require.main === module) {
-  (async () => {
-    try {
-      const users = await createClerkUsers(50); // Create 50 users
-      const sampleBookings = await createSampleBookings(users);
-
-      console.log('\n📋 Created users summary:');
-      console.log(`Total users: ${users.length}`);
-      console.log(`Sample bookings prepared: ${sampleBookings.length}`);
-    } catch (error) {
-      console.error('❌ Script failed:', error);
+  const count = parseInt(process.argv[2] ?? String(DEFAULT_USER_COUNT), 10);
+  createClerkUsers(count)
+    .then(() => process.exit(0))
+    .catch(err => {
+      console.error('❌ Failed:', err);
       process.exit(1);
-    }
-  })();
+    });
 }

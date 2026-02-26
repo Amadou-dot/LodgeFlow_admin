@@ -1,17 +1,14 @@
 type HasFunction = (params: { role: string }) => boolean;
 
 /**
- * Check if a user has an authorized role (admin or staff)
+ * Check if a user has an authorized role (admin)
  * @param has - Clerk's has() function from auth()
- * @returns true if user has admin or staff role, false otherwise
+ * @returns true if user has admin role, false otherwise
  */
 export function hasAuthorizedRole(has: HasFunction | undefined): boolean {
   if (!has) return false;
 
-  const isAdmin = has({ role: 'org:admin' });
-  const isStaff = has({ role: 'org:staff' });
-
-  return isAdmin || isStaff;
+  return has({ role: 'org:admin' });
 }
 
 /**
@@ -19,7 +16,6 @@ export function hasAuthorizedRole(has: HasFunction | undefined): boolean {
  */
 export const AUTHORIZED_ROLES = {
   ADMIN: 'org:admin',
-  STAFF: 'org:staff',
   CUSTOMER: 'org:customer',
 } as const;
 

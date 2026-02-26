@@ -34,7 +34,6 @@ All API endpoints require authentication via Clerk. The server validates the use
 
 **Role-Based Access:**
 - `org:admin` - Full access to all endpoints
-- `org:staff` - Access to operational endpoints
 - `org:customer` - Limited access to own data
 
 **Unauthorized Response:**

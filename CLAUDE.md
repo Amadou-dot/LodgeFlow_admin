@@ -9,7 +9,7 @@ LodgeFlow is a modern hotel management dashboard built with Next.js 15, featurin
 **Tech Stack:**
 - Frontend: Next.js 15 (App Router), HeroUI v2, Tailwind CSS, TypeScript
 - Backend: MongoDB with Mongoose ODM
-- Auth: Clerk (role-based: admin, staff, customer)
+- Auth: Clerk (role-based: admin, customer)
 - Data Fetching: SWR for client-side, TanStack Query for mutations
 - Charts: Recharts
 
@@ -101,7 +101,7 @@ lib/                  # Utilities & configuration
 ### Authentication Architecture
 
 **Clerk-Based Auth** (Clerk manages users, MongoDB stores business data):
-- Users are stored in Clerk with roles: `org:admin`, `org:staff`, `org:customer`
+- Users are stored in Clerk with roles: `org:admin`, `org:customer`
 - Bookings reference Clerk user IDs (string) instead of MongoDB ObjectIds
 - Customer statistics are calculated on-demand using Clerk user data
 - Protected routes use `AuthGuard` component (client-side)

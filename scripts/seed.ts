@@ -9,12 +9,6 @@ import { Booking, Cabin, Dining, Experience, Settings } from '../models';
 // Load environment variables from .env.local
 config({ path: resolve(process.cwd(), '.env.local') });
 
-const CLERK_BATCH_SIZE = 3;
-const CLERK_BATCH_DELAY_MS = 500;
-const CLERK_USER_COUNT = 50;
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 // Sample cabin data (extracted from database with updated images)
 const cabinData = [
   {
@@ -1216,7 +1210,8 @@ async function seedDatabase() {
     const dining = await Dining.insertMany(diningData as any);
     console.log(`🍽️ Created ${dining.length} dining items`);
 
-    // Delete all existing Clerk users, then create fresh ones
+    // Fetch existing Clerk users to associate with bookings.
+    // Run `pnpm clerk:users` first if you need to populate Clerk with test users.
     if (!process.env.CLERK_SECRET_KEY) {
       throw new Error('CLERK_SECRET_KEY is not set');
     }
@@ -1224,156 +1219,28 @@ async function seedDatabase() {
       secretKey: process.env.CLERK_SECRET_KEY,
     });
 
-    // Fetch all existing users
-    const existingUserIds: string[] = [];
+    const clerkUserIds: string[] = [];
     let offset = 0;
     const limit = 100;
     while (true) {
       const response = await clerkClient.users.getUserList({ limit, offset });
-      existingUserIds.push(...response.data.map(u => u.id));
+      clerkUserIds.push(...response.data.map(u => u.id));
       if (response.data.length < limit) break;
       offset += limit;
     }
 
-    // Delete existing users in batches
-    if (existingUserIds.length > 0) {
-      console.log(
-        `🗑️  Deleting ${existingUserIds.length} existing Clerk users...`
+    if (clerkUserIds.length === 0) {
+      console.warn(
+        '⚠️  No Clerk users found — skipping booking creation. Run `pnpm clerk:users` first.'
       );
-      for (let i = 0; i < existingUserIds.length; i += CLERK_BATCH_SIZE) {
-        const batch = existingUserIds.slice(i, i + CLERK_BATCH_SIZE);
-        await Promise.all(batch.map(id => clerkClient.users.deleteUser(id)));
-        if (i + CLERK_BATCH_SIZE < existingUserIds.length) {
-          await delay(CLERK_BATCH_DELAY_MS);
-        }
-      }
-      console.log(`🗑️  Deleted ${existingUserIds.length} Clerk users`);
     } else {
-      console.log('👥 No existing Clerk users to delete');
+      console.log(`👥 Found ${clerkUserIds.length} existing Clerk users`);
     }
-
-    // Create new users in batches with extended metadata
-    const clerkUserIds: string[] = [];
-    console.log(`👤 Creating ${CLERK_USER_COUNT} new Clerk users...`);
-    for (let i = 0; i < CLERK_USER_COUNT; i += CLERK_BATCH_SIZE) {
-      const batchSize = Math.min(CLERK_BATCH_SIZE, CLERK_USER_COUNT - i);
-      const batchPromises = Array.from({ length: batchSize }, async () => {
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const email = faker.internet.email({ firstName, lastName });
-        const password = faker.internet.password({
-          length: 12,
-          memorable: true,
-        });
-        const user = await clerkClient.users.createUser({
-          emailAddress: [email],
-          firstName,
-          lastName,
-          password,
-        });
-
-        // Write extended customer data to Clerk metadata
-        const publicMetadata: Record<string, unknown> = {
-          nationality: faker.location.country(),
-        };
-
-        // ~60% of users get preferences
-        if (faker.datatype.boolean({ probability: 0.6 })) {
-          publicMetadata.preferences = {
-            smokingPreference: faker.helpers.arrayElement([
-              'smoking',
-              'non-smoking',
-              'no-preference',
-            ]),
-            dietaryRestrictions: faker.datatype.boolean({ probability: 0.3 })
-              ? faker.helpers.arrayElements(
-                  [
-                    'vegetarian',
-                    'vegan',
-                    'gluten-free',
-                    'halal',
-                    'kosher',
-                    'nut-free',
-                    'dairy-free',
-                  ],
-                  { min: 1, max: 2 }
-                )
-              : [],
-            accessibilityNeeds: faker.datatype.boolean({ probability: 0.1 })
-              ? faker.helpers.arrayElements(
-                  [
-                    'wheelchair access',
-                    'ground floor',
-                    'visual aids',
-                    'hearing aids',
-                  ],
-                  { min: 1, max: 2 }
-                )
-              : [],
-          };
-        }
-
-        const privateMetadata: Record<string, unknown> = {};
-
-        // ~40% of users have a national ID
-        if (faker.datatype.boolean({ probability: 0.4 })) {
-          privateMetadata.nationalId = faker.string.alphanumeric({
-            length: { min: 8, max: 12 },
-            casing: 'upper',
-          });
-        }
-
-        // ~70% have an address
-        if (faker.datatype.boolean({ probability: 0.7 })) {
-          privateMetadata.address = {
-            street: faker.location.streetAddress(),
-            city: faker.location.city(),
-            state: faker.location.state(),
-            country: faker.location.country(),
-            zipCode: faker.location.zipCode(),
-          };
-        }
-
-        // ~30% have an emergency contact
-        if (faker.datatype.boolean({ probability: 0.3 })) {
-          privateMetadata.emergencyContact = {
-            firstName: faker.person.firstName(),
-            lastName: faker.person.lastName(),
-            phone: faker.phone.number({ style: 'international' }),
-            relationship: faker.helpers.arrayElement([
-              'spouse',
-              'parent',
-              'sibling',
-              'friend',
-              'partner',
-            ]),
-          };
-        }
-
-        await clerkClient.users.updateUserMetadata(user.id, {
-          publicMetadata,
-          privateMetadata,
-        });
-
-        return user.id;
-      });
-      const ids = await Promise.all(batchPromises);
-      clerkUserIds.push(...ids);
-      if ((i + batchSize) % 10 === 0 || i + batchSize >= CLERK_USER_COUNT) {
-        console.log(
-          `✅ Created ${clerkUserIds.length}/${CLERK_USER_COUNT} users (with metadata)...`
-        );
-      }
-      if (i + CLERK_BATCH_SIZE < CLERK_USER_COUNT) {
-        await delay(CLERK_BATCH_DELAY_MS);
-      }
-    }
-    console.log(
-      `👥 Created ${clerkUserIds.length} Clerk users with extended metadata`
-    );
 
     // Create bookings with recent dates (within last 60 days)
     const bookings: IBooking[] = [];
+
+    if (clerkUserIds.length > 0) {
     const today = new Date();
     const sixtyDaysAgo = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000);
     const thirtyDaysFromNow = new Date(
@@ -1479,6 +1346,7 @@ async function seedDatabase() {
       bookings.push(booking);
     }
     console.log(`📅 Created ${bookings.length} bookings`);
+    } // end if (clerkUserIds.length > 0)
 
     // NOTE: Customer statistics are no longer maintained in MongoDB
     // since users are managed by Clerk. Statistics can be calculated
@@ -1491,10 +1359,9 @@ async function seedDatabase() {
 - Cabins: ${cabins.length}
 - Experiences: ${experiences.length}
 - Dining Items: ${dining.length}
-- Clerk User IDs: ${clerkUserIds.length}
+- Clerk Users (existing): ${clerkUserIds.length}
 - Bookings: ${bookings.length}
-
-⚠️  Note: Clerk users were reset and recreated as part of seeding.
+${clerkUserIds.length === 0 ? '\n⚠️  No bookings created. Run `pnpm clerk:users` then re-seed to generate bookings.' : ''}
     `);
   } catch (error) {
     console.error('❌ Error seeding database:', error);
