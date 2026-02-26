@@ -287,10 +287,50 @@ All three check: `process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBL
 - `@internationalized/date` for HeroUI date pickers
 
 ## Testing
-- Tests in `__tests__/` directory
-- Uses Jest + React Testing Library
-- Test utilities in `jest.setup.js`
-- Run tests before committing code changes
+
+### Overview
+- Tests in `__tests__/` directory using Jest + React Testing Library
+- **Dual-project config**: `node` project (integration/unit with MongoDB Memory Server) and `jsdom` project (hooks, validations, components, mock-based API tests)
+- Run `pnpm test` before committing, `pnpm test:coverage` for coverage report
+
+### Test Structure
+```
+__tests__/
+├── setup/                    # Test infrastructure
+│   ├── globalSetup.ts        # MongoDB Memory Server startup
+│   ├── globalTeardown.ts     # MongoDB Memory Server cleanup
+│   ├── jest.setup.node.ts    # Node env: DB connection, auth mocks
+│   ├── jest.setup.jsdom.ts   # Browser env: router, SWR, Clerk mocks
+│   ├── factories.ts          # Faker-based test data factories
+│   ├── auth-helpers.ts       # Auth mocking utilities
+│   └── mongodb.setup.ts      # DB cleanup helpers
+├── unit/lib/                 # Pure function tests (auth, api-utils, etc.)
+├── integration/              # Real MongoDB via Memory Server
+│   ├── models/               # Mongoose schema validation, CRUD, indexes
+│   └── api/                  # API route handlers with real DB
+├── validations/              # Zod schema tests (no DB)
+├── hooks/                    # SWR/TanStack Query hook tests
+├── api/                      # Mock-based API route tests (jsdom)
+├── components/               # Component render tests
+└── __mocks__/                # Module mocks (framer-motion)
+```
+
+### Key Testing Patterns
+
+**SWR hooks**: Mock `useSWR` to capture the key (URL) and verify query parameter building.
+
+**TanStack Query hooks**: Mock `useQuery`/`useMutation` to capture config, then test `queryFn`/`mutationFn` directly with mocked `global.fetch`. Test `onSuccess` callbacks for cache invalidation and toast notifications.
+
+**Integration tests**: Use MongoDB Memory Server for real Mongoose operations. Auth is auto-mocked in `jest.setup.node.ts`.
+
+**Factories**: Use `createCabinInput()`, `createBookingInput()`, `createDiningInput()`, `createExperienceInput()`, `createSettingsInput()`, `createMockClerkUser()` from `__tests__/setup/factories.ts`.
+
+### Writing New Tests
+1. **Hook tests** → `__tests__/hooks/` (jsdom project)
+2. **Model tests** → `__tests__/integration/models/` (node project)
+3. **API route tests** → `__tests__/integration/api/` (node, real DB) or `__tests__/api/` (jsdom, mocked)
+4. **Validation tests** → `__tests__/validations/` (jsdom project)
+5. **Component tests** → `__tests__/components/` (jsdom project)
 
 ## Development Workflow
 
