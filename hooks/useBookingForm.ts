@@ -98,6 +98,7 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
   const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown>({
     cabinPrice: 0,
     breakfastPrice: 0,
+    extraGuestFee: 0,
     petFee: 0,
     parkingFee: 0,
     earlyCheckInFee: 0,
