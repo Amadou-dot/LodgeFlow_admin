@@ -231,27 +231,27 @@ export default function CabinModal({
 
               {/* Quick Info Row */}
               <div className='grid grid-cols-3 gap-3'>
-                <div className='bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700/40 rounded-lg p-3 text-center'>
-                  <p className='text-xs text-primary-600 dark:text-primary-400'>
+                <div className='bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700/60 rounded-lg p-3 text-center'>
+                  <p className='text-xs text-blue-600 dark:text-blue-300'>
                     Capacity
                   </p>
-                  <p className='text-lg font-bold text-primary-700 dark:text-primary-300'>
+                  <p className='text-lg font-bold text-blue-700 dark:text-blue-100'>
                     {formData.capacity} guests
                   </p>
                 </div>
-                <div className='bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-700/40 rounded-lg p-3 text-center'>
-                  <p className='text-xs text-success-600 dark:text-success-400'>
+                <div className='bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-700/60 rounded-lg p-3 text-center'>
+                  <p className='text-xs text-green-600 dark:text-green-300'>
                     Price/Night
                   </p>
-                  <p className='text-lg font-bold text-success-700 dark:text-success-300'>
+                  <p className='text-lg font-bold text-green-700 dark:text-green-100'>
                     ${formData.price}
                   </p>
                 </div>
-                <div className='bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-700/40 rounded-lg p-3 text-center'>
-                  <p className='text-xs text-warning-600 dark:text-warning-400'>
+                <div className='bg-orange-50 dark:bg-orange-900/40 border border-orange-200 dark:border-orange-700/60 rounded-lg p-3 text-center'>
+                  <p className='text-xs text-orange-600 dark:text-orange-300'>
                     Discount
                   </p>
-                  <p className='text-lg font-bold text-warning-700 dark:text-warning-300'>
+                  <p className='text-lg font-bold text-orange-700 dark:text-orange-100'>
                     {formData.discount > 0 ? `$${formData.discount}` : '-'}
                   </p>
                 </div>
@@ -261,21 +261,21 @@ export default function CabinModal({
               {(formData.bedrooms || formData.bathrooms || formData.size) && (
                 <div className='grid grid-cols-3 gap-3'>
                   {formData.bedrooms && (
-                    <div className='bg-default-50 dark:bg-default-100/10 border border-default-200 dark:border-default-700/40 rounded-lg p-3 text-center'>
-                      <p className='text-xs text-default-500'>Bedrooms</p>
-                      <p className='text-lg font-bold'>{formData.bedrooms}</p>
+                    <div className='bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-600/60 rounded-lg p-3 text-center'>
+                      <p className='text-xs text-zinc-500 dark:text-zinc-400'>Bedrooms</p>
+                      <p className='text-lg font-bold text-zinc-800 dark:text-zinc-100'>{formData.bedrooms}</p>
                     </div>
                   )}
                   {formData.bathrooms && (
-                    <div className='bg-default-50 dark:bg-default-100/10 border border-default-200 dark:border-default-700/40 rounded-lg p-3 text-center'>
-                      <p className='text-xs text-default-500'>Bathrooms</p>
-                      <p className='text-lg font-bold'>{formData.bathrooms}</p>
+                    <div className='bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-600/60 rounded-lg p-3 text-center'>
+                      <p className='text-xs text-zinc-500 dark:text-zinc-400'>Bathrooms</p>
+                      <p className='text-lg font-bold text-zinc-800 dark:text-zinc-100'>{formData.bathrooms}</p>
                     </div>
                   )}
                   {formData.size && (
-                    <div className='bg-default-50 dark:bg-default-100/10 border border-default-200 dark:border-default-700/40 rounded-lg p-3 text-center'>
-                      <p className='text-xs text-default-500'>Size</p>
-                      <p className='text-lg font-bold'>
+                    <div className='bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-600/60 rounded-lg p-3 text-center'>
+                      <p className='text-xs text-zinc-500 dark:text-zinc-400'>Size</p>
+                      <p className='text-lg font-bold text-zinc-800 dark:text-zinc-100'>
                         {formData.size} ft&sup2;
                       </p>
                     </div>
@@ -287,21 +287,21 @@ export default function CabinModal({
               {(formData.minNights || formData.extraGuestFee > 0) && (
                 <div className='grid grid-cols-2 gap-3'>
                   {formData.minNights && (
-                    <div className='bg-secondary-50 dark:bg-secondary-900/20 border border-secondary-200 dark:border-secondary-700/40 rounded-lg p-3 text-center'>
-                      <p className='text-xs text-secondary-600 dark:text-secondary-400'>
+                    <div className='bg-purple-50 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-700/60 rounded-lg p-3 text-center'>
+                      <p className='text-xs text-purple-600 dark:text-purple-300'>
                         Min. Nights
                       </p>
-                      <p className='text-lg font-bold text-secondary-700 dark:text-secondary-300'>
+                      <p className='text-lg font-bold text-purple-700 dark:text-purple-100'>
                         {formData.minNights}
                       </p>
                     </div>
                   )}
                   {formData.extraGuestFee > 0 && (
-                    <div className='bg-secondary-50 dark:bg-secondary-900/20 border border-secondary-200 dark:border-secondary-700/40 rounded-lg p-3 text-center'>
-                      <p className='text-xs text-secondary-600 dark:text-secondary-400'>
+                    <div className='bg-purple-50 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-700/60 rounded-lg p-3 text-center'>
+                      <p className='text-xs text-purple-600 dark:text-purple-300'>
                         Extra Guest Fee
                       </p>
-                      <p className='text-lg font-bold text-secondary-700 dark:text-secondary-300'>
+                      <p className='text-lg font-bold text-purple-700 dark:text-purple-100'>
                         ${formData.extraGuestFee}
                       </p>
                     </div>
@@ -311,7 +311,7 @@ export default function CabinModal({
 
               {/* Effective Price */}
               {formData.discount > 0 && (
-                <div className='bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-700/50 rounded-lg p-4'>
+                <div className='bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-700/60 rounded-lg p-4'>
                   <div className='flex items-center gap-2'>
                     <span className='text-2xl font-bold text-success'>
                       ${formData.price - formData.discount}
