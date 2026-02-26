@@ -35,9 +35,9 @@ export default function UnauthorizedPage() {
               You do not have permission to access this application.
             </p>
             <p className='text-sm text-foreground-500'>
-              This admin portal is only accessible to administrators and staff
-              members. If you believe this is an error, please contact your
-              system administrator.
+              This admin portal is only accessible to administrators. If you
+              believe this is an error, please contact your system
+              administrator.
             </p>
           </div>
 

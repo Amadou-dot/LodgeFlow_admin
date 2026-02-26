@@ -11,8 +11,9 @@ export default function SignInPage() {
           </p>
           <p className='flex flex-col text-gray-500 text-sm'>
             Test account:
-            <span>email: admin@lodgeflow.dev</span>
+            <span>email: admin+clerk_test@lodgeflow.app</span>
             <span>password: lodgeflow</span>
+            <span>verification code: 424242</span>
           </p>
         </div>
         <div className='flex justify-center'>

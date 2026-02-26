@@ -34,13 +34,13 @@ export default clerkMiddleware(async (auth, req) => {
     return redirectToSignIn();
   }
 
-  // Only allow admin and staff roles to access the application
+  // Only allow admin role to access the application
   if (!hasAuthorizedRole(has)) {
     const unauthorizedUrl = new URL('/unauthorized', req.url);
     return NextResponse.redirect(unauthorizedUrl);
   }
 
-  // User has valid role (admin or staff), allow access
+  // User has valid role (admin), allow access
   return;
 });
 
