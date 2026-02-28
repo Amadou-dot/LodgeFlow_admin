@@ -1,14 +1,6 @@
 import type { Experience, ExperienceFilters } from '@/types';
-import { addToast } from '@heroui/toast';
+import { displayToast } from '@/utils/toastUtils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
-const displayExperienceToast = (message: string, type: 'success' | 'error') => {
-  addToast({
-    title: type === 'success' ? 'Success' : 'Error',
-    description: message,
-    color: type === 'success' ? 'success' : 'danger',
-  });
-};
 
 export function useExperiences(filters: ExperienceFilters = {}) {
   const queryParams = new URLSearchParams();
@@ -49,7 +41,7 @@ export function useCreateExperience() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayExperienceToast(
+        displayToast(
           error.message || 'Failed to create experience',
           'error'
         );
@@ -62,7 +54,7 @@ export function useCreateExperience() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['experiences'] });
       queryClient.invalidateQueries({ queryKey: ['experience-stats'] });
-      displayExperienceToast('Experience created successfully', 'success');
+      displayToast('Experience created successfully', 'success');
     },
   });
 }
@@ -82,7 +74,7 @@ export function useUpdateExperience() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayExperienceToast(
+        displayToast(
           error.message || 'Failed to update experience',
           'error'
         );
@@ -95,7 +87,7 @@ export function useUpdateExperience() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['experiences'] });
       queryClient.invalidateQueries({ queryKey: ['experience-stats'] });
-      displayExperienceToast('Experience updated successfully', 'success');
+      displayToast('Experience updated successfully', 'success');
     },
   });
 }

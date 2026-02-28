@@ -7,9 +7,7 @@ import { SVGProps } from 'react';
 import type {
   ClerkUser,
   ClerkUserListParams,
-  ClerkUserListResponse,
   Customer,
-  CustomerExtendedData,
   CustomerPrivateMetadata,
   CustomerPublicMetadata,
 } from './clerk';
@@ -26,9 +24,7 @@ export type Cabin = ICabin;
 export type {
   ClerkUser,
   ClerkUserListParams,
-  ClerkUserListResponse,
   Customer,
-  CustomerExtendedData,
   CustomerPrivateMetadata,
   CustomerPublicMetadata,
 };
@@ -97,49 +93,11 @@ export interface UpdateCabinData extends Partial<CreateCabinData> {
   _id: string;
 }
 
-// Experience-related types
-export interface CreateExperienceData {
-  name: string;
-  price: number;
-  duration: string;
-  difficulty: 'Easy' | 'Moderate' | 'Challenging';
-  category: string;
-  description: string;
-  longDescription?: string;
-  image: string;
-  gallery?: string[];
-  includes: string[];
-  available: string[];
-  ctaText: string;
-  isPopular: boolean;
-  maxParticipants?: number;
-  minAge?: number;
-  requirements?: string[];
-  location?: string;
-  highlights?: string[];
-  whatToBring?: string[];
-  cancellationPolicy?: string;
-  seasonality?: string;
-  tags?: string[];
-}
-
-export interface UpdateExperienceData extends Partial<CreateExperienceData> {
-  _id: string;
-}
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
   message?: string;
-}
-
-export interface PaginationMeta {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
 }
 
 // Base type for URL-storable filter values

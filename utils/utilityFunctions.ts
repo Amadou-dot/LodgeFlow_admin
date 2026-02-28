@@ -35,32 +35,6 @@ export const getInitials = (name: string) => {
     .slice(0, 2);
 };
 
-// HeroUI Chip color type
-type ChipColor =
-  | 'default'
-  | 'primary'
-  | 'secondary'
-  | 'success'
-  | 'warning'
-  | 'danger';
-
-export const getStatusColor = (status: string): ChipColor => {
-  switch (status) {
-    case 'confirmed':
-      return 'success';
-    case 'unconfirmed':
-      return 'warning';
-    case 'checked-in':
-      return 'primary';
-    case 'checked-out':
-      return 'default';
-    case 'cancelled':
-      return 'danger';
-    default:
-      return 'default';
-  }
-};
-
 export const calcNumNights = (checkInDate: string, checkOutDate: string) => {
   return checkInDate && checkOutDate
     ? Math.ceil(
@@ -112,12 +86,3 @@ export const validateEmail = (email: string) => {
   return re.test(String(email).toLowerCase());
 };
 
-export const validatePhoneNumber = (phone: string) => {
-  const re = /^\+?[1-9]\d{1,14}$/;
-  return re.test(String(phone));
-};
-
-export const validateName = (name: string) => {
-  const re = /^[a-zA-Z\s'-]{2,50}$/;
-  return re.test(String(name));
-};

@@ -136,36 +136,3 @@ export function createRateLimitKey(
   return `${userId || 'anonymous'}:${endpoint}`;
 }
 
-/**
- * Reset rate limit for a specific identifier (useful for testing)
- */
-export function resetRateLimit(identifier: string): void {
-  rateLimitStore.delete(identifier);
-}
-
-/**
- * Get current rate limit status without incrementing counter
- */
-export function getRateLimitStatus(
-  identifier: string,
-  config: RateLimitConfig = RATE_LIMIT_CONFIGS.MUTATION
-): RateLimitResult {
-  const now = Date.now();
-  const record = rateLimitStore.get(identifier);
-
-  if (!record || now > record.resetTime) {
-    return {
-      success: true,
-      limit: config.limit,
-      remaining: config.limit,
-      resetTime: now + config.windowMs,
-    };
-  }
-
-  return {
-    success: record.count < config.limit,
-    limit: config.limit,
-    remaining: Math.max(0, config.limit - record.count),
-    resetTime: record.resetTime,
-  };
-}

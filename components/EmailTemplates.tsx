@@ -1,4 +1,5 @@
 import { Cabin, PopulatedBooking } from '@/types';
+import { formatCurrency } from '@/utils/utilityFunctions';
 
 interface EmailTemplateProps {
   firstName: string;
@@ -152,12 +153,7 @@ export function BookingConfirmationEmail({
     });
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const getAddons = () => {
     const addons = [];

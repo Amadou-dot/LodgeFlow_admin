@@ -4,16 +4,8 @@ import type {
   CreateCabinData,
   UpdateCabinData,
 } from '@/types';
-import { addToast } from '@heroui/toast';
+import { displayToast } from '@/utils/toastUtils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
-const displayCabinToast = (message: string, type: 'success' | 'error') => {
-  addToast({
-    title: type === 'success' ? 'Success' : 'Error',
-    description: message,
-    color: type === 'success' ? 'success' : 'danger',
-  });
-};
 
 export function useCabins(filters: CabinFilters = {}) {
   const queryParams = new URLSearchParams();
@@ -74,7 +66,7 @@ export function useCreateCabin() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayCabinToast(error.message || 'Failed to create cabin', 'error');
+        displayToast(error.message || 'Failed to create cabin', 'error');
         throw new Error(error.error || 'Failed to create cabin');
       }
 
@@ -84,7 +76,7 @@ export function useCreateCabin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });
       queryClient.invalidateQueries({ queryKey: ['cabin-stats'] });
-      displayCabinToast('Cabin created successfully', 'success');
+      displayToast('Cabin created successfully', 'success');
     },
   });
 }
@@ -104,7 +96,7 @@ export function useUpdateCabin() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayCabinToast(error.message || 'Failed to update cabin', 'error');
+        displayToast(error.message || 'Failed to update cabin', 'error');
         throw new Error(error.error || 'Failed to update cabin');
       }
 
@@ -114,7 +106,7 @@ export function useUpdateCabin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });
       queryClient.invalidateQueries({ queryKey: ['cabin-stats'] });
-      displayCabinToast('Cabin updated successfully', 'success');
+      displayToast('Cabin updated successfully', 'success');
     },
   });
 }
@@ -165,7 +157,7 @@ export function useBulkDeleteCabins() {
     onSuccess: (data: { deletedCount: number }) => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });
       queryClient.invalidateQueries({ queryKey: ['cabin-stats'] });
-      displayCabinToast(
+      displayToast(
         `${data.deletedCount} cabin${data.deletedCount === 1 ? '' : 's'} deleted`,
         'success'
       );
@@ -201,7 +193,7 @@ export function useBulkUpdateDiscount() {
     onSuccess: (data: { modifiedCount: number }) => {
       queryClient.invalidateQueries({ queryKey: ['cabins'] });
       queryClient.invalidateQueries({ queryKey: ['cabin-stats'] });
-      displayCabinToast(
+      displayToast(
         `Discount updated for ${data.modifiedCount} cabin${data.modifiedCount === 1 ? '' : 's'}`,
         'success'
       );

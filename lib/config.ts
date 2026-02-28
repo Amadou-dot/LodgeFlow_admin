@@ -20,23 +20,6 @@ export const SWR_CONFIG = {
 } as const;
 
 /**
- * API Configuration
- */
-export const API_CONFIG = {
-  /** Default page size for pagination */
-  DEFAULT_PAGE_SIZE: 10,
-
-  /** Maximum page size allowed */
-  MAX_PAGE_SIZE: 100,
-
-  /** Request timeout in milliseconds */
-  REQUEST_TIMEOUT: 30000,
-
-  /** Maximum concurrent Clerk API calls to avoid rate limiting */
-  CLERK_CONCURRENT_LIMIT: 3,
-} as const;
-
-/**
  * MongoDB Configuration
  */
 export const DB_CONFIG = {
@@ -49,34 +32,6 @@ export const DB_CONFIG = {
   /** Socket timeout in milliseconds */
   SOCKET_TIMEOUT: 45000,
 } as const;
-
-/**
- * Date Format Configuration
- */
-export const DATE_FORMAT = {
-  /** Standard date format */
-  STANDARD: 'MMM dd, yyyy',
-
-  /** Date with time format */
-  WITH_TIME: 'MMM dd, yyyy HH:mm',
-
-  /** ISO date format */
-  ISO: 'yyyy-MM-dd',
-} as const;
-
-/**
- * Booking Status Configuration
- */
-export const BOOKING_STATUS = {
-  UNCONFIRMED: 'unconfirmed',
-  CONFIRMED: 'confirmed',
-  CHECKED_IN: 'checked-in',
-  CHECKED_OUT: 'checked-out',
-  CANCELLED: 'cancelled',
-} as const;
-
-export type BookingStatus =
-  (typeof BOOKING_STATUS)[keyof typeof BOOKING_STATUS];
 
 /**
  * Currency Configuration

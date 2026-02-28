@@ -120,43 +120,6 @@ export interface DurationDataItem {
 }
 
 /**
- * Result from total revenue aggregation
- */
-export interface TotalRevenueResult {
-  _id: null;
-  total: number;
-}
-
-/**
- * Result from capacity aggregation
- */
-export interface CapacityResult {
-  _id: null;
-  totalCapacity: number;
-}
-
-/**
- * Result from current occupancy aggregation
- */
-export interface CurrentOccupancyResult {
-  _id: null;
-  occupiedCapacity: number;
-}
-
-// ============================================================================
-// Populated Document Types (for Mongoose populate results)
-// ============================================================================
-
-/**
- * Booking with populated cabin (limited fields)
- */
-export interface BookingWithPopulatedCabin extends Omit<IBooking, 'cabin'> {
-  cabin: Pick<ICabin, 'name' | 'image' | 'capacity' | 'price' | 'discount'> & {
-    _id: string;
-  };
-}
-
-/**
  * Booking populated for dashboard recent activity
  */
 export interface RecentBookingPopulated {
