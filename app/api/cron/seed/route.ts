@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'; // Ensure the route is not cached
 
 export async function GET(request: Request) {
   try {
-    // Verify authentication (recommended for cron jobs)
+    // Verify authentication
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.SEED_SECRET}`) {
       return new Response('Unauthorized', { status: 401 });
@@ -22,36 +22,22 @@ export async function GET(request: Request) {
 
     await connectDB();
 
-    const results = {
-      cabins: 'skipped',
-      experiences: 'skipped',
-      dining: 'skipped',
-      settings: 'skipped',
-      bookings: 0,
-    };
+    // 1. Clear all existing data
+    await Promise.all([
+      Cabin.deleteMany({}),
+      Booking.deleteMany({}),
+      Settings.deleteMany({}),
+      Experience.deleteMany({}),
+      Dining.deleteMany({}),
+    ]);
 
-    // 1. Insert Static Data if missing
-    if ((await Cabin.countDocuments()) === 0) {
-      await Cabin.insertMany(cabinData);
-      results.cabins = `inserted ${cabinData.length}`;
-    }
+    // 2. Re-seed static data
+    const settings = await Settings.create(settingsData);
+    const cabins = await Cabin.insertMany(cabinData as any);
+    await Experience.insertMany(experienceData);
+    await Dining.insertMany(diningData as any);
 
-    if ((await Experience.countDocuments()) === 0) {
-      await Experience.insertMany(experienceData);
-      results.experiences = `inserted ${experienceData.length}`;
-    }
-
-    if ((await Dining.countDocuments()) === 0) {
-      await Dining.insertMany(diningData);
-      results.dining = `inserted ${diningData.length}`;
-    }
-
-    if ((await Settings.countDocuments()) === 0) {
-      await Settings.create(settingsData);
-      results.settings = 'inserted';
-    }
-
-    // 2. Fetch Users from Clerk
+    // 3. Fetch Users from Clerk
     if (!process.env.CLERK_SECRET_KEY) {
       throw new Error('CLERK_SECRET_KEY is not defined');
     }
@@ -60,52 +46,46 @@ export async function GET(request: Request) {
       secretKey: process.env.CLERK_SECRET_KEY,
     });
 
-    const userList = await clerkClient.users.getUserList({
-      limit: 100,
-    });
+    const clerkUserIds: string[] = [];
+    let offset = 0;
+    const limit = 100;
+    while (true) {
+      const response = await clerkClient.users.getUserList({ limit, offset });
+      clerkUserIds.push(...response.data.map(u => u.id));
+      if (response.data.length < limit) break;
+      offset += limit;
+    }
 
-    const users = userList.data;
-
-    if (users.length === 0) {
+    if (clerkUserIds.length === 0) {
       return NextResponse.json({
-        message: 'No users found in Clerk to create bookings for.',
-        results,
+        success: true,
+        message:
+          'Database seeded (no Clerk users found, skipped booking creation)',
+        results: {
+          cabins: cabins.length,
+          experiences: experienceData.length,
+          dining: diningData.length,
+          settings: 1,
+          bookings: 0,
+        },
       });
     }
 
-    // 3. Create New Bookings
-    // Cleanup: Delete bookings older than 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    await Booking.deleteMany({ date: { $lt: thirtyDaysAgo } });
-    // Create 5-10 new bookings
-    const numBookings = faker.number.int({ min: 5, max: 10 });
-    const cabins = await Cabin.find();
-    const settings = await Settings.findOne();
-
-    if (!settings || cabins.length === 0) {
-      return NextResponse.json({
-        message: 'Missing settings or cabins, cannot create bookings.',
-        results,
-      });
-    }
-
-    const newBookings = [];
+    // 4. Create bookings with recent dates
     const today = new Date();
+    const sixtyDaysAgo = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000);
     const thirtyDaysFromNow = new Date(
       today.getTime() + 30 * 24 * 60 * 60 * 1000
     );
 
-    for (let i = 0; i < numBookings; i++) {
+    const newBookings = [];
+
+    for (let i = 0; i < 500; i++) {
       const cabin = faker.helpers.arrayElement(cabins);
-      const user = faker.helpers.arrayElement(users);
+      const clerkUserId = faker.helpers.arrayElement(clerkUserIds);
 
-      // Use primary email or first available
-      // const userEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress || user.emailAddresses[0]?.emailAddress;
-
-      // Generate check-in dates randomly over the next 30 days
       const checkInDate = faker.date.between({
-        from: today,
+        from: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),
         to: thirtyDaysFromNow,
       });
       const numNights = faker.number.int({ min: 2, max: 14 });
@@ -136,19 +116,35 @@ export async function GET(request: Request) {
         ? Math.round(totalPrice * (settings.depositPercentage / 100))
         : 0;
 
+      const bookingCreatedAt = faker.date.between({
+        from: sixtyDaysAgo,
+        to: new Date(Math.min(checkInDate.getTime(), Date.now())),
+      });
+
       const booking = await Booking.create({
         cabin: cabin._id,
-        customer: user.id, // Clerk User ID
+        customer: clerkUserId,
         checkInDate,
         checkOutDate,
         numNights,
         numGuests: faker.number.int({ min: 1, max: cabin.capacity }),
-        status: 'confirmed', // New bookings are usually confirmed or unconfirmed
+        status: faker.helpers.arrayElement([
+          'unconfirmed',
+          'confirmed',
+          'checked-in',
+          'checked-out',
+          'cancelled',
+        ]),
         cabinPrice: discountedPrice,
         extrasPrice,
         totalPrice,
-        isPaid: faker.datatype.boolean({ probability: 0.5 }),
-        paymentMethod: faker.helpers.arrayElement(['card', 'online']),
+        isPaid: faker.datatype.boolean({ probability: 0.7 }),
+        paymentMethod: faker.helpers.arrayElement([
+          'cash',
+          'card',
+          'bank-transfer',
+          'online',
+        ]),
         extras: {
           hasBreakfast,
           breakfastPrice,
@@ -161,20 +157,37 @@ export async function GET(request: Request) {
           hasLateCheckOut: false,
           lateCheckOutFee: 0,
         },
-        depositPaid: depositAmount > 0, // Assume deposit is paid for confirmed bookings
+        observations: faker.datatype.boolean({ probability: 0.3 })
+          ? faker.lorem.paragraph()
+          : undefined,
+        specialRequests: faker.datatype.boolean({ probability: 0.2 })
+          ? faker.helpers.arrayElements(
+              ['late checkout', 'early checkin', 'extra towels', 'baby crib'],
+              { min: 1, max: 2 }
+            )
+          : [],
+        depositPaid:
+          depositAmount > 0
+            ? faker.datatype.boolean({ probability: 0.8 })
+            : false,
         depositAmount,
-        createdAt: new Date(),
+        createdAt: bookingCreatedAt,
       });
 
       newBookings.push(booking);
     }
 
-    results.bookings = newBookings.length;
-
     return NextResponse.json({
       success: true,
       message: 'Database seeded successfully',
-      results,
+      results: {
+        cabins: cabins.length,
+        experiences: experienceData.length,
+        dining: diningData.length,
+        settings: 1,
+        clerkUsers: clerkUserIds.length,
+        bookings: newBookings.length,
+      },
     });
   } catch (error: unknown) {
     console.error('Error seeding database:', error);
