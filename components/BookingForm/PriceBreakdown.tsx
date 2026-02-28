@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/utilityFunctions';
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Divider } from '@heroui/divider';
 import { PriceBreakdown as PriceBreakdownType } from './types';
@@ -8,13 +9,6 @@ interface PriceBreakdownProps {
   numNights: number;
   settings?: ISettings | null;
 }
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-};
 
 export default function PriceBreakdown({
   priceBreakdown,

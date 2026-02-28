@@ -1,7 +1,7 @@
 'use client';
 
 import type { RecentBooking } from '@/types';
-import { getStatusColor } from '@/utils/utilityFunctions';
+import { getStatusColor } from '@/utils/bookingUtils';
 import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 

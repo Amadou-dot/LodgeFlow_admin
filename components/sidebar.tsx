@@ -54,7 +54,6 @@ const MEMORY_SECTIONS: Record<string, string> = {
 export const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  // const { resolvedTheme } = useTheme();
   const [_mounted, setMounted] = useState(false);
 
   // Only render logo after component has mounted to avoid hydration issues

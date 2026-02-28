@@ -20,23 +20,6 @@ export interface MongooseValidationError extends Error {
   >;
 }
 
-/**
- * Generic application error with optional details
- */
-export interface AppError extends Error {
-  name: string;
-  message: string;
-  code?: string | number;
-  statusCode?: number;
-}
-
-/**
- * Error with a message property (common pattern for thrown errors)
- */
-export interface ErrorWithMessage {
-  message: string;
-}
-
 // ============================================================================
 // Type Guards
 // ============================================================================
@@ -57,7 +40,9 @@ export function isMongooseValidationError(
 /**
  * Type guard to check if an unknown value has a message property
  */
-export function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
+function isErrorWithMessage(
+  error: unknown
+): error is { message: string } {
   return (
     typeof error === 'object' &&
     error !== null &&

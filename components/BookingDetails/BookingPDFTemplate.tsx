@@ -1,4 +1,5 @@
 import type { PopulatedBooking } from '@/types';
+import { formatCurrency } from '@/utils/utilityFunctions';
 import { format } from 'date-fns';
 
 interface BookingPDFTemplateProps {
@@ -106,12 +107,7 @@ export default function BookingPDFTemplate({
     return format(new Date(date), 'EEEE, MMMM dd, yyyy');
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const getStatusColor = (status: string) => {
     switch (status) {

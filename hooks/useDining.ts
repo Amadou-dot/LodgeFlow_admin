@@ -1,14 +1,6 @@
 import type { Dining, DiningFilters } from '@/types';
-import { addToast } from '@heroui/toast';
+import { displayToast } from '@/utils/toastUtils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
-const displayDiningToast = (message: string, type: 'success' | 'error') => {
-  addToast({
-    title: type === 'success' ? 'Success' : 'Error',
-    description: message,
-    color: type === 'success' ? 'success' : 'danger',
-  });
-};
 
 export function useDining(filters: DiningFilters = {}) {
   const queryParams = new URLSearchParams();
@@ -50,7 +42,7 @@ export function useCreateDining() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayDiningToast(
+        displayToast(
           error.message || 'Failed to create dining item',
           'error'
         );
@@ -63,7 +55,7 @@ export function useCreateDining() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dining'] });
       queryClient.invalidateQueries({ queryKey: ['dining-stats'] });
-      displayDiningToast('Dining item created successfully', 'success');
+      displayToast('Dining item created successfully', 'success');
     },
   });
 }
@@ -83,7 +75,7 @@ export function useUpdateDining() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayDiningToast(
+        displayToast(
           error.message || 'Failed to update dining item',
           'error'
         );
@@ -96,7 +88,7 @@ export function useUpdateDining() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dining'] });
       queryClient.invalidateQueries({ queryKey: ['dining-stats'] });
-      displayDiningToast('Dining item updated successfully', 'success');
+      displayToast('Dining item updated successfully', 'success');
     },
   });
 }

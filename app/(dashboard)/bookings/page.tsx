@@ -142,14 +142,6 @@ function BookingsContent() {
     }
   };
 
-  // const handleViewDetails = (booking: PopulatedBooking) => {
-  //   router.push(`/bookings/${booking._id}`);
-  // };
-
-  // const handleEdit = (booking: PopulatedBooking) => {
-  //   router.push(`/bookings/${booking._id}/edit`);
-  // };
-
   const handleDelete = async (booking: PopulatedBooking) => {
     const guest = booking.guest || booking.customer;
     showConfirm({

@@ -270,23 +270,6 @@ export async function getClerkUser(userId: string): Promise<Customer | null> {
 }
 
 /**
- * Get total count of users from Clerk
- */
-export async function getClerkUserCount(): Promise<number> {
-  try {
-    const client = await clerkClient();
-    const response = await client.users.getUserList({
-      limit: 1,
-      offset: 0,
-    });
-    return response.totalCount;
-  } catch (error) {
-    console.error('Error fetching user count from Clerk:', error);
-    throw new Error('Failed to fetch user count from Clerk');
-  }
-}
-
-/**
  * Search users from Clerk with query
  */
 export async function searchClerkUsers(

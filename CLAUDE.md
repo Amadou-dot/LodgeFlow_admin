@@ -58,7 +58,6 @@ pnpm clerk:users      # Create new Clerk test users
 ### Utilities
 ```bash
 pnpm verify:bookings       # Verify booking user IDs
-pnpm update:customer-stats # Update customer statistics
 pnpm summary              # Display data summary
 ```
 
@@ -91,9 +90,14 @@ components/            # Reusable UI components
 hooks/                # Custom React hooks (SWR-based)
 models/               # Mongoose schemas (MongoDB)
 types/                # TypeScript type definitions
-lib/                  # Utilities & configuration
+utils/                # Shared utility functions
+  ├── utilityFunctions.ts  # formatCurrency, getLoyaltyTier, calcNumNights, etc.
+  ├── bookingUtils.ts      # getStatusColor, formatBookingDates, getStatusLabel
+  └── toastUtils.ts        # displayToast helper for hooks
+lib/                  # Core libraries & configuration
   ├── mongodb.ts      # DB connection with caching
-  ├── config.ts       # App-wide constants
+  ├── config.ts       # App-wide constants (SWR_CONFIG, DB_CONFIG, CURRENCY, LOYALTY_TIERS)
+  ├── api-utils.ts    # API helpers (auth, responses, pagination, rate limiting)
   ├── auth-helpers.ts # Role-based access helpers
   └── clerk-users.ts  # Clerk API utilities
 ```
@@ -155,7 +159,6 @@ const user = await getClerkUser(clerkUserId);
 - `Dining` - Restaurant items with categories, pricing, images
 - `Experience` - Activities/tours with difficulty, duration, participants
 - `Settings` - Business rules, pricing policies (singleton - DO NOT modify directly)
-- `Customer` (legacy) - Minimal collection for stats aggregation only
 
 **Important Indexes:**
 - Bookings: Compound indexes on `{ cabin, checkInDate, checkOutDate }`, `{ customer, createdAt }`
@@ -170,10 +173,15 @@ const user = await getClerkUser(clerkUserId);
 
 **Centralized Config** (`lib/config.ts`):
 - `SWR_CONFIG` - Deduping intervals, revalidation rules
-- `API_CONFIG` - Pagination defaults, request timeouts
 - `DB_CONFIG` - Connection pool, timeouts
-- `BOOKING_STATUS` - Status enum constants
+- `CURRENCY` - Default currency settings
 - `LOYALTY_TIERS` - Customer tier thresholds
+
+**API Utilities** (`lib/api-utils.ts`):
+- `API_CONFIG` - Pagination defaults (DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+- `requireApiAuth()` - Authentication for API routes
+- `createSuccessResponse()` / `createErrorResponse()` - Standardized responses
+- `parsePagination()` / `buildPaginationMeta()` - Pagination helpers
 
 ### State Management
 
@@ -230,6 +238,18 @@ await connectDB();
 - API responses use `ApiResponse<T>` generic
 - Populated documents use `PopulatedBooking`, etc.
 
+### Shared Utilities — Avoid Duplicating These
+```typescript
+// Currency formatting — use the shared helper, don't create inline Intl.NumberFormat calls
+import { formatCurrency } from '@/utils/utilityFunctions';
+
+// Booking status colors — single canonical source
+import { getStatusColor } from '@/utils/bookingUtils';
+
+// Toast notifications — shared helper for hooks
+import { displayToast } from '@/utils/toastUtils';
+```
+
 ### Customer Data Pattern
 ```typescript
 // Bookings store Clerk user ID as string
@@ -264,7 +284,7 @@ if (overlapping.length > 0) {
 ```
 
 ### Clerk Rate Limiting
-API has concurrent call limits. Use `CLERK_CONCURRENT_LIMIT` from config when batching operations.
+API has concurrent call limits. Clerk user batch fetching uses `CLERK_API_CONCURRENT_LIMIT` env var (defaults to 3) in `lib/clerk-users.ts`.
 
 ### Environment Variables Required
 ```bash

@@ -27,11 +27,8 @@ import {
   useUnlockCustomer,
 } from '@/hooks/useCustomers';
 import { useDetailPageMemory } from '@/hooks/useDetailPageMemory';
-import {
-  getInitials,
-  getLoyaltyTier,
-  getStatusColor,
-} from '@/utils/utilityFunctions';
+import { getInitials, getLoyaltyTier } from '@/utils/utilityFunctions';
+import { getStatusColor } from '@/utils/bookingUtils';
 import { addToast } from '@heroui/toast';
 
 export default function GuestDetailPage() {

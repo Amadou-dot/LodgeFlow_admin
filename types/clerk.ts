@@ -122,38 +122,6 @@ export interface CustomerPrivateMetadata {
   };
 }
 
-// @deprecated - Extended customer data previously stored in MongoDB Customer collection.
-// Now stored in Clerk metadata (publicMetadata + privateMetadata).
-// Kept for migration script compatibility.
-export interface CustomerExtendedData {
-  clerkUserId: string; // Reference to Clerk user ID
-  nationality?: string;
-  nationalId?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    zipCode?: string;
-  };
-  emergencyContact?: {
-    firstName: string;
-    lastName: string;
-    phone: string;
-    relationship: string;
-  };
-  preferences?: {
-    smokingPreference: 'smoking' | 'non-smoking' | 'no-preference';
-    dietaryRestrictions?: string[];
-    accessibilityNeeds?: string[];
-  };
-  totalBookings: number;
-  totalSpent: number;
-  lastBookingDate?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 // Combined customer type that merges Clerk user with our extended data
 export interface Customer {
   // Clerk user data
@@ -223,12 +191,6 @@ export interface Customer {
   // Computed properties
   loyaltyTier: 'Bronze' | 'Silver' | 'Gold' | 'Diamond';
   fullAddress?: string;
-}
-
-// Response type for Clerk's getUserList API
-export interface ClerkUserListResponse {
-  data: ClerkUser[];
-  totalCount: number;
 }
 
 // Parameters for fetching users from Clerk

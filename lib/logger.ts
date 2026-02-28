@@ -87,5 +87,3 @@ class Logger {
 // Export a singleton instance
 export const logger = new Logger();
 
-// Export type for external use
-export type { LogLevel, LogContext };
