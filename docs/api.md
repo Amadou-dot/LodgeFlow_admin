@@ -1203,11 +1203,11 @@ GET /api/cron/seed
 
 Cron job endpoint for database maintenance and seeding.
 
-**Authentication:** Bearer token (`CRON_SECRET` environment variable), NOT Clerk auth
+**Authentication:** Bearer token (`SEED_SECRET` environment variable), NOT Clerk auth
 
 **Header:**
 ```
-Authorization: Bearer {CRON_SECRET}
+Authorization: Bearer {SEED_SECRET}
 ```
 
 **Operations:**
