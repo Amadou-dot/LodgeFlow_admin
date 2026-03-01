@@ -1,5 +1,6 @@
 import { requireApiAuth } from '@/lib/api-utils';
 import { AUTHORIZED_ROLES } from '@/lib/auth-helpers';
+import { settingsData } from '@/lib/data/seed-data';
 import connectDB from '@/lib/mongodb';
 import { isMongooseValidationError } from '@/types/errors';
 import { auth } from '@clerk/nextjs/server';
@@ -7,28 +8,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Settings } from '../../../models';
 
 const DEFAULT_SETTINGS = {
-  minBookingLength: 2,
-  maxBookingLength: 30,
-  maxGuestsPerBooking: 8,
-  breakfastPrice: 15,
-  checkInTime: '15:00',
-  checkOutTime: '11:00',
-  cancellationPolicy: 'moderate',
-  requireDeposit: true,
-  depositPercentage: 25,
-  allowPets: true,
-  petFee: 20,
-  smokingAllowed: false,
-  earlyCheckInFee: 50,
-  lateCheckOutFee: 50,
-  wifiIncluded: true,
-  parkingIncluded: false,
-  parkingFee: 15,
-  currency: 'USD',
-  timezone: 'America/New_York',
+  ...settingsData,
   businessHours: {
-    open: '08:00',
-    close: '22:00',
+    open: '09:00',
+    close: '18:00',
     daysOpen: [
       'monday',
       'tuesday',

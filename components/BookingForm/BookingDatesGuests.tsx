@@ -16,6 +16,7 @@ interface BookingDatesGuestsProps extends BookingFormFieldProps {
   selectedCabin?: Cabin;
   numNights: number;
   excludeBookingId?: string;
+  maxGuestsPerBooking?: number;
 }
 
 interface UnavailableDateRange {
@@ -40,6 +41,7 @@ export default function BookingDatesGuests({
   selectedCabin,
   numNights,
   excludeBookingId,
+  maxGuestsPerBooking,
 }: BookingDatesGuestsProps) {
   // Fetch unavailable dates for the selected cabin
   // When editing, exclude the current booking's dates from the unavailable list
@@ -154,7 +156,7 @@ export default function BookingDatesGuests({
           onInputChange('numGuests', parseInt(e.target.value) || 1)
         }
         min={1}
-        max={selectedCabin?.capacity || 10}
+        max={Math.min(selectedCabin?.capacity || 10, maxGuestsPerBooking || 50)}
         isRequired
       />
 
