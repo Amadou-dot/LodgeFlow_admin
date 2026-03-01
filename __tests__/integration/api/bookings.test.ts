@@ -6,6 +6,8 @@ jest.mock('@/lib/mongodb', () => jest.fn().mockResolvedValue(undefined));
 import { GET, POST, PUT, DELETE } from '@/app/api/bookings/route';
 import Booking from '@/models/Booking';
 import Cabin from '@/models/Cabin';
+import Settings from '@/models/Settings';
+import { settingsData } from '@/lib/data/seed-data';
 
 // getClerkUsersBatch is already mocked in jest.setup.node.ts
 // Override here to provide booking-specific customer data
@@ -229,6 +231,85 @@ describe('Bookings API Routes', () => {
 
       expect(response.status).toBe(400);
       expect(body.success).toBe(false);
+    });
+
+    it('enforces max guests per booking when settings document is missing', async () => {
+      const cabin = await createTestCabin({ capacity: 20 });
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'POST',
+        body: {
+          cabin: cabin._id.toString(),
+          customer: 'user_test123',
+          checkInDate: '2027-08-01',
+          checkOutDate: '2027-08-05',
+          numNights: 4,
+          numGuests: settingsData.maxGuestsPerBooking + 1,
+          cabinPrice: 800,
+          totalPrice: 800,
+        },
+      });
+
+      const response = await POST(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(body.error).toContain(
+        `Number of guests cannot exceed ${settingsData.maxGuestsPerBooking}`
+      );
+    });
+
+    it('rejects guests above cabin capacity', async () => {
+      const cabin = await createTestCabin({ capacity: 2 });
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'POST',
+        body: {
+          cabin: cabin._id.toString(),
+          customer: 'user_test123',
+          checkInDate: '2027-08-01',
+          checkOutDate: '2027-08-05',
+          numNights: 4,
+          numGuests: 3,
+          cabinPrice: 800,
+          totalPrice: 800,
+        },
+      });
+
+      const response = await POST(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(body.error).toContain('Number of guests cannot exceed 2');
+    });
+  });
+
+  describe('PUT /api/bookings', () => {
+    it('allows status-only updates for legacy bookings that violate current settings', async () => {
+      const cabin = await createTestCabin({ capacity: 4 });
+      const booking = await createTestBooking(cabin._id);
+
+      await Settings.create({
+        ...settingsData,
+        minBookingLength: 1,
+        maxBookingLength: 1,
+        maxGuestsPerBooking: 1,
+      });
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'PUT',
+        body: {
+          _id: booking._id.toString(),
+          status: 'confirmed',
+        },
+      });
+
+      const response = await PUT(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(body.data.status).toBe('confirmed');
     });
   });
 
