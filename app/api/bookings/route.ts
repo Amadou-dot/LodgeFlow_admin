@@ -233,51 +233,47 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate against dynamic settings
-    const settings = await Settings.findOne();
-    if (settings) {
-      const { checkInDate, checkOutDate, numGuests, extras } =
-        validationResult.data;
-      const numNights = Math.ceil(
-        (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      const effectiveMinNights = Math.max(
-        settings.minBookingLength,
-        cabin.minNights ?? 0
-      );
+    const settings = await Settings.getSettings();
+    const { checkInDate, checkOutDate, numGuests, extras } =
+      validationResult.data;
+    const numNights = Math.ceil(
+      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const effectiveMinNights = Math.max(settings.minBookingLength, cabin.minNights ?? 0);
+    const maxGuests = Math.min(settings.maxGuestsPerBooking, cabin.capacity);
 
-      if (numNights < effectiveMinNights) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Booking must be at least ${effectiveMinNights} night(s)`,
-          },
-          { status: 400 }
-        );
-      }
-      if (numNights > settings.maxBookingLength) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Booking cannot exceed ${settings.maxBookingLength} nights`,
-          },
-          { status: 400 }
-        );
-      }
-      if (numGuests > settings.maxGuestsPerBooking) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Number of guests cannot exceed ${settings.maxGuestsPerBooking}`,
-          },
-          { status: 400 }
-        );
-      }
-      if (extras?.hasPets && !settings.allowPets) {
-        return NextResponse.json(
-          { success: false, error: 'Pets are not allowed' },
-          { status: 400 }
-        );
-      }
+    if (numNights < effectiveMinNights) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Booking must be at least ${effectiveMinNights} night(s)`,
+        },
+        { status: 400 }
+      );
+    }
+    if (numNights > settings.maxBookingLength) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Booking cannot exceed ${settings.maxBookingLength} nights`,
+        },
+        { status: 400 }
+      );
+    }
+    if (numGuests > maxGuests) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Number of guests cannot exceed ${maxGuests}`,
+        },
+        { status: 400 }
+      );
+    }
+    if (extras?.hasPets && !settings.allowPets) {
+      return NextResponse.json(
+        { success: false, error: 'Pets are not allowed' },
+        { status: 400 }
+      );
     }
 
     const booking = await Booking.create(validationResult.data);
@@ -364,23 +360,40 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Validate against dynamic settings
-    const settings = await Settings.findOne();
-    if (settings) {
+    // Validate booking rules only when booking-rule inputs are changed.
+    const shouldValidateBookingRules =
+      updateData.cabin !== undefined ||
+      updateData.checkInDate !== undefined ||
+      updateData.checkOutDate !== undefined ||
+      updateData.numGuests !== undefined ||
+      updateData.extras !== undefined;
+
+    if (shouldValidateBookingRules) {
+      const settings = await Settings.getSettings();
       const checkIn = updateData.checkInDate || existingBooking.checkInDate;
       const checkOut = updateData.checkOutDate || existingBooking.checkOutDate;
       const numGuests = updateData.numGuests ?? existingBooking.numGuests;
-      const numNights = Math.ceil(
-        (new Date(checkOut).getTime() - new Date(checkIn).getTime()) /
-          (1000 * 60 * 60 * 24)
-      );
 
       // Fetch cabin for minNights check
       const cabinId = updateData.cabin || existingBooking.cabin;
       const cabinForValidation = await Cabin.findById(cabinId);
+      if (!cabinForValidation) {
+        return NextResponse.json(
+          { success: false, error: 'Cabin not found' },
+          { status: 404 }
+        );
+      }
+      const numNights = Math.ceil(
+        (new Date(checkOut).getTime() - new Date(checkIn).getTime()) /
+          (1000 * 60 * 60 * 24)
+      );
       const effectiveMinNights = Math.max(
         settings.minBookingLength,
-        cabinForValidation?.minNights ?? 0
+        cabinForValidation.minNights ?? 0
+      );
+      const maxGuests = Math.min(
+        settings.maxGuestsPerBooking,
+        cabinForValidation.capacity
       );
 
       if (numNights < effectiveMinNights) {
@@ -401,11 +414,11 @@ export async function PUT(request: NextRequest) {
           { status: 400 }
         );
       }
-      if (numGuests > settings.maxGuestsPerBooking) {
+      if (numGuests > maxGuests) {
         return NextResponse.json(
           {
             success: false,
-            error: `Number of guests cannot exceed ${settings.maxGuestsPerBooking}`,
+            error: `Number of guests cannot exceed ${maxGuests}`,
           },
           { status: 400 }
         );

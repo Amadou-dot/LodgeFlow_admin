@@ -1,5 +1,5 @@
 import { settingsData } from '@/lib/data/seed-data';
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface ISettings extends Document {
   minBookingLength: number;
@@ -48,7 +48,11 @@ export interface ISettings extends Document {
   updatedAt: Date;
 }
 
-const SettingsSchema: Schema = new Schema(
+interface ISettingsModel extends Model<ISettings> {
+  getSettings(): Promise<ISettings>;
+}
+
+const SettingsSchema: Schema<ISettings, ISettingsModel> = new Schema(
   {
     minBookingLength: {
       type: Number,
@@ -285,5 +289,8 @@ SettingsSchema.virtual('fullAddress').get(function (this: ISettings) {
 // Ensure virtual fields are serialized
 SettingsSchema.set('toJSON', { virtuals: true });
 
-export default mongoose.models.Settings ||
-  mongoose.model<ISettings>('Settings', SettingsSchema);
+const Settings =
+  (mongoose.models.Settings as ISettingsModel) ||
+  mongoose.model<ISettings, ISettingsModel>('Settings', SettingsSchema);
+
+export default Settings;
