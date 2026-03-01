@@ -88,6 +88,7 @@ module.exports = async () => {
   const resolvedJsdom = await resolveJsdomConfig();
 
   return {
+    maxWorkers: 1,
     projects: [nodeProject, resolvedJsdom],
   };
 };
