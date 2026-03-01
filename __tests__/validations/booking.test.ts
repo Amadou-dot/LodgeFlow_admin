@@ -117,8 +117,8 @@ describe('Booking Validation Schemas', () => {
       expect(result.success).toBe(false);
     });
 
-    it('rejects numGuests greater than 20', () => {
-      const invalidBooking = { ...validBooking, numGuests: 21 };
+    it('rejects numGuests greater than 50', () => {
+      const invalidBooking = { ...validBooking, numGuests: 51 };
       const result = createBookingSchema.safeParse(invalidBooking);
       expect(result.success).toBe(false);
     });

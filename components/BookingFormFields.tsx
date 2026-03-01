@@ -153,6 +153,7 @@ export default function BookingFormFields({
             selectedCabin={selectedCabin}
             numNights={numNights}
             excludeBookingId={excludeBookingId}
+            maxGuestsPerBooking={settings?.maxGuestsPerBooking}
           />
         </CardBody>
       </Card>

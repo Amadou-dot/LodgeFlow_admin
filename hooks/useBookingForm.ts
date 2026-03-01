@@ -262,15 +262,24 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
     }
     if (formData.numGuests < 1)
       errors.push('Number of guests must be at least 1');
-    if (selectedCabin && formData.numGuests > selectedCabin.capacity) {
-      errors.push(
-        `Number of guests cannot exceed cabin capacity (${selectedCabin.capacity})`
-      );
+    if (selectedCabin) {
+      const maxGuests = settings
+        ? Math.min(selectedCabin.capacity, settings.maxGuestsPerBooking)
+        : selectedCabin.capacity;
+      if (formData.numGuests > maxGuests) {
+        errors.push(`Number of guests cannot exceed ${maxGuests}`);
+      }
     }
-    if (settings && numNights < settings.minBookingLength) {
-      errors.push(
-        `Minimum booking length is ${settings.minBookingLength} nights`
+    if (settings && numNights > 0) {
+      const effectiveMinNights = Math.max(
+        settings.minBookingLength,
+        selectedCabin?.minNights ?? 0
       );
+      if (numNights < effectiveMinNights) {
+        errors.push(
+          `Minimum booking length is ${effectiveMinNights} night(s)`
+        );
+      }
     }
     if (settings && numNights > settings.maxBookingLength) {
       errors.push(

@@ -12,7 +12,7 @@ import type { BookingQueryFilter, MongoSortOrder } from '@/types/api';
 import { getErrorMessage, isMongooseValidationError } from '@/types/errors';
 import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
-import { Booking, Cabin } from '../../../models';
+import { Booking, Cabin, Settings } from '../../../models';
 
 // Helper function to populate bookings with Clerk customer data
 // Uses optimized batch fetching with caching
@@ -232,6 +232,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate against dynamic settings
+    const settings = await Settings.findOne();
+    if (settings) {
+      const { checkInDate, checkOutDate, numGuests, extras } =
+        validationResult.data;
+      const numNights = Math.ceil(
+        (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      const effectiveMinNights = Math.max(
+        settings.minBookingLength,
+        cabin.minNights ?? 0
+      );
+
+      if (numNights < effectiveMinNights) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Booking must be at least ${effectiveMinNights} night(s)`,
+          },
+          { status: 400 }
+        );
+      }
+      if (numNights > settings.maxBookingLength) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Booking cannot exceed ${settings.maxBookingLength} nights`,
+          },
+          { status: 400 }
+        );
+      }
+      if (numGuests > settings.maxGuestsPerBooking) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Number of guests cannot exceed ${settings.maxGuestsPerBooking}`,
+          },
+          { status: 400 }
+        );
+      }
+      if (extras?.hasPets && !settings.allowPets) {
+        return NextResponse.json(
+          { success: false, error: 'Pets are not allowed' },
+          { status: 400 }
+        );
+      }
+    }
+
     const booking = await Booking.create(validationResult.data);
 
     // Populate the response
@@ -314,6 +362,61 @@ export async function PUT(request: NextRequest) {
         { success: false, error: 'Booking not found' },
         { status: 404 }
       );
+    }
+
+    // Validate against dynamic settings
+    const settings = await Settings.findOne();
+    if (settings) {
+      const checkIn = updateData.checkInDate || existingBooking.checkInDate;
+      const checkOut = updateData.checkOutDate || existingBooking.checkOutDate;
+      const numGuests = updateData.numGuests ?? existingBooking.numGuests;
+      const numNights = Math.ceil(
+        (new Date(checkOut).getTime() - new Date(checkIn).getTime()) /
+          (1000 * 60 * 60 * 24)
+      );
+
+      // Fetch cabin for minNights check
+      const cabinId = updateData.cabin || existingBooking.cabin;
+      const cabinForValidation = await Cabin.findById(cabinId);
+      const effectiveMinNights = Math.max(
+        settings.minBookingLength,
+        cabinForValidation?.minNights ?? 0
+      );
+
+      if (numNights < effectiveMinNights) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Booking must be at least ${effectiveMinNights} night(s)`,
+          },
+          { status: 400 }
+        );
+      }
+      if (numNights > settings.maxBookingLength) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Booking cannot exceed ${settings.maxBookingLength} nights`,
+          },
+          { status: 400 }
+        );
+      }
+      if (numGuests > settings.maxGuestsPerBooking) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Number of guests cannot exceed ${settings.maxGuestsPerBooking}`,
+          },
+          { status: 400 }
+        );
+      }
+      const extras = updateData.extras ?? existingBooking.extras;
+      if (extras?.hasPets && !settings.allowPets) {
+        return NextResponse.json(
+          { success: false, error: 'Pets are not allowed' },
+          { status: 400 }
+        );
+      }
     }
 
     // Only check for date overlaps when dates or cabin actually changed
