@@ -81,111 +81,111 @@ async function seedDatabase() {
     const bookings: IBooking[] = [];
 
     if (clerkUserIds.length > 0) {
-    const today = new Date();
-    const sixtyDaysAgo = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000);
-    const thirtyDaysFromNow = new Date(
-      today.getTime() + 30 * 24 * 60 * 60 * 1000
-    );
+      const today = new Date();
+      const sixtyDaysAgo = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000);
+      const thirtyDaysFromNow = new Date(
+        today.getTime() + 30 * 24 * 60 * 60 * 1000
+      );
 
-    for (let i = 0; i < 500; i++) {
-      const cabin = faker.helpers.arrayElement(cabins);
-      const clerkUserId = faker.helpers.arrayElement(clerkUserIds);
+      for (let i = 0; i < 500; i++) {
+        const cabin = faker.helpers.arrayElement(cabins);
+        const clerkUserId = faker.helpers.arrayElement(clerkUserIds);
 
-      // Generate check-in dates from 30 days ago to 30 days in the future
-      const checkInDate = faker.date.between({
-        from: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),
-        to: thirtyDaysFromNow,
-      });
-      const numNights = faker.number.int({ min: 2, max: 14 });
-      const checkOutDate = new Date(checkInDate);
-      checkOutDate.setDate(checkOutDate.getDate() + numNights);
+        // Generate check-in dates from 30 days ago to 30 days in the future
+        const checkInDate = faker.date.between({
+          from: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000),
+          to: thirtyDaysFromNow,
+        });
+        const numNights = faker.number.int({ min: 2, max: 14 });
+        const checkOutDate = new Date(checkInDate);
+        checkOutDate.setDate(checkOutDate.getDate() + numNights);
 
-      const discountedPrice =
-        cabin.discount > 0 ? cabin.price - cabin.discount : cabin.price;
-      const cabinPrice = discountedPrice * numNights;
-      const hasBreakfast = faker.datatype.boolean();
-      const hasPets = faker.datatype.boolean({ probability: 0.3 });
-      const hasParking = faker.datatype.boolean({ probability: 0.4 });
+        const discountedPrice =
+          cabin.discount > 0 ? cabin.price - cabin.discount : cabin.price;
+        const cabinPrice = discountedPrice * numNights;
+        const hasBreakfast = faker.datatype.boolean();
+        const hasPets = faker.datatype.boolean({ probability: 0.3 });
+        const hasParking = faker.datatype.boolean({ probability: 0.4 });
 
-      const breakfastPrice = hasBreakfast
-        ? settings.breakfastPrice *
-          faker.number.int({ min: 1, max: 4 }) *
-          numNights
-        : 0;
-      const petFee = hasPets ? settings.petFee * numNights : 0;
-      const parkingFee =
-        hasParking && !settings.parkingIncluded
-          ? settings.parkingFee * numNights
+        const breakfastPrice = hasBreakfast
+          ? settings.breakfastPrice *
+            faker.number.int({ min: 1, max: 4 }) *
+            numNights
+          : 0;
+        const petFee = hasPets ? settings.petFee * numNights : 0;
+        const parkingFee =
+          hasParking && !settings.parkingIncluded
+            ? settings.parkingFee * numNights
+            : 0;
+
+        const extrasPrice = breakfastPrice + petFee + parkingFee;
+        const totalPrice = cabinPrice + extrasPrice;
+        const depositAmount = settings.requireDeposit
+          ? Math.round(totalPrice * (settings.depositPercentage / 100))
           : 0;
 
-      const extrasPrice = breakfastPrice + petFee + parkingFee;
-      const totalPrice = cabinPrice + extrasPrice;
-      const depositAmount = settings.requireDeposit
-        ? Math.round(totalPrice * (settings.depositPercentage / 100))
-        : 0;
+        // Create a realistic createdAt date (booking was made within last 60 days, before check-in)
+        const bookingCreatedAt = faker.date.between({
+          from: sixtyDaysAgo,
+          to: new Date(Math.min(checkInDate.getTime(), Date.now())),
+        });
 
-      // Create a realistic createdAt date (booking was made within last 60 days, before check-in)
-      const bookingCreatedAt = faker.date.between({
-        from: sixtyDaysAgo,
-        to: new Date(Math.min(checkInDate.getTime(), Date.now())),
-      });
+        const booking = await Booking.create({
+          cabin: cabin._id,
+          customer: clerkUserId, // Using Clerk user ID instead of MongoDB customer ID
+          checkInDate,
+          checkOutDate,
+          numNights,
+          numGuests: faker.number.int({ min: 1, max: cabin.capacity }),
+          status: faker.helpers.arrayElement([
+            'unconfirmed',
+            'confirmed',
+            'checked-in',
+            'checked-out',
+            'cancelled',
+          ]),
+          cabinPrice: discountedPrice,
+          extrasPrice,
+          totalPrice,
+          isPaid: faker.datatype.boolean({ probability: 0.7 }),
+          paymentMethod: faker.helpers.arrayElement([
+            'cash',
+            'card',
+            'bank-transfer',
+            'online',
+          ]),
+          extras: {
+            hasBreakfast,
+            breakfastPrice,
+            hasPets,
+            petFee,
+            hasParking,
+            parkingFee,
+            hasEarlyCheckIn: false,
+            earlyCheckInFee: 0,
+            hasLateCheckOut: false,
+            lateCheckOutFee: 0,
+          },
+          observations: faker.datatype.boolean({ probability: 0.3 })
+            ? faker.lorem.paragraph()
+            : undefined,
+          specialRequests: faker.datatype.boolean({ probability: 0.2 })
+            ? faker.helpers.arrayElements(
+                ['late checkout', 'early checkin', 'extra towels', 'baby crib'],
+                { min: 1, max: 2 }
+              )
+            : [],
+          depositPaid:
+            depositAmount > 0
+              ? faker.datatype.boolean({ probability: 0.8 })
+              : false,
+          depositAmount,
+          createdAt: bookingCreatedAt,
+        });
 
-      const booking = await Booking.create({
-        cabin: cabin._id,
-        customer: clerkUserId, // Using Clerk user ID instead of MongoDB customer ID
-        checkInDate,
-        checkOutDate,
-        numNights,
-        numGuests: faker.number.int({ min: 1, max: cabin.capacity }),
-        status: faker.helpers.arrayElement([
-          'unconfirmed',
-          'confirmed',
-          'checked-in',
-          'checked-out',
-          'cancelled',
-        ]),
-        cabinPrice: discountedPrice,
-        extrasPrice,
-        totalPrice,
-        isPaid: faker.datatype.boolean({ probability: 0.7 }),
-        paymentMethod: faker.helpers.arrayElement([
-          'cash',
-          'card',
-          'bank-transfer',
-          'online',
-        ]),
-        extras: {
-          hasBreakfast,
-          breakfastPrice,
-          hasPets,
-          petFee,
-          hasParking,
-          parkingFee,
-          hasEarlyCheckIn: false,
-          earlyCheckInFee: 0,
-          hasLateCheckOut: false,
-          lateCheckOutFee: 0,
-        },
-        observations: faker.datatype.boolean({ probability: 0.3 })
-          ? faker.lorem.paragraph()
-          : undefined,
-        specialRequests: faker.datatype.boolean({ probability: 0.2 })
-          ? faker.helpers.arrayElements(
-              ['late checkout', 'early checkin', 'extra towels', 'baby crib'],
-              { min: 1, max: 2 }
-            )
-          : [],
-        depositPaid:
-          depositAmount > 0
-            ? faker.datatype.boolean({ probability: 0.8 })
-            : false,
-        depositAmount,
-        createdAt: bookingCreatedAt,
-      });
-
-      bookings.push(booking);
-    }
-    console.log(`📅 Created ${bookings.length} bookings`);
+        bookings.push(booking);
+      }
+      console.log(`📅 Created ${bookings.length} bookings`);
     } // end if (clerkUserIds.length > 0)
 
     // NOTE: Customer statistics are no longer maintained in MongoDB

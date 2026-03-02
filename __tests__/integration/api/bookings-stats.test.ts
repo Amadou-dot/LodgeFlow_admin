@@ -87,9 +87,7 @@ describe('Booking Stats API', () => {
 
       await createTestBooking(cabin._id, {
         checkInDate: today,
-        checkOutDate: new Date(
-          today.getTime() + 3 * 24 * 60 * 60 * 1000
-        ),
+        checkOutDate: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000),
         status: 'confirmed',
       });
 
@@ -106,9 +104,7 @@ describe('Booking Stats API', () => {
 
       await createTestBooking(cabin._id, {
         checkInDate: today,
-        checkOutDate: new Date(
-          today.getTime() + 3 * 24 * 60 * 60 * 1000
-        ),
+        checkOutDate: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000),
         status: 'cancelled',
       });
 
@@ -122,9 +118,7 @@ describe('Booking Stats API', () => {
       const cabin = await createTestCabin();
       const today = new Date();
       today.setHours(12, 0, 0, 0);
-      const threeDaysAgo = new Date(
-        today.getTime() - 3 * 24 * 60 * 60 * 1000
-      );
+      const threeDaysAgo = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
 
       await createTestBooking(cabin._id, {
         checkInDate: threeDaysAgo,

@@ -50,10 +50,7 @@ async function createTestBooking(
 }
 
 // Helper to build NextRequest
-function createRequest(
-  url: string,
-  options?: { method?: string; body?: any }
-) {
+function createRequest(url: string, options?: { method?: string; body?: any }) {
   const init: RequestInit = { method: options?.method || 'GET' };
   if (options?.body) {
     init.body = JSON.stringify(options.body);
@@ -95,11 +92,19 @@ describe('Bookings API Routes', () => {
         users: new Map([
           [
             'user_test123',
-            { id: 'user_test123', name: 'Test User', email: 'test@example.com' } as any,
+            {
+              id: 'user_test123',
+              name: 'Test User',
+              email: 'test@example.com',
+            } as any,
           ],
           [
             'user_test456',
-            { id: 'user_test456', name: 'Other User', email: 'other@example.com' } as any,
+            {
+              id: 'user_test456',
+              name: 'Other User',
+              email: 'other@example.com',
+            } as any,
           ],
         ]),
         errors: 0,

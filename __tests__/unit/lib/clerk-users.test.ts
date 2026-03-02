@@ -21,9 +21,7 @@ function createMockClerkUser(overrides: Record<string, any> = {}) {
     firstName: 'John',
     lastName: 'Doe',
     username: 'johndoe',
-    emailAddresses: [
-      { id: 'email_1', emailAddress: 'john@example.com' },
-    ],
+    emailAddresses: [{ id: 'email_1', emailAddress: 'john@example.com' }],
     primaryEmailAddressId: 'email_1',
     phoneNumbers: [{ phoneNumber: '+1234567890' }],
     imageUrl: 'https://example.com/avatar.jpg',
@@ -149,9 +147,7 @@ describe('clerk-users', () => {
       const customer = convertClerkUserToCustomer(clerkUser as any);
 
       expect(customer.nationalId).toBe('ABC123');
-      expect(customer.fullAddress).toBe(
-        '123 Main St, New York, NY, US, 10001'
-      );
+      expect(customer.fullAddress).toBe('123 Main St, New York, NY, US, 10001');
     });
 
     it('defaults totalBookings and totalSpent to 0', () => {

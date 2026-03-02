@@ -237,8 +237,8 @@ BookingSchema.pre('save', function (this: IBooking, next) {
     this.numNights = Math.ceil(timeDiff / (1000 * 3600 * 24));
   }
 
-  // Calculate remaining amount
-  this.remainingAmount = this.totalPrice - this.depositAmount;
+  // Calculate remaining amount (clamped to 0 for overpayment scenarios)
+  this.remainingAmount = Math.max(0, this.totalPrice - this.depositAmount);
 
   next();
 });

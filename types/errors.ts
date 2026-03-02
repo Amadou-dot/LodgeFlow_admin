@@ -40,9 +40,7 @@ export function isMongooseValidationError(
 /**
  * Type guard to check if an unknown value has a message property
  */
-function isErrorWithMessage(
-  error: unknown
-): error is { message: string } {
+function isErrorWithMessage(error: unknown): error is { message: string } {
   return (
     typeof error === 'object' &&
     error !== null &&

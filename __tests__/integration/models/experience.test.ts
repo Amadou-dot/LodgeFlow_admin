@@ -165,7 +165,10 @@ describe('Experience Model', () => {
         })
       );
 
-      expect(experience.highlights).toEqual(['Scenic views', 'Wildlife spotting']);
+      expect(experience.highlights).toEqual([
+        'Scenic views',
+        'Wildlife spotting',
+      ]);
       expect(experience.whatToBring).toEqual(['Hiking boots', 'Sunscreen']);
       expect(experience.requirements).toEqual(['Moderate fitness level']);
       expect(experience.tags).toEqual(['hiking', 'nature', 'outdoor']);
@@ -202,7 +205,9 @@ describe('Experience Model', () => {
 
     it('queries by difficulty', async () => {
       await Experience.create(createExperienceData({ difficulty: 'Easy' }));
-      await Experience.create(createExperienceData({ difficulty: 'Challenging' }));
+      await Experience.create(
+        createExperienceData({ difficulty: 'Challenging' })
+      );
 
       const easy = await Experience.find({ difficulty: 'Easy' });
       expect(easy).toHaveLength(1);
@@ -213,7 +218,9 @@ describe('Experience Model', () => {
 
     it('queries by category', async () => {
       await Experience.create(createExperienceData({ category: 'outdoor' }));
-      await Experience.create(createExperienceData({ category: 'water-sports' }));
+      await Experience.create(
+        createExperienceData({ category: 'water-sports' })
+      );
 
       const outdoor = await Experience.find({ category: 'outdoor' });
       expect(outdoor).toHaveLength(1);

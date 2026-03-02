@@ -19,7 +19,11 @@ beforeEach(() => {
   });
 });
 
-import { useBookings, useBooking, useBookingByEmail } from '@/hooks/useBookings';
+import {
+  useBookings,
+  useBooking,
+  useBookingByEmail,
+} from '@/hooks/useBookings';
 
 describe('useBookings', () => {
   it('builds URL with no filters', () => {
@@ -112,8 +116,6 @@ describe('useBookingByEmail', () => {
   it('builds correct URL with encoded email', () => {
     useBookingByEmail('test@example.com');
 
-    expect(capturedKey).toBe(
-      '/api/bookings/by-email?email=test%40example.com'
-    );
+    expect(capturedKey).toBe('/api/bookings/by-email?email=test%40example.com');
   });
 });

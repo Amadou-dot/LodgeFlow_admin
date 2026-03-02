@@ -368,7 +368,9 @@ export default function BookingPDFTemplate({
         {booking.paidAt && (
           <div style={printStyles.row}>
             <span style={printStyles.label}>Paid At:</span>
-            <span style={printStyles.value}>{formatDateTime(booking.paidAt)}</span>
+            <span style={printStyles.value}>
+              {formatDateTime(booking.paidAt)}
+            </span>
           </div>
         )}
         {booking.paymentConfirmationSentAt && (
@@ -388,7 +390,9 @@ export default function BookingPDFTemplate({
         {booking.stripePaymentIntentId && (
           <div style={printStyles.row}>
             <span style={printStyles.label}>Payment Intent:</span>
-            <span style={printStyles.value}>{booking.stripePaymentIntentId}</span>
+            <span style={printStyles.value}>
+              {booking.stripePaymentIntentId}
+            </span>
           </div>
         )}
         {booking.refundStatus && booking.refundStatus !== 'none' && (

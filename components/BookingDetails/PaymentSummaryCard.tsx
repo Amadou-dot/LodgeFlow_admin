@@ -57,18 +57,18 @@ export default function PaymentSummaryCard({
         <div className='space-y-2 text-sm'>
           <div className='flex justify-between'>
             <span>Cabin ({numNights} nights)</span>
-            <span>${cabinPrice * numNights}</span>
+            <span>{formatCurrency(cabinPrice * numNights)}</span>
           </div>
           {extrasPrice > 0 && (
             <div className='flex justify-between'>
               <span>Extras</span>
-              <span>${extrasPrice}</span>
+              <span>{formatCurrency(extrasPrice)}</span>
             </div>
           )}
           <Divider />
           <div className='flex justify-between font-semibold'>
             <span>Total</span>
-            <span>${totalPrice}</span>
+            <span>{formatCurrency(totalPrice)}</span>
           </div>
         </div>
 
@@ -78,7 +78,7 @@ export default function PaymentSummaryCard({
           {depositPaid && (
             <div className='flex justify-between text-success'>
               <span>Deposit Paid</span>
-              <span>${depositAmount}</span>
+              <span>{formatCurrency(depositAmount)}</span>
             </div>
           )}
           <div className='flex justify-between'>
@@ -86,7 +86,7 @@ export default function PaymentSummaryCard({
             <span
               className={remainingAmount > 0 ? 'text-warning' : 'text-success'}
             >
-              ${remainingAmount}
+              {formatCurrency(remainingAmount)}
             </span>
           </div>
         </div>

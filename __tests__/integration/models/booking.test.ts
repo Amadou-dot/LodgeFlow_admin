@@ -143,9 +143,7 @@ describe('Booking Model', () => {
       const cabin = await createTestCabin();
       const longObs = 'a'.repeat(1001);
       await expect(
-        Booking.create(
-          createBookingData(cabin._id, { observations: longObs })
-        )
+        Booking.create(createBookingData(cabin._id, { observations: longObs }))
       ).rejects.toThrow(/Observations cannot exceed 1000 characters/);
     });
   });
@@ -370,16 +368,17 @@ describe('Booking Model', () => {
     it('has compound index on cabin+checkInDate+checkOutDate', async () => {
       const indexes = await Booking.collection.indexes();
       const compoundIndex = indexes.find(
-        (idx: any) => idx.key.cabin === 1 && idx.key.checkInDate === 1 && idx.key.checkOutDate === 1
+        (idx: any) =>
+          idx.key.cabin === 1 &&
+          idx.key.checkInDate === 1 &&
+          idx.key.checkOutDate === 1
       );
       expect(compoundIndex).toBeDefined();
     });
 
     it('has index on status', async () => {
       const indexes = await Booking.collection.indexes();
-      const statusIndex = indexes.find(
-        (idx: any) => idx.key.status === 1
-      );
+      const statusIndex = indexes.find((idx: any) => idx.key.status === 1);
       expect(statusIndex).toBeDefined();
     });
   });

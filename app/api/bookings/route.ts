@@ -178,6 +178,7 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
+    console.error('Error fetching bookings:', error);
     return NextResponse.json(
       {
         success: false,
@@ -322,6 +323,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.error('Error creating booking:', error);
     return NextResponse.json(
       {
         success: false,
@@ -361,8 +363,7 @@ export async function PUT(request: NextRequest) {
 
     if (
       (updateData.refundStatus === 'partial' ||
-        updateData.refundStatus === 'full' ||
-        updateData.refundStatus === 'failed') &&
+        updateData.refundStatus === 'full') &&
       updateData.refundAmount !== undefined &&
       !updateData.refundedAt
     ) {
@@ -539,6 +540,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    console.error('Error updating booking:', error);
     return NextResponse.json(
       {
         success: false,
@@ -591,6 +593,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Booking deleted successfully',
     });
   } catch (error) {
+    console.error('Error deleting booking:', error);
     return NextResponse.json(
       {
         success: false,

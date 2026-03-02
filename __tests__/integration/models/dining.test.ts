@@ -186,9 +186,7 @@ describe('Dining Model', () => {
       await expect(
         Dining.create(
           createDiningData({
-            beverages: [
-              { name: 'Bad Drink', category: 'invalid-category' },
-            ],
+            beverages: [{ name: 'Bad Drink', category: 'invalid-category' }],
           })
         )
       ).rejects.toThrow();
@@ -224,8 +222,12 @@ describe('Dining Model', () => {
     });
 
     it('queries by type and mealType', async () => {
-      await Dining.create(createDiningData({ type: 'menu', mealType: 'breakfast' }));
-      await Dining.create(createDiningData({ type: 'experience', mealType: 'dinner' }));
+      await Dining.create(
+        createDiningData({ type: 'menu', mealType: 'breakfast' })
+      );
+      await Dining.create(
+        createDiningData({ type: 'experience', mealType: 'dinner' })
+      );
 
       const menus = await Dining.find({ type: 'menu' });
       expect(menus).toHaveLength(1);
