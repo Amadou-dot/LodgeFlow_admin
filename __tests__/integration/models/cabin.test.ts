@@ -143,26 +143,6 @@ describe('Cabin Model', () => {
     });
   });
 
-  describe('Virtuals', () => {
-    it('calculates discountedPrice', async () => {
-      const cabin = await Cabin.create(
-        createCabinData({ price: 200, discount: 50 })
-      );
-      const json = cabin.toJSON();
-
-      expect(json.discountedPrice).toBe(150);
-    });
-
-    it('discountedPrice equals price when no discount', async () => {
-      const cabin = await Cabin.create(
-        createCabinData({ price: 200, discount: 0 })
-      );
-      const json = cabin.toJSON();
-
-      expect(json.discountedPrice).toBe(200);
-    });
-  });
-
   describe('Indexes', () => {
     it('has index on capacity', async () => {
       const indexes = await Cabin.collection.indexes();

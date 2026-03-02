@@ -15,8 +15,6 @@ export interface ICabin extends Document {
   size?: number;
   minNights?: number;
   extraGuestFee?: number;
-  effectivePrice: number; // virtual
-  discountedPrice: number; // virtual alias
   createdAt: Date;
   updatedAt: Date;
 }
@@ -116,20 +114,10 @@ const CabinSchema: Schema = new Schema(
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+    toJSON: { virtuals: false },
+    toObject: { virtuals: false },
   }
 );
-
-// Virtual for effective price (price - discount)
-CabinSchema.virtual('effectivePrice').get(function (this: ICabin) {
-  return this.price - this.discount;
-});
-
-// Alias virtual for admin dashboard compatibility
-CabinSchema.virtual('discountedPrice').get(function (this: ICabin) {
-  return this.price - this.discount;
-});
 
 // Indexes for efficient queries
 // NOTE: The old compound index { capacity: 1, price: 1 } has been replaced with
