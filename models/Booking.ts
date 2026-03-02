@@ -39,7 +39,7 @@ export interface IBooking extends Document {
   paidAt?: Date;
   cancelledAt?: Date;
   cancellationReason?: string;
-  refundStatus?:
+  refundStatus:
     | 'none'
     | 'pending'
     | 'processing'
@@ -271,7 +271,9 @@ BookingSchema.statics.findOverlapping = async function (
   };
 
   if (excludeBookingId) {
-    query._id = { $ne: excludeBookingId };
+    query._id = {
+      $ne: new mongoose.Types.ObjectId(excludeBookingId.toString()),
+    };
   }
 
   return this.find(query);
@@ -293,8 +295,8 @@ BookingSchema.virtual('paymentStatus').get(function (this: IBooking) {
 BookingSchema.set('toJSON', { virtuals: true });
 BookingSchema.set('toObject', { virtuals: true });
 
-const Booking =
-  mongoose.models.Booking ||
+const Booking: IBookingModel =
+  (mongoose.models.Booking as IBookingModel) ||
   mongoose.model<IBooking, IBookingModel>('Booking', BookingSchema);
 
-export default Booking as IBookingModel;
+export default Booking;

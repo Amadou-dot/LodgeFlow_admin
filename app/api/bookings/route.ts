@@ -3,6 +3,7 @@ import {
   escapeRegex,
   requireApiAuth,
 } from '@/lib/api-utils';
+import mongoose from 'mongoose';
 import { getClerkUsersBatch } from '@/lib/clerk-users';
 import connectDB from '@/lib/mongodb';
 import { createBookingSchema, updateBookingSchema } from '@/lib/validations';
@@ -14,9 +15,7 @@ import { Booking, Cabin, Settings } from '../../../models';
 
 // Helper function to populate bookings with Clerk customer data
 // Uses optimized batch fetching with caching
-async function populateBookingsWithClerkCustomers(
-  bookings: IBooking[]
-) {
+async function populateBookingsWithClerkCustomers(bookings: IBooking[]) {
   // Get unique customer IDs to avoid duplicate API calls
   const customerIds = bookings.map(booking => booking.customer);
   const uniqueCustomerIds = Array.from(new Set(customerIds)) as string[];
@@ -230,7 +229,10 @@ export async function POST(request: NextRequest) {
     const numNights = Math.ceil(
       (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
     );
-    const effectiveMinNights = Math.max(settings.minBookingLength, cabin.minNights ?? 0);
+    const effectiveMinNights = Math.max(
+      settings.minBookingLength,
+      cabin.minNights ?? 0
+    );
     const maxGuests = Math.min(settings.maxGuestsPerBooking, cabin.capacity);
 
     if (numNights < effectiveMinNights) {
@@ -359,8 +361,9 @@ export async function PUT(request: NextRequest) {
 
     if (
       (updateData.refundStatus === 'partial' ||
-        updateData.refundStatus === 'full') &&
-      updateData.refundAmount &&
+        updateData.refundStatus === 'full' ||
+        updateData.refundStatus === 'failed') &&
+      updateData.refundAmount !== undefined &&
       !updateData.refundedAt
     ) {
       updateData.refundedAt = new Date();
@@ -469,7 +472,7 @@ export async function PUT(request: NextRequest) {
         cabinId,
         checkIn,
         checkOut,
-        _id
+        new mongoose.Types.ObjectId(_id)
       );
 
       if (overlapping.length > 0) {

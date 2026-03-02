@@ -1,6 +1,7 @@
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Divider } from '@heroui/divider';
 import { format } from 'date-fns';
+import { formatCurrency } from '@/utils/utilityFunctions';
 
 interface PaymentSummaryCardProps {
   numNights: number;
@@ -154,13 +155,15 @@ export default function PaymentSummaryCard({
               {refundAmount !== undefined && (
                 <div className='flex justify-between gap-2'>
                   <span className='text-default-500'>Refund Amount</span>
-                  <span>${refundAmount}</span>
+                  <span>{formatCurrency(refundAmount)}</span>
                 </div>
               )}
               {refundedAt && (
                 <div className='flex justify-between gap-2'>
                   <span className='text-default-500'>Refunded At</span>
-                  <span className='text-right'>{formatDateTime(refundedAt)}</span>
+                  <span className='text-right'>
+                    {formatDateTime(refundedAt)}
+                  </span>
                 </div>
               )}
             </div>

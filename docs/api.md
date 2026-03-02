@@ -220,7 +220,7 @@ Creates a new booking. Validates for date conflicts with existing bookings.
 | `customer` | string | Yes | Clerk user ID |
 | `checkInDate` | string (ISO) | Yes | Check-in date |
 | `checkOutDate` | string (ISO) | Yes | Check-out date |
-| `numGuests` | number | Yes | Number of guests (1-20) |
+| `numGuests` | number | Yes | Number of guests (1-50, capped by cabin capacity and settings) |
 | `status` | string | No | Default: `unconfirmed` |
 | `cabinPrice` | number | No | Price per night |
 | `extrasPrice` | number | No | Default: `0` |
@@ -307,7 +307,15 @@ Retrieves a single booking with populated cabin and customer data.
     "totalPrice": 1500,
     "status": "confirmed",
     "isPaid": true,
-    "paymentHistory": [ ... ]
+    "paidAt": "2024-01-10T10:00:00.000Z",
+    "stripeSessionId": "cs_test_...",
+    "stripePaymentIntentId": "pi_...",
+    "cancelledAt": null,
+    "cancellationReason": null,
+    "refundStatus": "none",
+    "refundAmount": null,
+    "refundedAt": null,
+    "paymentConfirmationSentAt": "2024-01-10T10:01:00.000Z"
   }
 }
 ```
@@ -1266,6 +1274,14 @@ The API uses Zod schemas for request validation. See `lib/validations/` for sche
 - `dairy-free`
 - `nut-free`
 - `regular`
+
+### Refund Status Values
+- `none`
+- `pending`
+- `processing`
+- `partial`
+- `full`
+- `failed`
 
 ### Experience Difficulty
 - `easy`

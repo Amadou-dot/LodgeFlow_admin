@@ -121,26 +121,35 @@ export async function PATCH(req: Request, { params }: IdParam) {
         booking.checkOutTime = new Date();
       } else if (updateData.status === 'cancelled') {
         booking.cancelledAt = updateData.cancelledAt ?? new Date();
-        booking.refundStatus = updateData.refundStatus ?? booking.refundStatus ?? 'none';
+        booking.refundStatus =
+          updateData.refundStatus ?? booking.refundStatus ?? 'none';
       }
     }
 
-    if (updateData.cancellationReason !== undefined) {
-      booking.cancellationReason = updateData.cancellationReason;
+    // Cancellation metadata — only writable on cancelled bookings
+    if (booking.status === 'cancelled') {
+      if (updateData.cancellationReason !== undefined) {
+        booking.cancellationReason = updateData.cancellationReason;
+      }
+      // Allow updating cancelledAt on already-cancelled bookings without re-sending status
+      if (updateData.cancelledAt !== undefined && !updateData.status) {
+        booking.cancelledAt = updateData.cancelledAt;
+      }
+      if (updateData.refundStatus !== undefined && !updateData.status) {
+        booking.refundStatus = updateData.refundStatus;
+      }
     }
-    if (updateData.cancelledAt !== undefined) {
-      booking.cancelledAt = updateData.cancelledAt;
-    }
-    if (updateData.refundStatus !== undefined) {
-      booking.refundStatus = updateData.refundStatus;
-    }
+
+    // Refund metadata
     if (updateData.refundAmount !== undefined) {
       booking.refundAmount = updateData.refundAmount;
     }
     if (updateData.refundedAt !== undefined) {
       booking.refundedAt = updateData.refundedAt;
     }
-    if (updateData.paidAt !== undefined) {
+
+    // Payment metadata — skip paidAt if recordPayment already set it
+    if (updateData.paidAt !== undefined && !updateData.recordPayment) {
       booking.paidAt = updateData.paidAt;
     }
     if (updateData.stripePaymentIntentId !== undefined) {
