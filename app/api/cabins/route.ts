@@ -1,11 +1,13 @@
 import {
   createErrorResponse,
   createSuccessResponse,
+  createValidationErrorResponse,
   escapeRegex,
   HTTP_STATUS,
   requireApiAuth,
 } from '@/lib/api-utils';
 import connectDB from '@/lib/mongodb';
+import { createCabinSchema, updateCabinSchema } from '@/lib/validations';
 import type { CabinQueryFilter, MongoSortOrder } from '@/types/api';
 import { isMongooseValidationError } from '@/types/errors';
 import { NextRequest } from 'next/server';
@@ -114,16 +116,12 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-
-    // Validate discount vs price
-    if (body.discount && body.discount >= body.price) {
-      return createErrorResponse(
-        'Discount cannot be greater than or equal to the price',
-        HTTP_STATUS.BAD_REQUEST
-      );
+    const validationResult = createCabinSchema.safeParse(body);
+    if (!validationResult.success) {
+      return createValidationErrorResponse(validationResult.error);
     }
 
-    const cabin = await Cabin.create(body);
+    const cabin = await Cabin.create(validationResult.data);
 
     return createSuccessResponse(cabin, undefined, HTTP_STATUS.CREATED);
   } catch (error: unknown) {
@@ -154,14 +152,11 @@ export async function PUT(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    const { _id, ...updateData } = body;
-
-    if (!_id) {
-      return createErrorResponse(
-        'Cabin ID is required',
-        HTTP_STATUS.BAD_REQUEST
-      );
+    const validationResult = updateCabinSchema.safeParse(body);
+    if (!validationResult.success) {
+      return createValidationErrorResponse(validationResult.error);
     }
+    const { _id, ...updateData } = validationResult.data;
 
     const cabin = await Cabin.findByIdAndUpdate(_id, updateData, {
       new: true,

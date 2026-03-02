@@ -458,6 +458,7 @@ Retrieves cabins with filtering and search.
 | `search` | string | - | Search by cabin name |
 | `capacity` | string | - | `small` (1-3), `medium` (4-7), `large` (8+) |
 | `discount` | string | - | `with` (has discount), `without` (no discount) |
+| `status` | string | - | `active`, `maintenance`, `inactive`, or `all` |
 | `filter` | string | - | Legacy: `with-discount`, `no-discount`, `small`, `medium`, `large` |
 | `sortBy` | string | `name` | Sort field |
 | `sortOrder` | string | `asc` | Sort order: `asc` or `desc` |
@@ -475,13 +476,14 @@ Retrieves cabins with filtering and search.
       "price": 200,
       "discount": 20,
       "image": "https://example.com/cabin.jpg",
-      "amenities": {
-        "wifi": true,
-        "tv": true,
-        "ac": true,
-        "heating": true
-      },
-      "isAvailable": true
+      "images": ["https://example.com/cabin-1.jpg"],
+      "status": "active",
+      "amenities": ["WiFi", "Hot Tub"],
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "size": 1200,
+      "minNights": 2,
+      "extraGuestFee": 25
     }
   ]
 }
@@ -502,31 +504,19 @@ Creates a new cabin.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `name` | string | Yes | Cabin name (1-100 chars) |
-| `description` | string | Yes | Description (10-2000 chars) |
+| `description` | string | Yes | Description (1-1000 chars) |
+| `image` | string | Yes | Primary image URL |
+| `images` | string[] | No | Gallery image URLs (default: `[]`) |
+| `status` | string | No | `active`, `maintenance`, `inactive` (default: `active`) |
 | `capacity` | number | Yes | Guest capacity (1-20) |
-| `price` | number | Yes | Price per night (> 0) |
-| `discount` | number | No | Discount amount (must be < price) |
-| `image` | string | No | Image URL |
-| `amenities` | object | No | Amenity flags |
-| `isAvailable` | boolean | No | Default: `true` |
-
-**Amenities Object:**
-```json
-{
-  "wifi": true,
-  "tv": true,
-  "ac": true,
-  "heating": true,
-  "kitchen": false,
-  "washer": false,
-  "parking": true,
-  "pool": false,
-  "hotTub": false,
-  "fireplace": true,
-  "balcony": true,
-  "petFriendly": false
-}
-```
+| `price` | number | Yes | Price per night (>= 0) |
+| `discount` | number | No | Discount amount (must be <= `price`) |
+| `amenities` | string[] | No | Amenity labels (default: `[]`) |
+| `bedrooms` | number | No | Bedroom count |
+| `bathrooms` | number | No | Bathroom count |
+| `size` | number | No | Cabin size |
+| `minNights` | number | No | Minimum nights per booking |
+| `extraGuestFee` | number | No | Extra fee per guest (default: `0`) |
 
 **Success Response:** `201 Created`
 
@@ -560,9 +550,11 @@ PUT /api/cabins/[id]
 **Path Parameters:**
 - `id` (string) - Cabin ObjectId
 
-**Request Body:** Fields to update
+**Request Body:** Any cabin fields listed above.
 
-**Validation:** Discount must be less than price
+**Validation:**
+- Payload is validated against the canonical cabin schema.
+- If both `price` and `discount` are provided, `discount` must be <= `price`.
 
 ---
 

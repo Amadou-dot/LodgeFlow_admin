@@ -3,18 +3,20 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface ICabin extends Document {
   name: string;
   image: string;
-  images: string[];
-  status: 'active' | 'maintenance' | 'inactive';
   capacity: number;
   price: number;
   discount: number;
   description: string;
   amenities: string[];
+  images?: string[];
+  status?: 'active' | 'maintenance' | 'inactive';
   bedrooms?: number;
   bathrooms?: number;
   size?: number;
   minNights?: number;
-  extraGuestFee: number;
+  extraGuestFee?: number;
+  effectivePrice: number; // virtual
+  discountedPrice: number; // virtual alias
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +54,12 @@ const CabinSchema: Schema = new Schema(
       type: Number,
       default: 0,
       min: [0, 'Discount must be positive'],
+      validate: {
+        validator: function (this: ICabin, discount: number) {
+          return discount <= this.price;
+        },
+        message: 'Discount cannot exceed the cabin price',
+      },
     },
     description: {
       type: String,
@@ -59,23 +67,26 @@ const CabinSchema: Schema = new Schema(
       trim: true,
       maxlength: [1000, 'Description cannot exceed 1000 characters'],
     },
-    amenities: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
-    images: [
-      {
-        type: String,
-        validate: {
-          validator: function (v: string) {
-            return /^https?:\/\/.+\..+/.test(v);
-          },
-          message: 'Please provide a valid image URL',
+    amenities: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function (amenities: string[]) {
+          return amenities.length <= 20;
         },
+        message: 'Cannot have more than 20 amenities',
       },
-    ],
+    },
+    images: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function (images: string[]) {
+          return images.every(url => /^https?:\/\/.+\..+/.test(url));
+        },
+        message: 'All gallery images must be valid URLs',
+      },
+    },
     status: {
       type: String,
       enum: ['active', 'maintenance', 'inactive'],
@@ -91,7 +102,7 @@ const CabinSchema: Schema = new Schema(
     },
     size: {
       type: Number,
-      min: [1, 'Size must be at least 1 sq ft'],
+      min: [1, 'Size must be at least 1'],
     },
     minNights: {
       type: Number,
@@ -99,28 +110,38 @@ const CabinSchema: Schema = new Schema(
     },
     extraGuestFee: {
       type: Number,
-      min: [0, 'Extra guest fee must be positive'],
       default: 0,
+      min: [0, 'Extra guest fee must be positive'],
     },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-// Indexes for better query performance
+// Virtual for effective price (price - discount)
+CabinSchema.virtual('effectivePrice').get(function (this: ICabin) {
+  return this.price - this.discount;
+});
+
+// Alias virtual for admin dashboard compatibility
+CabinSchema.virtual('discountedPrice').get(function (this: ICabin) {
+  return this.price - this.discount;
+});
+
+// Indexes for efficient queries
+// NOTE: The old compound index { capacity: 1, price: 1 } has been replaced with
+// three separate indexes. If upgrading a running MongoDB instance, the old
+// compound index must be dropped manually: db.cabins.dropIndex("capacity_1_price_1")
 CabinSchema.index({ capacity: 1 });
 CabinSchema.index({ price: 1 });
 CabinSchema.index({ status: 1 });
 CabinSchema.index({ name: 'text', description: 'text' });
 
-// Virtual for discounted price
-CabinSchema.virtual('discountedPrice').get(function (this: ICabin) {
-  return this.price - this.discount;
-});
+// Prevent model re-compilation in development
+const Cabin =
+  mongoose.models.Cabin || mongoose.model<ICabin>('Cabin', CabinSchema);
 
-// Ensure virtual fields are serialized
-CabinSchema.set('toJSON', { virtuals: true });
-
-export default mongoose.models.Cabin ||
-  mongoose.model<ICabin>('Cabin', CabinSchema);
+export default Cabin;

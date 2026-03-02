@@ -1,5 +1,6 @@
-import { requireApiAuth } from '@/lib/api-utils';
+import { createValidationErrorResponse, requireApiAuth } from '@/lib/api-utils';
 import connectDB from '@/lib/mongodb';
+import { updateCabinSchema } from '@/lib/validations';
 import { isMongooseValidationError } from '@/types/errors';
 import { NextRequest, NextResponse } from 'next/server';
 import { Cabin } from '../../../../models';
@@ -56,6 +57,13 @@ export async function PUT(
     const { id } = await params;
 
     const body = await request.json();
+    const validationResult = updateCabinSchema.safeParse({ ...body, _id: id });
+    if (!validationResult.success) {
+      return createValidationErrorResponse(validationResult.error);
+    }
+    const updateData = Object.fromEntries(
+      Object.entries(validationResult.data).filter(([key]) => key !== '_id')
+    );
 
     // Get the current cabin to validate discount vs price
     const currentCabin = await Cabin.findById(id);
@@ -70,9 +78,12 @@ export async function PUT(
     }
 
     // Validate discount vs price
-    const newPrice = body.price !== undefined ? body.price : currentCabin.price;
+    const newPrice =
+      updateData.price !== undefined ? updateData.price : currentCabin.price;
     const newDiscount =
-      body.discount !== undefined ? body.discount : currentCabin.discount;
+      updateData.discount !== undefined
+        ? updateData.discount
+        : currentCabin.discount;
 
     if (newDiscount >= newPrice) {
       return NextResponse.json(
@@ -84,7 +95,7 @@ export async function PUT(
       );
     }
 
-    const cabin = await Cabin.findByIdAndUpdate(id, body, {
+    const cabin = await Cabin.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     });

@@ -99,7 +99,7 @@ describe('Cabin Model', () => {
     it('validates gallery image URLs', async () => {
       await expect(
         Cabin.create(createCabinData({ images: ['not-a-url'] }))
-      ).rejects.toThrow(/valid image URL/);
+      ).rejects.toThrow(/valid URLs/);
     });
 
     it('accepts valid gallery image URLs', async () => {

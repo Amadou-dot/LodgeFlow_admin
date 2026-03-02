@@ -20,6 +20,7 @@ const mockConnectToDatabase = connectToDatabase as jest.MockedFunction<
 // Mock the Cabin model (default export)
 const mockCabinModel = {
   find: jest.fn(),
+  create: jest.fn(),
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
   findByIdAndDelete: jest.fn(),
@@ -58,13 +59,10 @@ const mockCabinData = {
   price: 200,
   discount: 20,
   image: 'https://example.com/cabin.jpg',
-  amenities: {
-    wifi: true,
-    tv: true,
-    airConditioning: true,
-    heating: true,
-  },
-  isAvailable: true,
+  images: ['https://example.com/cabin-1.jpg'],
+  amenities: ['WiFi', 'Hot Tub'],
+  status: 'active',
+  extraGuestFee: 0,
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
 };
@@ -175,7 +173,8 @@ describe('/api/cabins', () => {
         method: 'POST',
         body: JSON.stringify({
           name: 'Test Cabin',
-          description: 'A test cabin description here.',
+          image: 'https://example.com/test-cabin.jpg',
+          description: 'A test cabin description.',
           capacity: 4,
           price: 100,
           discount: 150,
@@ -187,7 +186,8 @@ describe('/api/cabins', () => {
 
       expect(response.status).toBe(400);
       expect(data.success).toBe(false);
-      expect(data.error).toContain('Discount');
+      expect(data.error).toBe('Validation failed');
+      expect(data.details.discount).toBeDefined();
     });
   });
 
