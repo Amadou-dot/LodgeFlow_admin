@@ -273,7 +273,7 @@ export async function GET() {
       },
       recentActivity: await (async () => {
         // Batch fetch all customer names at once
-        const bookingsList = recentBookings as RecentBookingPopulated[];
+        const bookingsList = recentBookings as unknown as RecentBookingPopulated[];
         const customerIds = bookingsList
           .map(b => b.customer)
           .filter((id): id is string => !!id);

@@ -7,24 +7,15 @@ import { getClerkUsersBatch } from '@/lib/clerk-users';
 import connectDB from '@/lib/mongodb';
 import { createBookingSchema, updateBookingSchema } from '@/lib/validations';
 import type { IBooking } from '@/models/Booking';
-import type { ICabin } from '@/models/Cabin';
 import type { BookingQueryFilter, MongoSortOrder } from '@/types/api';
 import { getErrorMessage, isMongooseValidationError } from '@/types/errors';
-import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 import { Booking, Cabin, Settings } from '../../../models';
 
 // Helper function to populate bookings with Clerk customer data
 // Uses optimized batch fetching with caching
 async function populateBookingsWithClerkCustomers(
-  bookings: Array<
-    IBooking & {
-      cabin?: Pick<
-        ICabin,
-        'name' | 'image' | 'capacity' | 'price' | 'discount'
-      >;
-    }
-  >
+  bookings: IBooking[]
 ) {
   // Get unique customer IDs to avoid duplicate API calls
   const customerIds = bookings.map(booking => booking.customer);
@@ -49,7 +40,7 @@ async function populateBookingsWithClerkCustomers(
       ...booking.toObject(),
       customer: customerData,
       guest: customerData, // For legacy compatibility
-      cabinName: booking.cabin?.name, // Add cabin name for easier access
+      cabinName: (booking.cabin as unknown as { name?: string })?.name,
     };
   });
 
@@ -283,6 +274,12 @@ export async function POST(request: NextRequest) {
       'cabin',
       'name image capacity price discount'
     );
+    if (!populatedBooking) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to load created booking' },
+        { status: 500 }
+      );
+    }
 
     // Populate with Clerk customer data
     const {
@@ -350,6 +347,24 @@ export async function PUT(request: NextRequest) {
     }
 
     const { _id, ...updateData } = validationResult.data;
+
+    if (updateData.status === 'cancelled') {
+      updateData.cancelledAt = updateData.cancelledAt ?? new Date();
+      updateData.refundStatus = updateData.refundStatus ?? 'none';
+    }
+
+    if (updateData.isPaid && !updateData.paidAt) {
+      updateData.paidAt = new Date();
+    }
+
+    if (
+      (updateData.refundStatus === 'partial' ||
+        updateData.refundStatus === 'full') &&
+      updateData.refundAmount &&
+      !updateData.refundedAt
+    ) {
+      updateData.refundedAt = new Date();
+    }
 
     // Fetch the existing booking to compare fields
     const existingBooking = await Booking.findById(_id);
@@ -450,12 +465,11 @@ export async function PUT(request: NextRequest) {
       const checkIn = updateData.checkInDate || existingBooking.checkInDate;
       const checkOut = updateData.checkOutDate || existingBooking.checkOutDate;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         cabinId,
         checkIn,
         checkOut,
-        new mongoose.Types.ObjectId(_id)
+        _id
       );
 
       if (overlapping.length > 0) {

@@ -373,16 +373,18 @@ Performs special operations on a booking (payment recording, status changes).
 {
   "success": true,
   "data": {
-    ...
+    "...": "...",
     "checkInTime": "2024-01-15T14:30:00.000Z",
-    "paymentHistory": [
-      {
-        "paymentMethod": "card",
-        "amountPaid": 500,
-        "paidAt": "2024-01-10T10:00:00.000Z",
-        "notes": "Deposit payment"
-      }
-    ]
+    "checkOutTime": "2024-01-18T11:05:00.000Z",
+    "paidAt": "2024-01-10T10:00:00.000Z",
+    "stripeSessionId": "cs_test_...",
+    "stripePaymentIntentId": "pi_...",
+    "cancelledAt": null,
+    "cancellationReason": null,
+    "refundStatus": "none",
+    "refundAmount": null,
+    "refundedAt": null,
+    "paymentConfirmationSentAt": "2024-01-10T10:01:00.000Z"
   }
 }
 ```

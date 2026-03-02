@@ -58,8 +58,30 @@ describe('Booking Model', () => {
       expect(booking.depositPaid).toBe(false);
       expect(booking.depositAmount).toBe(0);
       expect(booking.extrasPrice).toBe(0);
+      expect(booking.paymentMethod).toBe('online');
+      expect(booking.refundStatus).toBe('none');
       expect(booking.extras.hasBreakfast).toBe(false);
       expect(booking.extras.hasPets).toBe(false);
+    });
+
+    it('supports synchronized metadata fields', async () => {
+      const cabin = await createTestCabin();
+      const paidAt = new Date('2027-06-02T10:00:00.000Z');
+      const booking = await Booking.create(
+        createBookingData(cabin._id, {
+          stripePaymentIntentId: 'pi_test_123',
+          stripeSessionId: 'cs_test_123',
+          paidAt,
+          cancellationReason: 'Guest changed plans',
+          refundStatus: 'pending',
+        })
+      );
+
+      expect(booking.stripePaymentIntentId).toBe('pi_test_123');
+      expect(booking.stripeSessionId).toBe('cs_test_123');
+      expect(booking.paidAt).toEqual(paidAt);
+      expect(booking.cancellationReason).toBe('Guest changed plans');
+      expect(booking.refundStatus).toBe('pending');
     });
 
     it('requires cabin field', async () => {

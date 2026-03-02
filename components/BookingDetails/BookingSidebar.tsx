@@ -29,6 +29,13 @@ export default function BookingSidebar({
         depositAmount={booking.depositAmount}
         remainingAmount={booking.remainingAmount}
         paymentMethod={booking.paymentMethod}
+        paidAt={booking.paidAt?.toString()}
+        stripeSessionId={booking.stripeSessionId}
+        stripePaymentIntentId={booking.stripePaymentIntentId}
+        paymentConfirmationSentAt={booking.paymentConfirmationSentAt?.toString()}
+        refundStatus={booking.refundStatus}
+        refundAmount={booking.refundAmount}
+        refundedAt={booking.refundedAt?.toString()}
       />
 
       <QuickActionsCard

@@ -1,5 +1,6 @@
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Divider } from '@heroui/divider';
+import { format } from 'date-fns';
 
 interface PaymentSummaryCardProps {
   numNights: number;
@@ -10,6 +11,13 @@ interface PaymentSummaryCardProps {
   depositAmount: number;
   remainingAmount: number;
   paymentMethod?: string;
+  paidAt?: string;
+  stripeSessionId?: string;
+  stripePaymentIntentId?: string;
+  paymentConfirmationSentAt?: string;
+  refundStatus?: string;
+  refundAmount?: number;
+  refundedAt?: string;
 }
 
 export default function PaymentSummaryCard({
@@ -21,7 +29,24 @@ export default function PaymentSummaryCard({
   depositAmount,
   remainingAmount,
   paymentMethod,
+  paidAt,
+  stripeSessionId,
+  stripePaymentIntentId,
+  paymentConfirmationSentAt,
+  refundStatus,
+  refundAmount,
+  refundedAt,
 }: PaymentSummaryCardProps) {
+  const formatDateTime = (dateValue: string) =>
+    format(new Date(dateValue), 'MMM dd, yyyy h:mm a');
+
+  const hasPaymentMetadata =
+    paidAt ||
+    stripeSessionId ||
+    stripePaymentIntentId ||
+    paymentConfirmationSentAt;
+  const hasRefundMetadata = refundStatus && refundStatus !== 'none';
+
   return (
     <Card>
       <CardHeader>
@@ -72,6 +97,74 @@ export default function PaymentSummaryCard({
               {paymentMethod.replace('-', ' ')}
             </p>
           </div>
+        )}
+
+        {hasPaymentMetadata && (
+          <>
+            <Divider />
+            <div className='space-y-2 text-sm'>
+              {paidAt && (
+                <div className='flex justify-between gap-2'>
+                  <span className='text-default-500'>Paid At</span>
+                  <span className='text-right'>{formatDateTime(paidAt)}</span>
+                </div>
+              )}
+              {paymentConfirmationSentAt && (
+                <div className='flex justify-between gap-2'>
+                  <span className='text-default-500'>Confirmation Sent</span>
+                  <span className='text-right'>
+                    {formatDateTime(paymentConfirmationSentAt)}
+                  </span>
+                </div>
+              )}
+              {stripeSessionId && (
+                <div className='flex justify-between gap-2'>
+                  <span className='text-default-500'>Stripe Session</span>
+                  <span
+                    className='text-right font-mono text-xs truncate max-w-44'
+                    title={stripeSessionId}
+                  >
+                    {stripeSessionId}
+                  </span>
+                </div>
+              )}
+              {stripePaymentIntentId && (
+                <div className='flex justify-between gap-2'>
+                  <span className='text-default-500'>Payment Intent</span>
+                  <span
+                    className='text-right font-mono text-xs truncate max-w-44'
+                    title={stripePaymentIntentId}
+                  >
+                    {stripePaymentIntentId}
+                  </span>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {hasRefundMetadata && (
+          <>
+            <Divider />
+            <div className='space-y-2 text-sm'>
+              <div className='flex justify-between gap-2'>
+                <span className='text-default-500'>Refund Status</span>
+                <span className='capitalize'>{refundStatus}</span>
+              </div>
+              {refundAmount !== undefined && (
+                <div className='flex justify-between gap-2'>
+                  <span className='text-default-500'>Refund Amount</span>
+                  <span>${refundAmount}</span>
+                </div>
+              )}
+              {refundedAt && (
+                <div className='flex justify-between gap-2'>
+                  <span className='text-default-500'>Refunded At</span>
+                  <span className='text-right'>{formatDateTime(refundedAt)}</span>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </CardBody>
     </Card>

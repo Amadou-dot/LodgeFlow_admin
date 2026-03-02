@@ -12,6 +12,7 @@ interface BookingStatusDatesProps {
   numNights: number;
   checkInTime?: string;
   checkOutTime?: string;
+  cancelledAt?: string;
   dateRange: string;
   timeInfo: string;
 }
@@ -24,6 +25,7 @@ export default function BookingStatusDates({
   checkOutDate,
   checkInTime,
   checkOutTime,
+  cancelledAt,
   dateRange,
   timeInfo,
 }: BookingStatusDatesProps) {
@@ -76,6 +78,14 @@ export default function BookingStatusDates({
             )}
           </div>
         </div>
+        {status === 'cancelled' && cancelledAt && (
+          <div className='text-sm'>
+            <span className='text-default-500'>Cancelled at:</span>{' '}
+            <span className='font-medium'>
+              {format(new Date(cancelledAt), 'EEEE, MMMM dd, yyyy h:mm a')}
+            </span>
+          </div>
+        )}
       </CardBody>
     </Card>
   );

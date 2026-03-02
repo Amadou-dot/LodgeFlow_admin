@@ -38,6 +38,18 @@ export const paymentMethodSchema = z.enum([
 ]);
 
 /**
+ * Refund status enum
+ */
+export const refundStatusSchema = z.enum([
+  'none',
+  'pending',
+  'processing',
+  'partial',
+  'full',
+  'failed',
+]);
+
+/**
  * Create booking request schema
  */
 export const createBookingSchema = z
@@ -56,9 +68,19 @@ export const createBookingSchema = z
     paymentMethod: paymentMethodSchema.optional(),
     depositPaid: z.boolean().optional().default(false),
     depositAmount: z.number().min(0).optional().default(0),
+    stripePaymentIntentId: z.string().min(1).optional(),
+    stripeSessionId: z.string().min(1).optional(),
+    paidAt: z.coerce.date().optional(),
+    cancelledAt: z.coerce.date().optional(),
+    cancellationReason: z.string().max(500).optional(),
+    refundStatus: refundStatusSchema.optional().default('none'),
+    refundAmount: z.number().min(0).optional(),
+    refundedAt: z.coerce.date().optional(),
+    paymentConfirmationSentAt: z.coerce.date().optional(),
     remainingAmount: z.number().min(0).optional(),
     extras: bookingExtrasSchema.optional(),
     observations: z.string().max(1000).optional(),
+    specialRequests: z.array(z.string()).optional().default([]),
   })
   .refine(data => data.checkOutDate > data.checkInDate, {
     message: 'Check-out date must be after check-in date',
@@ -85,9 +107,19 @@ export const updateBookingSchema = z
     paymentMethod: paymentMethodSchema.optional(),
     depositPaid: z.boolean().optional(),
     depositAmount: z.number().min(0).optional(),
+    stripePaymentIntentId: z.string().min(1).optional(),
+    stripeSessionId: z.string().min(1).optional(),
+    paidAt: z.coerce.date().optional(),
+    cancelledAt: z.coerce.date().optional(),
+    cancellationReason: z.string().max(500).optional(),
+    refundStatus: refundStatusSchema.optional(),
+    refundAmount: z.number().min(0).optional(),
+    refundedAt: z.coerce.date().optional(),
+    paymentConfirmationSentAt: z.coerce.date().optional(),
     remainingAmount: z.number().min(0).optional(),
     extras: bookingExtrasSchema.optional(),
     observations: z.string().max(1000).optional(),
+    specialRequests: z.array(z.string()).optional(),
   })
   .refine(
     data => {
@@ -116,6 +148,15 @@ export const recordPaymentSchema = z.object({
  */
 export const patchBookingSchema = z.object({
   status: bookingStatusSchema.optional(),
+  cancellationReason: z.string().max(500).optional(),
+  cancelledAt: z.coerce.date().optional(),
+  refundStatus: refundStatusSchema.optional(),
+  refundAmount: z.number().min(0).optional(),
+  refundedAt: z.coerce.date().optional(),
+  paidAt: z.coerce.date().optional(),
+  stripePaymentIntentId: z.string().min(1).optional(),
+  stripeSessionId: z.string().min(1).optional(),
+  paymentConfirmationSentAt: z.coerce.date().optional(),
   recordPayment: recordPaymentSchema.optional(),
 });
 

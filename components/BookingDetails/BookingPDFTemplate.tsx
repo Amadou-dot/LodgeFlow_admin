@@ -106,6 +106,9 @@ export default function BookingPDFTemplate({
   const formatDate = (date: string | Date) => {
     return format(new Date(date), 'EEEE, MMMM dd, yyyy');
   };
+  const formatDateTime = (date: string | Date) => {
+    return format(new Date(date), 'MMM dd, yyyy h:mm a');
+  };
 
   const formatPrice = (price: number) => formatCurrency(price);
 
@@ -235,6 +238,14 @@ export default function BookingPDFTemplate({
             </span>
           </div>
         )}
+        {booking.cancelledAt && (
+          <div style={printStyles.row}>
+            <span style={printStyles.label}>Cancelled At:</span>
+            <span style={printStyles.value}>
+              {formatDateTime(booking.cancelledAt)}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Guest Information */}
@@ -354,10 +365,62 @@ export default function BookingPDFTemplate({
             </span>
           </div>
         )}
+        {booking.paidAt && (
+          <div style={printStyles.row}>
+            <span style={printStyles.label}>Paid At:</span>
+            <span style={printStyles.value}>{formatDateTime(booking.paidAt)}</span>
+          </div>
+        )}
+        {booking.paymentConfirmationSentAt && (
+          <div style={printStyles.row}>
+            <span style={printStyles.label}>Confirmation Sent:</span>
+            <span style={printStyles.value}>
+              {formatDateTime(booking.paymentConfirmationSentAt)}
+            </span>
+          </div>
+        )}
+        {booking.stripeSessionId && (
+          <div style={printStyles.row}>
+            <span style={printStyles.label}>Stripe Session:</span>
+            <span style={printStyles.value}>{booking.stripeSessionId}</span>
+          </div>
+        )}
+        {booking.stripePaymentIntentId && (
+          <div style={printStyles.row}>
+            <span style={printStyles.label}>Payment Intent:</span>
+            <span style={printStyles.value}>{booking.stripePaymentIntentId}</span>
+          </div>
+        )}
+        {booking.refundStatus && booking.refundStatus !== 'none' && (
+          <>
+            <div style={printStyles.row}>
+              <span style={printStyles.label}>Refund Status:</span>
+              <span style={printStyles.value}>{booking.refundStatus}</span>
+            </div>
+            {booking.refundAmount !== undefined && (
+              <div style={printStyles.row}>
+                <span style={printStyles.label}>Refund Amount:</span>
+                <span style={printStyles.value}>
+                  {formatPrice(booking.refundAmount)}
+                </span>
+              </div>
+            )}
+            {booking.refundedAt && (
+              <div style={printStyles.row}>
+                <span style={printStyles.label}>Refunded At:</span>
+                <span style={printStyles.value}>
+                  {formatDateTime(booking.refundedAt)}
+                </span>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Notes and Observations */}
-      {(booking.observations || booking.specialRequests?.length) && (
+      {(booking.observations ||
+        booking.specialRequests?.length ||
+        booking.cancellationReason) && (
         <div style={printStyles.section}>
           <h2 style={printStyles.sectionTitle}>Notes & Special Requests</h2>
           {booking.observations && (
@@ -382,6 +445,14 @@ export default function BookingPDFTemplate({
                   <li key={index}>{request}</li>
                 ))}
               </ul>
+            </div>
+          )}
+          {booking.cancellationReason && (
+            <div style={{ marginTop: '12px' }}>
+              <div style={printStyles.label}>Cancellation Reason:</div>
+              <div style={{ marginTop: '4px', color: '#1e293b' }}>
+                {booking.cancellationReason}
+              </div>
             </div>
           )}
         </div>

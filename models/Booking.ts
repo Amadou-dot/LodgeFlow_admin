@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IBooking extends Document {
   cabin: mongoose.Types.ObjectId;
@@ -34,11 +34,38 @@ export interface IBooking extends Document {
   specialRequests?: string[];
   depositPaid: boolean;
   depositAmount: number;
+  stripePaymentIntentId?: string;
+  stripeSessionId?: string;
+  paidAt?: Date;
+  cancelledAt?: Date;
+  cancellationReason?: string;
+  refundStatus?:
+    | 'none'
+    | 'pending'
+    | 'processing'
+    | 'partial'
+    | 'full'
+    | 'failed';
+  refundAmount?: number;
+  refundedAt?: Date;
+  paymentConfirmationSentAt?: Date;
   remainingAmount: number;
   checkInTime?: Date;
   checkOutTime?: Date;
+  durationText?: string;
+  paymentStatus?: 'paid' | 'partial' | 'unpaid';
   createdAt: Date;
   updatedAt: Date;
+  overlaps(otherCheckIn: Date, otherCheckOut: Date): boolean;
+}
+
+export interface IBookingModel extends Model<IBooking> {
+  findOverlapping(
+    cabinId: mongoose.Types.ObjectId | string,
+    checkInDate: Date,
+    checkOutDate: Date,
+    excludeBookingId?: mongoose.Types.ObjectId | string
+  ): Promise<IBooking[]>;
 }
 
 const BookingSchema: Schema = new Schema(
@@ -110,6 +137,7 @@ const BookingSchema: Schema = new Schema(
     paymentMethod: {
       type: String,
       enum: ['cash', 'card', 'bank-transfer', 'online'],
+      default: 'online',
     },
     extras: {
       hasBreakfast: { type: Boolean, default: false },
@@ -142,6 +170,37 @@ const BookingSchema: Schema = new Schema(
       type: Number,
       default: 0,
       min: [0, 'Deposit amount must be positive'],
+    },
+    stripePaymentIntentId: {
+      type: String,
+    },
+    stripeSessionId: {
+      type: String,
+    },
+    paidAt: {
+      type: Date,
+    },
+    cancelledAt: {
+      type: Date,
+    },
+    cancellationReason: {
+      type: String,
+      maxlength: [500, 'Cancellation reason cannot exceed 500 characters'],
+    },
+    refundStatus: {
+      type: String,
+      enum: ['none', 'pending', 'processing', 'partial', 'full', 'failed'],
+      default: 'none',
+    },
+    refundAmount: {
+      type: Number,
+      min: [0, 'Refund amount must be positive'],
+    },
+    refundedAt: {
+      type: Date,
+    },
+    paymentConfirmationSentAt: {
+      type: Date,
     },
     remainingAmount: {
       type: Number,
@@ -194,25 +253,15 @@ BookingSchema.methods.overlaps = function (
 };
 
 // Static method to find overlapping bookings
-BookingSchema.statics.findOverlapping = function (
-  cabinId: mongoose.Types.ObjectId,
+BookingSchema.statics.findOverlapping = async function (
+  cabinId: mongoose.Types.ObjectId | string,
   checkInDate: Date,
   checkOutDate: Date,
-  excludeBookingId?: mongoose.Types.ObjectId
-) {
-  interface OverlapQuery {
-    cabin: mongoose.Types.ObjectId;
-    status: { $nin: string[] };
-    $or: Array<{
-      checkInDate: { $lt: Date };
-      checkOutDate: { $gt: Date };
-    }>;
-    _id?: { $ne: mongoose.Types.ObjectId };
-  }
-
-  const query: OverlapQuery = {
+  excludeBookingId?: mongoose.Types.ObjectId | string
+): Promise<IBooking[]> {
+  const query: mongoose.FilterQuery<IBooking> = {
     cabin: cabinId,
-    status: { $nin: ['cancelled'] },
+    status: { $ne: 'cancelled' },
     $or: [
       {
         checkInDate: { $lt: checkOutDate },
@@ -242,6 +291,10 @@ BookingSchema.virtual('paymentStatus').get(function (this: IBooking) {
 
 // Ensure virtual fields are serialized
 BookingSchema.set('toJSON', { virtuals: true });
+BookingSchema.set('toObject', { virtuals: true });
 
-export default mongoose.models.Booking ||
-  mongoose.model<IBooking>('Booking', BookingSchema);
+const Booking =
+  mongoose.models.Booking ||
+  mongoose.model<IBooking, IBookingModel>('Booking', BookingSchema);
+
+export default Booking as IBookingModel;
