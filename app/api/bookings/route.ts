@@ -6,6 +6,8 @@ import {
 import { differenceInCalendarDays } from 'date-fns';
 import mongoose from 'mongoose';
 import { getClerkUsersBatch } from '@/lib/clerk-users';
+import { VALID_TRANSITIONS } from '@/lib/config';
+import { logger } from '@/lib/logger';
 import connectDB from '@/lib/mongodb';
 import { createBookingSchema, updateBookingSchema } from '@/lib/validations';
 import type { IBooking } from '@/models/Booking';
@@ -14,10 +16,7 @@ import { getErrorMessage, isMongooseValidationError } from '@/types/errors';
 import { NextRequest, NextResponse } from 'next/server';
 import { Booking, Cabin, Settings } from '../../../models';
 
-// Helper function to populate bookings with Clerk customer data
-// Uses optimized batch fetching with caching
 async function populateBookingsWithClerkCustomers(bookings: IBooking[]) {
-  // Get unique customer IDs to avoid duplicate API calls
   const customerIds = bookings.map(booking => booking.customer);
   const uniqueCustomerIds = Array.from(new Set(customerIds)) as string[];
 
@@ -179,7 +178,7 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Error fetching bookings:', error);
+    logger.error('Failed to fetch bookings', error);
     return NextResponse.json(
       {
         success: false,
@@ -302,6 +301,12 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     // Handle validation errors
     if (isMongooseValidationError(error)) {
+      logger.warn(
+        'Mongoose validation fired after Zod passed — possible schema drift',
+        {
+          validationErrors: Object.keys(error.errors),
+        }
+      );
       return NextResponse.json(
         {
           success: false,
@@ -324,7 +329,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('Error creating booking:', error);
+    logger.error('Failed to create booking', error);
     return NextResponse.json(
       {
         success: false,
@@ -362,10 +367,26 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Validate status transitions
+    if (updateData.status && updateData.status !== existingBooking.status) {
+      const allowed = VALID_TRANSITIONS[existingBooking.status] ?? [];
+      if (!allowed.includes(updateData.status)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Cannot transition from '${existingBooking.status}' to '${updateData.status}'`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Auto-timestamp with guards to prevent overwriting existing values
     if (updateData.status === 'cancelled') {
-      if (!existingBooking.cancelledAt) {
-        updateData.cancelledAt = updateData.cancelledAt ?? new Date();
+      if (updateData.cancelledAt) {
+        // Honor explicit value from client
+      } else if (!existingBooking.cancelledAt) {
+        updateData.cancelledAt = new Date();
       }
       updateData.refundStatus = updateData.refundStatus ?? 'none';
     }
@@ -387,16 +408,57 @@ export async function PUT(request: NextRequest) {
       updateData.refundedAt = updateData.refundedAt ?? new Date();
     }
 
-    // Strip refund/cancellation fields from non-cancelled bookings
+    // Reject cancellation/refund fields on non-cancelled bookings
     if (
       updateData.status !== 'cancelled' &&
       existingBooking.status !== 'cancelled'
     ) {
-      delete updateData.refundStatus;
-      delete updateData.refundAmount;
-      delete updateData.refundedAt;
-      delete updateData.cancellationReason;
-      delete updateData.cancelledAt;
+      const cancellationFields = [
+        'refundStatus',
+        'refundAmount',
+        'refundedAt',
+        'cancellationReason',
+        'cancelledAt',
+      ].filter(f => (updateData as Record<string, unknown>)[f] !== undefined);
+      if (cancellationFields.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Cannot set ${cancellationFields.join(', ')} on a booking with status '${existingBooking.status}'. The booking must be cancelled first.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate refundAmount does not exceed totalPrice
+    if (
+      updateData.refundAmount !== undefined &&
+      updateData.refundAmount > existingBooking.totalPrice
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Refund amount (${updateData.refundAmount}) cannot exceed total price (${existingBooking.totalPrice})`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate refundAmount requires a compatible refundStatus
+    if (updateData.refundAmount !== undefined && updateData.refundAmount > 0) {
+      const effectiveRefundStatus =
+        updateData.refundStatus ?? existingBooking.refundStatus ?? 'none';
+      if (effectiveRefundStatus === 'none') {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              'refundStatus must be "partial" or "full" when setting a non-zero refundAmount',
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate booking rules only when booking-rule inputs are changed.
@@ -555,6 +617,12 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error: unknown) {
     if (isMongooseValidationError(error)) {
+      logger.warn(
+        'Mongoose validation fired after Zod passed — possible schema drift (PUT)',
+        {
+          validationErrors: Object.keys(error.errors),
+        }
+      );
       return NextResponse.json(
         {
           success: false,
@@ -576,7 +644,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    console.error('Error updating booking:', error);
+    logger.error('Failed to update booking', error);
     return NextResponse.json(
       {
         success: false,
@@ -629,7 +697,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Booking deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting booking:', error);
+    logger.error('Failed to delete booking', error);
     return NextResponse.json(
       {
         success: false,

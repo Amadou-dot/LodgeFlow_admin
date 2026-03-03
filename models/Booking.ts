@@ -3,6 +3,7 @@ import {
   PAYMENT_METHODS,
   REFUND_STATUSES,
 } from '@/lib/config';
+import { differenceInCalendarDays } from 'date-fns';
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IBooking extends Document {
@@ -157,7 +158,7 @@ const BookingSchema: Schema = new Schema(
     depositAmount: {
       type: Number,
       default: 0,
-      min: [0, 'Deposit amount must be positive'],
+      min: [0, 'Deposit amount cannot be negative'],
     },
     stripePaymentIntentId: {
       type: String,
@@ -182,7 +183,7 @@ const BookingSchema: Schema = new Schema(
     },
     refundAmount: {
       type: Number,
-      min: [0, 'Refund amount must be positive'],
+      min: [0, 'Refund amount cannot be negative'],
     },
     refundedAt: {
       type: Date,
@@ -193,7 +194,7 @@ const BookingSchema: Schema = new Schema(
     remainingAmount: {
       type: Number,
       default: 0,
-      min: [0, 'Remaining amount must be positive'],
+      min: [0, 'Remaining amount cannot be negative'],
     },
     checkInTime: {
       type: Date,
@@ -220,13 +221,27 @@ BookingSchema.index({ checkInDate: 1, checkOutDate: 1 });
 
 // Pre-save middleware to calculate numNights and remainingAmount
 BookingSchema.pre('save', function (this: IBooking, next) {
-  if (this.checkInDate && this.checkOutDate) {
-    const timeDiff = this.checkOutDate.getTime() - this.checkInDate.getTime();
-    this.numNights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+  if (
+    this.isNew ||
+    this.isModified('checkInDate') ||
+    this.isModified('checkOutDate')
+  ) {
+    if (this.checkInDate && this.checkOutDate) {
+      this.numNights = differenceInCalendarDays(
+        this.checkOutDate,
+        this.checkInDate
+      );
+    }
   }
 
-  // Calculate remaining amount (clamped to 0 for overpayment scenarios)
-  this.remainingAmount = Math.max(0, this.totalPrice - this.depositAmount);
+  if (
+    this.isNew ||
+    this.isModified('totalPrice') ||
+    this.isModified('depositAmount')
+  ) {
+    // Calculate remaining amount (clamped to 0 for overpayment scenarios)
+    this.remainingAmount = Math.max(0, this.totalPrice - this.depositAmount);
+  }
 
   next();
 });

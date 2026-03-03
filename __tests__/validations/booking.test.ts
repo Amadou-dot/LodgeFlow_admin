@@ -87,7 +87,6 @@ describe('Booking Validation Schemas', () => {
         expect(result.data.depositPaid).toBe(false);
         expect(result.data.depositAmount).toBe(0);
         expect(result.data.extrasPrice).toBe(0);
-        expect(result.data.refundStatus).toBe('none');
         expect(result.data.specialRequests).toEqual([]);
       }
     });

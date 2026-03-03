@@ -129,7 +129,34 @@ describe('PATCH /api/bookings/[id]', () => {
       expect(body.data.isPaid).toBe(false);
     });
 
-    it('does not allow client-supplied paidAt to override recordPayment paidAt', async () => {
+    it('truncates observations to 1000 characters when payment notes are appended', async () => {
+      const cabin = await createTestCabin();
+      const longObservations = 'X'.repeat(980);
+      const paymentNotes = 'Extra payment details for the guest stay';
+      // Combined would be: 980 + '\n\nPayment recorded: ' + notes > 1000
+      const booking = await createTestBooking(cabin._id, {
+        totalPrice: 1000,
+        observations: longObservations,
+      });
+
+      const response = await callPatch(booking._id.toString(), {
+        recordPayment: {
+          paymentMethod: 'card',
+          amountPaid: 100,
+          notes: paymentNotes,
+        },
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      // The combined string exceeds 1000 chars; .slice(0, 1000) enforces the cap
+      expect(body.data.observations.length).toBeLessThanOrEqual(1000);
+      expect(body.data.observations.length).toBeGreaterThan(
+        longObservations.length
+      );
+    });
+
+    it('rejects requests with both recordPayment and paidAt', async () => {
       const cabin = await createTestCabin();
       const booking = await createTestBooking(cabin._id, { totalPrice: 100 });
       const backdatedDate = '2020-01-01T00:00:00.000Z';
@@ -138,11 +165,10 @@ describe('PATCH /api/bookings/[id]', () => {
         recordPayment: { paymentMethod: 'card', amountPaid: 100 },
         paidAt: backdatedDate,
       });
-      const body = await response.json();
 
-      expect(body.data.isPaid).toBe(true);
-      // paidAt should be the auto-generated timestamp, not the backdated one
-      expect(new Date(body.data.paidAt).getFullYear()).not.toBe(2020);
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body.success).toBe(false);
     });
   });
 
@@ -221,7 +247,7 @@ describe('PATCH /api/bookings/[id]', () => {
       expect(body.data.cancellationReason).toBe('Guest changed plans');
     });
 
-    it('ignores cancellationReason on non-cancelled bookings', async () => {
+    it('rejects cancellationReason on non-cancelled bookings', async () => {
       const cabin = await createTestCabin();
       const booking = await createTestBooking(cabin._id, {
         status: 'confirmed',
@@ -230,9 +256,12 @@ describe('PATCH /api/bookings/[id]', () => {
       const response = await callPatch(booking._id.toString(), {
         cancellationReason: 'Should not be set',
       });
-      const body = await response.json();
 
-      expect(body.data.cancellationReason).toBeUndefined();
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body.success).toBe(false);
+      expect(body.error).toContain('cancellationReason');
+      expect(body.error).toContain('confirmed');
     });
 
     it('allows refundStatus updates on cancelled bookings', async () => {
@@ -383,7 +412,7 @@ describe('PATCH /api/bookings/[id]', () => {
   });
 
   describe('refund metadata guard', () => {
-    it('ignores refundAmount on non-cancelled bookings', async () => {
+    it('rejects refundAmount on non-cancelled bookings', async () => {
       const cabin = await createTestCabin();
       const booking = await createTestBooking(cabin._id, {
         status: 'confirmed',
@@ -392,13 +421,14 @@ describe('PATCH /api/bookings/[id]', () => {
       const response = await callPatch(booking._id.toString(), {
         refundAmount: 500,
       });
-      const body = await response.json();
 
-      expect(response.status).toBe(200);
-      expect(body.data.refundAmount).toBeUndefined();
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body.success).toBe(false);
+      expect(body.error).toContain('refundAmount');
     });
 
-    it('ignores refundedAt on non-cancelled bookings', async () => {
+    it('rejects refundedAt on non-cancelled bookings', async () => {
       const cabin = await createTestCabin();
       const booking = await createTestBooking(cabin._id, {
         status: 'confirmed',
@@ -407,10 +437,11 @@ describe('PATCH /api/bookings/[id]', () => {
       const response = await callPatch(booking._id.toString(), {
         refundedAt: '2027-01-01T00:00:00.000Z',
       });
-      const body = await response.json();
 
-      expect(response.status).toBe(200);
-      expect(body.data.refundedAt).toBeUndefined();
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body.success).toBe(false);
+      expect(body.error).toContain('refundedAt');
     });
 
     it('allows refundAmount on cancelled bookings', async () => {
@@ -421,11 +452,33 @@ describe('PATCH /api/bookings/[id]', () => {
 
       const response = await callPatch(booking._id.toString(), {
         refundAmount: 300,
+        refundStatus: 'full',
       });
       const body = await response.json();
 
       expect(response.status).toBe(200);
       expect(body.data.refundAmount).toBe(300);
+    });
+
+    it('rejects refundAmount exceeding totalPrice', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        totalPrice: 600,
+      });
+
+      // Cancel the booking first
+      await callPatch(booking._id.toString(), { status: 'cancelled' });
+
+      // Attempt refund exceeding totalPrice
+      const response = await callPatch(booking._id.toString(), {
+        refundAmount: 999,
+        refundStatus: 'full',
+      });
+
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body.success).toBe(false);
+      expect(body.error).toContain('cannot exceed total price');
     });
 
     it('allows refundedAt on cancelled bookings', async () => {

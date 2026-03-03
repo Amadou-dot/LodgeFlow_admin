@@ -68,6 +68,21 @@ export const PAYMENT_METHODS = [
   'online',
 ] as const;
 
+export type BookingStatus = (typeof BOOKING_STATUSES)[number];
+export type RefundStatus = (typeof REFUND_STATUSES)[number];
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+export const VALID_TRANSITIONS: Record<
+  BookingStatus,
+  readonly BookingStatus[]
+> = {
+  unconfirmed: ['confirmed', 'cancelled'],
+  confirmed: ['checked-in', 'cancelled'],
+  'checked-in': ['checked-out', 'cancelled'],
+  'checked-out': [],
+  cancelled: [],
+} as const;
+
 /**
  * Loyalty Tier Thresholds
  */

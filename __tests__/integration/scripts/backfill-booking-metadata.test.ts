@@ -27,10 +27,12 @@ async function createTestCabin() {
 
 /**
  * Replicate the backfill script's core logic.
- * This mirrors scripts/backfill-booking-metadata.ts lines 51-98.
+ * This mirrors the core logic inside backfillBookingMetadata() in
+ * scripts/backfill-booking-metadata.ts (from the Booking.find() call
+ * through operations construction).
  *
- * Uses .lean() to bypass Mongoose default hydration — the real script
- * reads raw documents where missing fields are truly undefined, not
+ * Both this helper and the real script use .lean() to bypass Mongoose
+ * default hydration, so missing fields are truly undefined rather than
  * filled in by schema defaults.
  */
 async function runBackfillLogic() {

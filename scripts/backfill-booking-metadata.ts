@@ -26,6 +26,7 @@
  */
 import { config } from 'dotenv';
 import { resolve } from 'path';
+import mongoose from 'mongoose';
 import connectDB from '../lib/mongodb';
 import { Booking } from '../models';
 
@@ -48,10 +49,12 @@ async function backfillBookingMetadata() {
     console.log('🔄 Starting Booking metadata backfill...');
     await connectDB();
 
+    // Note: loads all bookings into memory. For collections exceeding ~100k documents,
+    // consider cursor-based iteration.
     const bookings = await Booking.find(
       {},
       '_id totalPrice depositAmount remainingAmount status cancelledAt updatedAt refundStatus isPaid'
-    );
+    ).lean();
 
     let initializedRefundStatus = 0;
     let normalizedRemainingAmount = 0;
@@ -111,12 +114,12 @@ async function backfillBookingMetadata() {
       console.log(
         '\n✅ No updates needed. Booking metadata is already aligned.'
       );
-      process.exit(0);
+      return;
     }
 
     if (isDryRun) {
       console.log('\n🔍 DRY RUN complete. No changes were written.');
-      process.exit(0);
+      return;
     }
 
     const result = await Booking.bulkWrite(operations, { ordered: false });
@@ -137,11 +140,17 @@ async function backfillBookingMetadata() {
       }
     }
 
-    process.exit(0);
+    if (result.modifiedCount < operations.length) {
+      console.warn(
+        `WARNING: Expected ${operations.length} modifications but only ${result.modifiedCount} succeeded`
+      );
+    }
   } catch (error) {
     console.error('❌ Booking metadata backfill failed:', error);
     process.exit(1);
+  } finally {
+    await mongoose.disconnect();
   }
 }
 
-backfillBookingMetadata();
+backfillBookingMetadata().then(() => process.exit(0));

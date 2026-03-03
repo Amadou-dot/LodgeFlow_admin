@@ -232,9 +232,6 @@ Creates a new booking. Validates for date conflicts with existing bookings.
 | `stripePaymentIntentId` | string | No | Stripe payment intent ID (must start with `pi_`) |
 | `stripeSessionId` | string | No | Stripe session ID (must start with `cs_`) |
 | `paidAt` | string (ISO) | No | Payment timestamp |
-| `cancellationReason` | string | No | Reason for cancellation (max 500 chars) |
-| `refundStatus` | string | No | Default: `none`. Values: `none`, `pending`, `processing`, `partial`, `full`, `failed` |
-| `refundAmount` | number | No | Refund amount (>= 0) |
 | `paymentConfirmationSentAt` | string (ISO) | No | When payment confirmation email was sent |
 | `specialRequests` | string[] | No | Default: `[]`. List of special requests |
 | `extras` | object | No | Optional add-ons |
@@ -411,7 +408,7 @@ Performs special operations on a booking (payment recording, status changes).
 | `status` | string | Booking status (validated transitions only) |
 | `recordPayment` | object | Payment recording (see above) |
 | `cancellationReason` | string | Reason for cancellation (max 500 chars, cancelled bookings only) |
-| `cancelledAt` | string (ISO) | Cancellation timestamp (cancelled bookings only) |
+| `cancelledAt` | string (ISO) | Cancellation timestamp (cancelled bookings only). Auto-set to current time when status transitions to cancelled. Can be overridden in the same request or updated later on already-cancelled bookings. |
 | `refundStatus` | string | Refund status (cancelled bookings only) |
 | `refundAmount` | number | Refund amount (cancelled bookings only) |
 | `refundedAt` | string (ISO) | Refund timestamp (cancelled bookings only) |

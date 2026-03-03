@@ -105,10 +105,16 @@ export default function BookingPDFTemplate({
   id = 'booking-pdf-template',
 }: BookingPDFTemplateProps) {
   const formatDate = (date: string | Date) => {
-    return format(new Date(date), 'EEEE, MMMM dd, yyyy');
+    const parsed = new Date(date);
+    return isNaN(parsed.getTime())
+      ? 'Invalid date'
+      : format(parsed, 'EEEE, MMMM dd, yyyy');
   };
   const formatDateTime = (date: string | Date) => {
-    return format(new Date(date), 'MMM dd, yyyy h:mm a');
+    const parsed = new Date(date);
+    return isNaN(parsed.getTime())
+      ? 'Invalid date'
+      : format(parsed, 'MMM dd, yyyy h:mm a');
   };
 
   const formatPrice = (price: number) => formatCurrency(price);
@@ -238,14 +244,17 @@ export default function BookingPDFTemplate({
         <div style={printStyles.row}>
           <span style={printStyles.label}>Name:</span>
           <span style={printStyles.value}>
-            {booking.customer.first_name} {booking.customer.last_name}
+            {booking.customer?.first_name ?? ''}{' '}
+            {booking.customer?.last_name ?? 'Unknown Guest'}
           </span>
         </div>
         <div style={printStyles.row}>
           <span style={printStyles.label}>Email:</span>
-          <span style={printStyles.value}>{booking.customer.email}</span>
+          <span style={printStyles.value}>
+            {booking.customer?.email ?? 'N/A'}
+          </span>
         </div>
-        {booking.customer.phone && (
+        {booking.customer?.phone && (
           <div style={printStyles.row}>
             <span style={printStyles.label}>Phone:</span>
             <span style={printStyles.value}>{booking.customer.phone}</span>

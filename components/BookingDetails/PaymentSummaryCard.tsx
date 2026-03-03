@@ -60,7 +60,7 @@ export default function PaymentSummaryCard({
         <div className='space-y-2 text-sm'>
           <div className='flex justify-between'>
             <span>Cabin ({numNights} nights)</span>
-            <span>{formatCurrency(cabinPrice * numNights)}</span>
+            <span>{formatCurrency(cabinPrice)}</span>
           </div>
           {extrasPrice > 0 && (
             <div className='flex justify-between'>

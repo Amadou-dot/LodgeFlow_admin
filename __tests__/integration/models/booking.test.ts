@@ -209,7 +209,7 @@ describe('Booking Model', () => {
 
       // Check for overlap: Jun 3-7 (overlaps with Jun 1-5)
       // Use the cabin ObjectId directly from the created booking
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         created.cabin,
         new Date('2027-06-03'),
         new Date('2027-06-07')
@@ -231,7 +231,7 @@ describe('Booking Model', () => {
       );
 
       // Check for overlap: Jun 10-15 (no overlap)
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         cabin._id,
         new Date('2027-06-10'),
         new Date('2027-06-15')
@@ -252,7 +252,7 @@ describe('Booking Model', () => {
       );
 
       // Check overlap with the same dates, excluding self
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         cabin._id,
         new Date('2027-06-01'),
         new Date('2027-06-05'),
@@ -276,7 +276,7 @@ describe('Booking Model', () => {
       );
 
       // Check overlap: Jun 3-7 (should not detect cancelled)
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         cabin._id,
         new Date('2027-06-03'),
         new Date('2027-06-07')
@@ -299,7 +299,7 @@ describe('Booking Model', () => {
       );
 
       // Check overlap for cabin2: Jun 3-7 (different cabin, no overlap)
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         cabin2._id,
         new Date('2027-06-03'),
         new Date('2027-06-07')

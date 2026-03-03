@@ -58,14 +58,9 @@ export const createBookingSchema = z
     paymentMethod: paymentMethodSchema.optional(),
     depositPaid: z.boolean().optional().default(false),
     depositAmount: z.number().min(0).optional().default(0),
-    stripePaymentIntentId: z.string().startsWith('pi_').optional(),
-    stripeSessionId: z.string().startsWith('cs_').optional(),
+    stripePaymentIntentId: z.string().startsWith('pi_').max(255).optional(),
+    stripeSessionId: z.string().startsWith('cs_').max(255).optional(),
     paidAt: z.coerce.date().optional(),
-    cancelledAt: z.coerce.date().optional(),
-    cancellationReason: z.string().max(500).optional(),
-    refundStatus: refundStatusSchema.optional().default('none'),
-    refundAmount: z.number().min(0).optional(),
-    refundedAt: z.coerce.date().optional(),
     paymentConfirmationSentAt: z.coerce.date().optional(),
     remainingAmount: z.number().min(0).optional(),
     extras: bookingExtrasSchema.optional(),
@@ -97,8 +92,8 @@ export const updateBookingSchema = z
     paymentMethod: paymentMethodSchema.optional(),
     depositPaid: z.boolean().optional(),
     depositAmount: z.number().min(0).optional(),
-    stripePaymentIntentId: z.string().startsWith('pi_').optional(),
-    stripeSessionId: z.string().startsWith('cs_').optional(),
+    stripePaymentIntentId: z.string().startsWith('pi_').max(255).optional(),
+    stripeSessionId: z.string().startsWith('cs_').max(255).optional(),
     paidAt: z.coerce.date().optional(),
     cancelledAt: z.coerce.date().optional(),
     cancellationReason: z.string().max(500).optional(),
@@ -136,19 +131,24 @@ export const recordPaymentSchema = z.object({
 /**
  * Booking PATCH request schema
  */
-export const patchBookingSchema = z.object({
-  status: bookingStatusSchema.optional(),
-  cancellationReason: z.string().max(500).optional(),
-  cancelledAt: z.coerce.date().optional(),
-  refundStatus: refundStatusSchema.optional(),
-  refundAmount: z.number().min(0).optional(),
-  refundedAt: z.coerce.date().optional(),
-  paidAt: z.coerce.date().optional(),
-  stripePaymentIntentId: z.string().startsWith('pi_').optional(),
-  stripeSessionId: z.string().startsWith('cs_').optional(),
-  paymentConfirmationSentAt: z.coerce.date().optional(),
-  recordPayment: recordPaymentSchema.optional(),
-});
+export const patchBookingSchema = z
+  .object({
+    status: bookingStatusSchema.optional(),
+    cancellationReason: z.string().max(500).optional(),
+    cancelledAt: z.coerce.date().optional(),
+    refundStatus: refundStatusSchema.optional(),
+    refundAmount: z.number().min(0).optional(),
+    refundedAt: z.coerce.date().optional(),
+    paidAt: z.coerce.date().optional(),
+    stripePaymentIntentId: z.string().startsWith('pi_').max(255).optional(),
+    stripeSessionId: z.string().startsWith('cs_').max(255).optional(),
+    paymentConfirmationSentAt: z.coerce.date().optional(),
+    recordPayment: recordPaymentSchema.optional(),
+  })
+  .refine(data => !(data.recordPayment && data.paidAt), {
+    message: 'Cannot specify both recordPayment and paidAt',
+    path: ['paidAt'],
+  });
 
 export type CreateBookingInput = z.input<typeof createBookingSchema>;
 export type UpdateBookingInput = z.input<typeof updateBookingSchema>;

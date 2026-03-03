@@ -427,7 +427,7 @@ describe('Bookings API Routes', () => {
       expect(body.data.refundedAt).toBeDefined();
     });
 
-    it('strips refund fields from non-cancelled bookings', async () => {
+    it('rejects refund fields on non-cancelled bookings', async () => {
       const cabin = await createTestCabin();
       const booking = await createTestBooking(cabin._id, {
         status: 'confirmed',
@@ -446,10 +446,9 @@ describe('Bookings API Routes', () => {
       const response = await PUT(request);
       const body = await response.json();
 
-      expect(response.status).toBe(200);
-      // Refund fields should have been stripped
-      expect(body.data.refundStatus).toBe('none');
-      expect(body.data.refundAmount).toBeUndefined();
+      expect(response.status).toBe(400);
+      expect(body.success).toBe(false);
+      expect(body.error).toContain('refundStatus');
     });
 
     it('recalculates numNights when dates change', async () => {
