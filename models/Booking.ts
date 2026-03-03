@@ -1,3 +1,8 @@
+import {
+  BOOKING_STATUSES,
+  PAYMENT_METHODS,
+  REFUND_STATUSES,
+} from '@/lib/config';
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IBooking extends Document {
@@ -7,17 +12,12 @@ export interface IBooking extends Document {
   checkOutDate: Date;
   numNights: number;
   numGuests: number;
-  status:
-    | 'unconfirmed'
-    | 'confirmed'
-    | 'checked-in'
-    | 'checked-out'
-    | 'cancelled';
+  status: (typeof BOOKING_STATUSES)[number];
   cabinPrice: number;
   extrasPrice: number;
   totalPrice: number;
   isPaid: boolean;
-  paymentMethod?: 'cash' | 'card' | 'bank-transfer' | 'online';
+  paymentMethod?: (typeof PAYMENT_METHODS)[number];
   extras: {
     hasBreakfast: boolean;
     breakfastPrice: number;
@@ -39,21 +39,15 @@ export interface IBooking extends Document {
   paidAt?: Date;
   cancelledAt?: Date;
   cancellationReason?: string;
-  refundStatus:
-    | 'none'
-    | 'pending'
-    | 'processing'
-    | 'partial'
-    | 'full'
-    | 'failed';
+  refundStatus: (typeof REFUND_STATUSES)[number];
   refundAmount?: number;
   refundedAt?: Date;
   paymentConfirmationSentAt?: Date;
   remainingAmount: number;
   checkInTime?: Date;
   checkOutTime?: Date;
-  durationText?: string;
-  paymentStatus?: 'paid' | 'partial' | 'unpaid';
+  readonly durationText?: string;
+  readonly paymentStatus?: 'paid' | 'partial' | 'unpaid';
   createdAt: Date;
   updatedAt: Date;
   overlaps(otherCheckIn: Date, otherCheckOut: Date): boolean;
@@ -106,13 +100,7 @@ const BookingSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: [
-        'unconfirmed',
-        'confirmed',
-        'checked-in',
-        'checked-out',
-        'cancelled',
-      ],
+      enum: [...BOOKING_STATUSES],
       default: 'unconfirmed',
     },
     cabinPrice: {
@@ -136,7 +124,7 @@ const BookingSchema: Schema = new Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['cash', 'card', 'bank-transfer', 'online'],
+      enum: [...PAYMENT_METHODS],
       default: 'online',
     },
     extras: {
@@ -189,7 +177,7 @@ const BookingSchema: Schema = new Schema(
     },
     refundStatus: {
       type: String,
-      enum: ['none', 'pending', 'processing', 'partial', 'full', 'failed'],
+      enum: [...REFUND_STATUSES],
       default: 'none',
     },
     refundAmount: {
@@ -230,7 +218,7 @@ BookingSchema.index({ isPaid: 1 });
 // Compound index for date range queries
 BookingSchema.index({ checkInDate: 1, checkOutDate: 1 });
 
-// Pre-save middleware to calculate numNights
+// Pre-save middleware to calculate numNights and remainingAmount
 BookingSchema.pre('save', function (this: IBooking, next) {
   if (this.checkInDate && this.checkOutDate) {
     const timeDiff = this.checkOutDate.getTime() - this.checkInDate.getTime();

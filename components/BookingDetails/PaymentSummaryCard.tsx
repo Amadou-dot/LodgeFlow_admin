@@ -38,8 +38,11 @@ export default function PaymentSummaryCard({
   refundAmount,
   refundedAt,
 }: PaymentSummaryCardProps) {
-  const formatDateTime = (dateValue: string) =>
-    format(new Date(dateValue), 'MMM dd, yyyy h:mm a');
+  const formatDateTime = (dateValue: string) => {
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    return format(date, 'MMM dd, yyyy h:mm a');
+  };
 
   const hasPaymentMetadata =
     paidAt ||

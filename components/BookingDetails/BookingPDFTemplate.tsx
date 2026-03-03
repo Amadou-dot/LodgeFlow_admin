@@ -1,4 +1,5 @@
 import type { PopulatedBooking } from '@/types';
+import { getStatusLabel } from '@/utils/bookingUtils';
 import { formatCurrency } from '@/utils/utilityFunctions';
 import { format } from 'date-fns';
 
@@ -112,7 +113,7 @@ export default function BookingPDFTemplate({
 
   const formatPrice = (price: number) => formatCurrency(price);
 
-  const getStatusColor = (status: string) => {
+  const getStatusHexColor = (status: string) => {
     switch (status) {
       case 'confirmed':
         return { backgroundColor: '#10b981', color: '#ffffff' };
@@ -124,23 +125,6 @@ export default function BookingPDFTemplate({
         return { backgroundColor: '#ef4444', color: '#ffffff' };
       default:
         return { backgroundColor: '#f59e0b', color: '#ffffff' };
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'unconfirmed':
-        return 'Unconfirmed';
-      case 'confirmed':
-        return 'Confirmed';
-      case 'checked-in':
-        return 'Checked In';
-      case 'checked-out':
-        return 'Checked Out';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return status;
     }
   };
 
@@ -192,7 +176,7 @@ export default function BookingPDFTemplate({
           <span
             style={{
               ...printStyles.status,
-              ...getStatusColor(booking.status),
+              ...getStatusHexColor(booking.status),
             }}
           >
             {getStatusLabel(booking.status)}

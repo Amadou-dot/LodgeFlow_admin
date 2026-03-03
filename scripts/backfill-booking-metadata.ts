@@ -31,6 +31,13 @@ import { Booking } from '../models';
 
 config({ path: resolve(process.cwd(), '.env.local') });
 
+if (!process.env.MONGODB_URI) {
+  console.error(
+    'MONGODB_URI is not set. Ensure .env.local exists and contains MONGODB_URI.'
+  );
+  process.exit(1);
+}
+
 const isDryRun = process.argv.includes('--dry-run');
 
 async function backfillBookingMetadata() {
@@ -122,9 +129,7 @@ async function backfillBookingMetadata() {
     if ('writeErrors' in result) {
       const writeErrors = result.writeErrors as unknown[];
       if (writeErrors.length > 0) {
-        console.error(
-          `\n❌ ${writeErrors.length} write error(s) encountered:`
-        );
+        console.error(`\n❌ ${writeErrors.length} write error(s) encountered:`);
         for (const err of writeErrors) {
           console.error(`   ${JSON.stringify(err)}`);
         }

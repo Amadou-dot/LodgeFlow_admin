@@ -299,6 +299,168 @@ describe('PATCH /api/bookings/[id]', () => {
     });
   });
 
+  describe('status transition validation', () => {
+    it('rejects invalid transition from unconfirmed to checked-in', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'unconfirmed',
+      });
+
+      const response = await callPatch(booking._id.toString(), {
+        status: 'checked-in',
+      });
+
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body.error).toContain(
+        "Cannot transition from 'unconfirmed' to 'checked-in'"
+      );
+    });
+
+    it('rejects transition from checked-out (terminal state)', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'checked-out',
+      });
+
+      const response = await callPatch(booking._id.toString(), {
+        status: 'confirmed',
+      });
+
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body.error).toContain(
+        "Cannot transition from 'checked-out' to 'confirmed'"
+      );
+    });
+
+    it('rejects transition from cancelled (terminal state)', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'cancelled',
+      });
+
+      const response = await callPatch(booking._id.toString(), {
+        status: 'confirmed',
+      });
+
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body.error).toContain(
+        "Cannot transition from 'cancelled' to 'confirmed'"
+      );
+    });
+
+    it('allows valid transition from confirmed to checked-in', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'confirmed',
+      });
+
+      const response = await callPatch(booking._id.toString(), {
+        status: 'checked-in',
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.status).toBe('checked-in');
+    });
+
+    it('allows cancellation from any non-terminal state', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'checked-in',
+      });
+
+      const response = await callPatch(booking._id.toString(), {
+        status: 'cancelled',
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.status).toBe('cancelled');
+    });
+  });
+
+  describe('refund metadata guard', () => {
+    it('ignores refundAmount on non-cancelled bookings', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'confirmed',
+      });
+
+      const response = await callPatch(booking._id.toString(), {
+        refundAmount: 500,
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.refundAmount).toBeUndefined();
+    });
+
+    it('ignores refundedAt on non-cancelled bookings', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'confirmed',
+      });
+
+      const response = await callPatch(booking._id.toString(), {
+        refundedAt: '2027-01-01T00:00:00.000Z',
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.refundedAt).toBeUndefined();
+    });
+
+    it('allows refundAmount on cancelled bookings', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'cancelled',
+      });
+
+      const response = await callPatch(booking._id.toString(), {
+        refundAmount: 300,
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.refundAmount).toBe(300);
+    });
+
+    it('allows refundedAt on cancelled bookings', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'cancelled',
+      });
+      const refundDate = '2027-06-15T14:00:00.000Z';
+
+      const response = await callPatch(booking._id.toString(), {
+        refundedAt: refundDate,
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(new Date(body.data.refundedAt).toISOString()).toBe(refundDate);
+    });
+
+    it('allows setting refundStatus with status=cancelled on already-cancelled booking', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'cancelled',
+        refundStatus: 'none',
+      });
+
+      const response = await callPatch(booking._id.toString(), {
+        refundStatus: 'full',
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.refundStatus).toBe('full');
+    });
+  });
+
   describe('payment metadata', () => {
     it('sets stripe fields via PATCH', async () => {
       const cabin = await createTestCabin();
@@ -312,6 +474,22 @@ describe('PATCH /api/bookings/[id]', () => {
 
       expect(body.data.stripePaymentIntentId).toBe('pi_test_abc123');
       expect(body.data.stripeSessionId).toBe('cs_test_xyz789');
+    });
+
+    it('sets paymentConfirmationSentAt via PATCH', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id);
+      const sentDate = '2027-06-01T10:05:00.000Z';
+
+      const response = await callPatch(booking._id.toString(), {
+        paymentConfirmationSentAt: sentDate,
+      });
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(new Date(body.data.paymentConfirmationSentAt).toISOString()).toBe(
+        sentDate
+      );
     });
 
     it('sets paidAt directly when no recordPayment', async () => {

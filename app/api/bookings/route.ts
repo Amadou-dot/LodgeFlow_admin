@@ -3,6 +3,7 @@ import {
   escapeRegex,
   requireApiAuth,
 } from '@/lib/api-utils';
+import { differenceInCalendarDays } from 'date-fns';
 import mongoose from 'mongoose';
 import { getClerkUsersBatch } from '@/lib/clerk-users';
 import connectDB from '@/lib/mongodb';
@@ -352,31 +353,50 @@ export async function PUT(request: NextRequest) {
 
     const { _id, ...updateData } = validationResult.data;
 
-    if (updateData.status === 'cancelled') {
-      updateData.cancelledAt = updateData.cancelledAt ?? new Date();
-      updateData.refundStatus = updateData.refundStatus ?? 'none';
-    }
-
-    if (updateData.isPaid && !updateData.paidAt) {
-      updateData.paidAt = new Date();
-    }
-
-    if (
-      (updateData.refundStatus === 'partial' ||
-        updateData.refundStatus === 'full') &&
-      updateData.refundAmount !== undefined &&
-      !updateData.refundedAt
-    ) {
-      updateData.refundedAt = new Date();
-    }
-
-    // Fetch the existing booking to compare fields
+    // Fetch the existing booking first so auto-timestamping can check prior state
     const existingBooking = await Booking.findById(_id);
     if (!existingBooking) {
       return NextResponse.json(
         { success: false, error: 'Booking not found' },
         { status: 404 }
       );
+    }
+
+    // Auto-timestamp with guards to prevent overwriting existing values
+    if (updateData.status === 'cancelled') {
+      if (!existingBooking.cancelledAt) {
+        updateData.cancelledAt = updateData.cancelledAt ?? new Date();
+      }
+      updateData.refundStatus = updateData.refundStatus ?? 'none';
+    }
+
+    if (
+      updateData.isPaid &&
+      !existingBooking.paidAt &&
+      !existingBooking.isPaid
+    ) {
+      updateData.paidAt = updateData.paidAt ?? new Date();
+    }
+
+    if (
+      (updateData.refundStatus === 'partial' ||
+        updateData.refundStatus === 'full') &&
+      updateData.refundAmount !== undefined &&
+      !existingBooking.refundedAt
+    ) {
+      updateData.refundedAt = updateData.refundedAt ?? new Date();
+    }
+
+    // Strip refund/cancellation fields from non-cancelled bookings
+    if (
+      updateData.status !== 'cancelled' &&
+      existingBooking.status !== 'cancelled'
+    ) {
+      delete updateData.refundStatus;
+      delete updateData.refundAmount;
+      delete updateData.refundedAt;
+      delete updateData.cancellationReason;
+      delete updateData.cancelledAt;
     }
 
     // Validate booking rules only when booking-rule inputs are changed.
@@ -488,10 +508,26 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Note: runValidators omitted because Zod's updateBookingSchema already
-    // validates all fields including date order. Mongoose's checkOutDate
-    // validator breaks with findByIdAndUpdate (this context is the Query, not
-    // the document, so this.checkInDate is undefined).
+    // Manually recalculate fields that pre-save hooks would normally handle,
+    // since findByIdAndUpdate bypasses Mongoose pre-save middleware.
+    const effectiveCheckIn =
+      updateData.checkInDate || existingBooking.checkInDate;
+    const effectiveCheckOut =
+      updateData.checkOutDate || existingBooking.checkOutDate;
+    updateData.numNights = differenceInCalendarDays(
+      new Date(effectiveCheckOut),
+      new Date(effectiveCheckIn)
+    );
+
+    const effectiveTotalPrice =
+      updateData.totalPrice ?? existingBooking.totalPrice;
+    const effectiveDepositAmount =
+      updateData.depositAmount ?? existingBooking.depositAmount;
+    updateData.remainingAmount = Math.max(
+      0,
+      effectiveTotalPrice - effectiveDepositAmount
+    );
+
     const booking = await Booking.findByIdAndUpdate(_id, updateData, {
       new: true,
     }).populate('cabin', 'name image capacity price discount');

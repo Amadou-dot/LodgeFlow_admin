@@ -319,7 +319,12 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
       extrasPrice: priceBreakdown.extrasPrice,
       totalPrice: priceBreakdown.totalPrice,
       isPaid: formData.isPaid,
-      paymentMethod: formData.paymentMethod || undefined,
+      paymentMethod:
+        (formData.paymentMethod as
+          | 'cash'
+          | 'card'
+          | 'bank-transfer'
+          | 'online') || undefined,
       extras: {
         hasBreakfast: formData.hasBreakfast,
         breakfastPrice: priceBreakdown.breakfastPrice,

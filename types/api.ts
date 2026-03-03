@@ -4,76 +4,14 @@ import type { ICabin } from '@/models/Cabin';
 import type { IDining } from '@/models/Dining';
 
 // ============================================================================
-// API Input Types (for mutations - accept string IDs)
+// API Input Types (re-exported from Zod validation schemas — single source of truth)
 // ============================================================================
 
-/**
- * Input type for creating a booking via API
- * Uses string IDs instead of ObjectIds since the API handles conversion
- */
-export interface CreateBookingInput {
-  cabin: string;
-  customer: string;
-  checkInDate: Date;
-  checkOutDate: Date;
-  numGuests: number;
-  numNights: number;
-  cabinPrice: number;
-  extrasPrice: number;
-  totalPrice: number;
-  status?: IBooking['status'];
-  paymentMethod?: string;
-  isPaid?: boolean;
-  depositPaid?: boolean;
-  depositAmount?: number;
-  stripePaymentIntentId?: string;
-  stripeSessionId?: string;
-  paidAt?: Date;
-  cancelledAt?: Date;
-  cancellationReason?: string;
-  refundStatus?: IBooking['refundStatus'];
-  refundAmount?: number;
-  refundedAt?: Date;
-  paymentConfirmationSentAt?: Date;
-  remainingAmount?: number;
-  extras?: IBooking['extras'];
-  observations?: string;
-  specialRequests?: string[];
-}
-
-/**
- * Input type for updating a booking via API
- */
-export interface UpdateBookingInput {
-  _id: string;
-  cabin?: string;
-  customer?: string;
-  checkInDate?: Date;
-  checkOutDate?: Date;
-  numGuests?: number;
-  numNights?: number;
-  cabinPrice?: number;
-  extrasPrice?: number;
-  totalPrice?: number;
-  status?: IBooking['status'];
-  paymentMethod?: string;
-  isPaid?: boolean;
-  depositPaid?: boolean;
-  depositAmount?: number;
-  stripePaymentIntentId?: string;
-  stripeSessionId?: string;
-  paidAt?: Date;
-  cancelledAt?: Date;
-  cancellationReason?: string;
-  refundStatus?: IBooking['refundStatus'];
-  refundAmount?: number;
-  refundedAt?: Date;
-  paymentConfirmationSentAt?: Date;
-  remainingAmount?: number;
-  extras?: IBooking['extras'];
-  observations?: string;
-  specialRequests?: string[];
-}
+export type {
+  CreateBookingInput,
+  UpdateBookingInput,
+  PatchBookingInput,
+} from '@/lib/validations/booking';
 
 // ============================================================================
 // MongoDB Query Filter Types

@@ -298,6 +298,73 @@ describe('Booking Validation Schemas', () => {
     });
   });
 
+  describe('Stripe ID validation', () => {
+    it('accepts valid stripePaymentIntentId with pi_ prefix', () => {
+      const result = createBookingSchema.safeParse({
+        cabin: '65a1b2c3d4e5f6a7b8c9d0e1',
+        customer: 'user_123abc',
+        checkInDate: '2024-02-01',
+        checkOutDate: '2024-02-05',
+        numGuests: 2,
+        stripePaymentIntentId: 'pi_3abc123def',
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects stripePaymentIntentId without pi_ prefix', () => {
+      const result = createBookingSchema.safeParse({
+        cabin: '65a1b2c3d4e5f6a7b8c9d0e1',
+        customer: 'user_123abc',
+        checkInDate: '2024-02-01',
+        checkOutDate: '2024-02-05',
+        numGuests: 2,
+        stripePaymentIntentId: 'invalid_id',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('accepts valid stripeSessionId with cs_ prefix', () => {
+      const result = createBookingSchema.safeParse({
+        cabin: '65a1b2c3d4e5f6a7b8c9d0e1',
+        customer: 'user_123abc',
+        checkInDate: '2024-02-01',
+        checkOutDate: '2024-02-05',
+        numGuests: 2,
+        stripeSessionId: 'cs_test_xyz789',
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects stripeSessionId without cs_ prefix', () => {
+      const result = createBookingSchema.safeParse({
+        cabin: '65a1b2c3d4e5f6a7b8c9d0e1',
+        customer: 'user_123abc',
+        checkInDate: '2024-02-01',
+        checkOutDate: '2024-02-05',
+        numGuests: 2,
+        stripeSessionId: 'session_invalid',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('validates Stripe IDs in patchBookingSchema too', () => {
+      expect(
+        patchBookingSchema.safeParse({ stripePaymentIntentId: 'pi_valid' })
+          .success
+      ).toBe(true);
+      expect(
+        patchBookingSchema.safeParse({ stripePaymentIntentId: 'bad_prefix' })
+          .success
+      ).toBe(false);
+      expect(
+        patchBookingSchema.safeParse({ stripeSessionId: 'cs_valid' }).success
+      ).toBe(true);
+      expect(
+        patchBookingSchema.safeParse({ stripeSessionId: 'bad_prefix' }).success
+      ).toBe(false);
+    });
+  });
+
   describe('patchBookingSchema', () => {
     it('accepts status only', () => {
       const result = patchBookingSchema.safeParse({

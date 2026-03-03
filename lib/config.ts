@@ -42,6 +42,33 @@ export const CURRENCY = {
 } as const;
 
 /**
+ * Booking Enum Values — single source of truth for TypeScript, Zod, and Mongoose
+ */
+export const BOOKING_STATUSES = [
+  'unconfirmed',
+  'confirmed',
+  'checked-in',
+  'checked-out',
+  'cancelled',
+] as const;
+
+export const REFUND_STATUSES = [
+  'none',
+  'pending',
+  'processing',
+  'partial',
+  'full',
+  'failed',
+] as const;
+
+export const PAYMENT_METHODS = [
+  'cash',
+  'card',
+  'bank-transfer',
+  'online',
+] as const;
+
+/**
  * Loyalty Tier Thresholds
  */
 export const LOYALTY_TIERS = {

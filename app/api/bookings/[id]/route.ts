@@ -4,6 +4,15 @@ import connectDB from '@/lib/mongodb';
 import { patchBookingSchema } from '@/lib/validations';
 import { Booking } from '@/models';
 import { IdParam } from '@/types';
+import { isMongooseValidationError, getErrorMessage } from '@/types/errors';
+
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  unconfirmed: ['confirmed', 'cancelled'],
+  confirmed: ['checked-in', 'cancelled'],
+  'checked-in': ['checked-out', 'cancelled'],
+  'checked-out': [],
+  cancelled: [],
+};
 
 export async function GET(_req: Request, { params }: IdParam) {
   // Require authentication
@@ -104,14 +113,26 @@ export async function PATCH(req: Request, { params }: IdParam) {
 
       // Add payment notes to observations if provided
       if (notes) {
-        booking.observations = booking.observations
+        const combined = booking.observations
           ? `${booking.observations}\n\nPayment recorded: ${notes}`
           : `Payment recorded: ${notes}`;
+        booking.observations = combined.slice(0, 1000);
       }
     }
 
-    // Handle other updates (status changes, etc.)
+    // Handle status changes with transition validation
     if (updateData.status) {
+      const allowed = VALID_TRANSITIONS[booking.status] ?? [];
+      if (!allowed.includes(updateData.status)) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `Cannot transition from '${booking.status}' to '${updateData.status}'`,
+          }),
+          { status: 400 }
+        );
+      }
+
       booking.status = updateData.status;
 
       // Set check-in/check-out times
@@ -126,7 +147,7 @@ export async function PATCH(req: Request, { params }: IdParam) {
       }
     }
 
-    // Cancellation metadata — only writable on cancelled bookings
+    // Cancellation and refund metadata — only writable on cancelled bookings
     if (booking.status === 'cancelled') {
       if (updateData.cancellationReason !== undefined) {
         booking.cancellationReason = updateData.cancellationReason;
@@ -138,14 +159,12 @@ export async function PATCH(req: Request, { params }: IdParam) {
       if (updateData.refundStatus !== undefined && !updateData.status) {
         booking.refundStatus = updateData.refundStatus;
       }
-    }
-
-    // Refund metadata
-    if (updateData.refundAmount !== undefined) {
-      booking.refundAmount = updateData.refundAmount;
-    }
-    if (updateData.refundedAt !== undefined) {
-      booking.refundedAt = updateData.refundedAt;
+      if (updateData.refundAmount !== undefined) {
+        booking.refundAmount = updateData.refundAmount;
+      }
+      if (updateData.refundedAt !== undefined) {
+        booking.refundedAt = updateData.refundedAt;
+      }
     }
 
     // Payment metadata — skip paidAt if recordPayment already set it
@@ -188,9 +207,23 @@ export async function PATCH(req: Request, { params }: IdParam) {
       { status: 200 }
     );
   } catch (error) {
+    if (isMongooseValidationError(error)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Validation failed',
+          details: error.errors,
+        }),
+        { status: 400 }
+      );
+    }
+
     console.error('Error updating booking:', error);
     return new Response(
-      JSON.stringify({ success: false, error: 'Failed to update booking' }),
+      JSON.stringify({
+        success: false,
+        error: getErrorMessage(error, 'Failed to update booking'),
+      }),
       { status: 500 }
     );
   }
