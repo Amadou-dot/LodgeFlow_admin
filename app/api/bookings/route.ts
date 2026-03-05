@@ -572,23 +572,29 @@ export async function PUT(request: NextRequest) {
 
     // Manually recalculate fields that pre-save hooks would normally handle,
     // since findByIdAndUpdate bypasses Mongoose pre-save middleware.
-    const effectiveCheckIn =
-      updateData.checkInDate || existingBooking.checkInDate;
-    const effectiveCheckOut =
-      updateData.checkOutDate || existingBooking.checkOutDate;
-    updateData.numNights = differenceInCalendarDays(
-      new Date(effectiveCheckOut),
-      new Date(effectiveCheckIn)
-    );
+    // Only recalculate when the relevant fields actually changed to avoid
+    // silent overwrites (e.g. differenceInCalendarDays vs Math.ceil across DST).
+    if (checkInChanged || checkOutChanged) {
+      const effectiveCheckIn =
+        updateData.checkInDate || existingBooking.checkInDate;
+      const effectiveCheckOut =
+        updateData.checkOutDate || existingBooking.checkOutDate;
+      updateData.numNights = differenceInCalendarDays(
+        new Date(effectiveCheckOut),
+        new Date(effectiveCheckIn)
+      );
+    }
 
-    const effectiveTotalPrice =
-      updateData.totalPrice ?? existingBooking.totalPrice;
-    const effectiveDepositAmount =
-      updateData.depositAmount ?? existingBooking.depositAmount;
-    updateData.remainingAmount = Math.max(
-      0,
-      effectiveTotalPrice - effectiveDepositAmount
-    );
+    if (updateData.totalPrice !== undefined || updateData.depositAmount !== undefined) {
+      const effectiveTotalPrice =
+        updateData.totalPrice ?? existingBooking.totalPrice;
+      const effectiveDepositAmount =
+        updateData.depositAmount ?? existingBooking.depositAmount;
+      updateData.remainingAmount = Math.max(
+        0,
+        effectiveTotalPrice - effectiveDepositAmount
+      );
+    }
 
     const booking = await Booking.findByIdAndUpdate(_id, updateData, {
       new: true,

@@ -1,5 +1,8 @@
-import { requireApiAuth } from '@/lib/api-utils';
-import { hasAuthorizedRole } from '@/lib/auth-helpers';
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  requireApiAuth,
+} from '@/lib/api-utils';
 import { getClerkUser } from '@/lib/clerk-users';
 import { VALID_TRANSITIONS } from '@/lib/config';
 import { logger } from '@/lib/logger';
@@ -8,7 +11,6 @@ import { patchBookingSchema } from '@/lib/validations';
 import { Booking } from '@/models';
 import { IdParam } from '@/types';
 import { isMongooseValidationError, getErrorMessage } from '@/types/errors';
-import { auth } from '@clerk/nextjs/server';
 
 export async function GET(_req: Request, { params }: IdParam) {
   // Require authentication
@@ -21,10 +23,7 @@ export async function GET(_req: Request, { params }: IdParam) {
     const booking = await Booking.findById(bookingId).populate('cabin');
 
     if (!booking) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Booking not found' }),
-        { status: 404 }
-      );
+      return createErrorResponse('Booking not found', 404);
     }
 
     // Get customer data from Clerk (best-effort — don't fail the request)
@@ -45,16 +44,10 @@ export async function GET(_req: Request, { params }: IdParam) {
       cabinName: (booking.cabin as unknown as { name?: string })?.name,
     };
 
-    return new Response(
-      JSON.stringify({ success: true, data: populatedBooking }),
-      { status: 200 }
-    );
+    return createSuccessResponse(populatedBooking);
   } catch (error) {
     logger.error('Failed to fetch booking', error, { bookingId });
-    return new Response(
-      JSON.stringify({ success: false, error: 'Failed to fetch booking' }),
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to fetch booking', 500);
   }
 }
 
@@ -63,37 +56,23 @@ export async function PATCH(req: Request, { params }: IdParam) {
   const authResult = await requireApiAuth();
   if (!authResult.authenticated) return authResult.error;
 
-  const { has } = await auth();
-  if (!hasAuthorizedRole(has)) {
-    return new Response(
-      JSON.stringify({ success: false, error: 'Unauthorized' }),
-      { status: 401 }
-    );
-  }
-
   const bookingId = (await params).id;
   try {
     await connectDB();
     const rawUpdateData = await req.json();
     const validationResult = patchBookingSchema.safeParse(rawUpdateData);
     if (!validationResult.success) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Validation failed',
-          details: validationResult.error.flatten(),
-        }),
-        { status: 400 }
+      return createErrorResponse(
+        'Validation failed',
+        400,
+        validationResult.error.flatten()
       );
     }
     const updateData = validationResult.data;
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Booking not found' }),
-        { status: 404 }
-      );
+      return createErrorResponse('Booking not found', 404);
     }
 
     // Handle payment recording
@@ -129,12 +108,9 @@ export async function PATCH(req: Request, { params }: IdParam) {
     if (updateData.status) {
       const allowed = VALID_TRANSITIONS[booking.status] ?? [];
       if (!allowed.includes(updateData.status)) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: `Cannot transition from '${booking.status}' to '${updateData.status}'`,
-          }),
-          { status: 400 }
+        return createErrorResponse(
+          `Cannot transition from '${booking.status}' to '${updateData.status}'`,
+          400
         );
       }
 
@@ -160,12 +136,9 @@ export async function PATCH(req: Request, { params }: IdParam) {
       'refundedAt',
     ].filter(f => (updateData as Record<string, unknown>)[f] !== undefined);
     if (cancellationFields.length > 0 && booking.status !== 'cancelled') {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: `Cannot set ${cancellationFields.join(', ')} on a booking with status '${booking.status}'. The booking must be cancelled first.`,
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      return createErrorResponse(
+        `Cannot set ${cancellationFields.join(', ')} on a booking with status '${booking.status}'. The booking must be cancelled first.`,
+        400
       );
     }
 
@@ -174,12 +147,9 @@ export async function PATCH(req: Request, { params }: IdParam) {
       updateData.refundAmount !== undefined &&
       updateData.refundAmount > booking.totalPrice
     ) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: `Refund amount (${updateData.refundAmount}) cannot exceed total price (${booking.totalPrice})`,
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      return createErrorResponse(
+        `Refund amount (${updateData.refundAmount}) cannot exceed total price (${booking.totalPrice})`,
+        400
       );
     }
 
@@ -188,13 +158,9 @@ export async function PATCH(req: Request, { params }: IdParam) {
       const effectiveRefundStatus =
         updateData.refundStatus ?? booking.refundStatus ?? 'none';
       if (effectiveRefundStatus === 'none') {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error:
-              'refundStatus must be "partial" or "full" when setting a non-zero refundAmount',
-          }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        return createErrorResponse(
+          'refundStatus must be "partial" or "full" when setting a non-zero refundAmount',
+          400
         );
       }
     }
@@ -255,10 +221,7 @@ export async function PATCH(req: Request, { params }: IdParam) {
       cabinName: (updatedBooking.cabin as unknown as { name?: string })?.name,
     };
 
-    return new Response(
-      JSON.stringify({ success: true, data: populatedBooking }),
-      { status: 200 }
-    );
+    return createSuccessResponse(populatedBooking);
   } catch (error) {
     if (isMongooseValidationError(error)) {
       logger.warn(
@@ -268,23 +231,13 @@ export async function PATCH(req: Request, { params }: IdParam) {
           validationErrors: Object.keys(error.errors),
         }
       );
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Validation failed',
-          details: error.errors,
-        }),
-        { status: 400 }
-      );
+      return createErrorResponse('Validation failed', 400, error.errors);
     }
 
     logger.error('Failed to update booking', error, { bookingId });
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: getErrorMessage(error, 'Failed to update booking'),
-      }),
-      { status: 500 }
+    return createErrorResponse(
+      getErrorMessage(error, 'Failed to update booking'),
+      500
     );
   }
 }
