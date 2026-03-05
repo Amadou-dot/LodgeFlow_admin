@@ -127,6 +127,7 @@ CabinSchema.virtual('discountedPrice').get(function (this: ICabin) {
 
 // Ensure virtual fields are serialized
 CabinSchema.set('toJSON', { virtuals: true });
+CabinSchema.set('toObject', { virtuals: true });
 
 export default mongoose.models.Cabin ||
   mongoose.model<ICabin>('Cabin', CabinSchema);
