@@ -220,7 +220,7 @@ Creates a new booking. Validates for date conflicts with existing bookings.
 | `customer` | string | Yes | Clerk user ID |
 | `checkInDate` | string (ISO) | Yes | Check-in date |
 | `checkOutDate` | string (ISO) | Yes | Check-out date |
-| `numGuests` | number | Yes | Number of guests (1-20) |
+| `numGuests` | number | Yes | Number of guests (1-50, capped by cabin capacity and settings) |
 | `status` | string | No | Default: `unconfirmed` |
 | `cabinPrice` | number | No | Price per night |
 | `extrasPrice` | number | No | Default: `0` |
@@ -229,6 +229,11 @@ Creates a new booking. Validates for date conflicts with existing bookings.
 | `paymentMethod` | string | No | `cash`, `card`, `bank-transfer`, `online` |
 | `depositPaid` | boolean | No | Default: `false` |
 | `depositAmount` | number | No | Default: `0` |
+| `stripePaymentIntentId` | string | No | Stripe payment intent ID (must start with `pi_`) |
+| `stripeSessionId` | string | No | Stripe session ID (must start with `cs_`) |
+| `paidAt` | string (ISO) | No | Payment timestamp |
+| `paymentConfirmationSentAt` | string (ISO) | No | When payment confirmation email was sent |
+| `specialRequests` | string[] | No | Default: `[]`. List of special requests |
 | `extras` | object | No | Optional add-ons |
 | `observations` | string | No | Special requests (max 1000 chars) |
 
@@ -307,7 +312,15 @@ Retrieves a single booking with populated cabin and customer data.
     "totalPrice": 1500,
     "status": "confirmed",
     "isPaid": true,
-    "paymentHistory": [ ... ]
+    "paidAt": "2024-01-10T10:00:00.000Z",
+    "stripeSessionId": "cs_test_...",
+    "stripePaymentIntentId": "pi_...",
+    "cancelledAt": null,
+    "cancellationReason": null,
+    "refundStatus": "none",
+    "refundAmount": null,
+    "refundedAt": null,
+    "paymentConfirmationSentAt": "2024-01-10T10:01:00.000Z"
   }
 }
 ```
@@ -368,21 +381,66 @@ Performs special operations on a booking (payment recording, status changes).
 }
 ```
 
+**Request Body (Cancellation with Refund):**
+```json
+{
+  "status": "cancelled",
+  "cancellationReason": "Guest requested cancellation",
+  "refundStatus": "pending",
+  "refundAmount": 500
+}
+```
+
+**Request Body (Payment Metadata):**
+```json
+{
+  "paidAt": "2024-01-10T10:00:00.000Z",
+  "stripePaymentIntentId": "pi_...",
+  "stripeSessionId": "cs_...",
+  "paymentConfirmationSentAt": "2024-01-10T10:01:00.000Z"
+}
+```
+
+**Writable PATCH Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | Booking status (validated transitions only) |
+| `recordPayment` | object | Payment recording (see above) |
+| `cancellationReason` | string | Reason for cancellation (max 500 chars, cancelled bookings only) |
+| `cancelledAt` | string (ISO) | Cancellation timestamp (cancelled bookings only). Auto-set to current time when status transitions to cancelled. Can be overridden in the same request or updated later on already-cancelled bookings. |
+| `refundStatus` | string | Refund status (cancelled bookings only) |
+| `refundAmount` | number | Refund amount (cancelled bookings only) |
+| `refundedAt` | string (ISO) | Refund timestamp (cancelled bookings only) |
+| `paidAt` | string (ISO) | Payment timestamp |
+| `stripePaymentIntentId` | string | Stripe payment intent ID (must start with `pi_`) |
+| `stripeSessionId` | string | Stripe session ID (must start with `cs_`) |
+| `paymentConfirmationSentAt` | string (ISO) | When payment confirmation was sent |
+
+**Status Transitions:**
+- `unconfirmed` → `confirmed`, `cancelled`
+- `confirmed` → `checked-in`, `cancelled`
+- `checked-in` → `checked-out`, `cancelled`
+- `checked-out` → (terminal)
+- `cancelled` → (terminal)
+
 **Response:**
 ```json
 {
   "success": true,
   "data": {
-    ...
+    "...": "...",
     "checkInTime": "2024-01-15T14:30:00.000Z",
-    "paymentHistory": [
-      {
-        "paymentMethod": "card",
-        "amountPaid": 500,
-        "paidAt": "2024-01-10T10:00:00.000Z",
-        "notes": "Deposit payment"
-      }
-    ]
+    "checkOutTime": "2024-01-18T11:05:00.000Z",
+    "paidAt": "2024-01-10T10:00:00.000Z",
+    "stripeSessionId": "cs_test_...",
+    "stripePaymentIntentId": "pi_...",
+    "cancelledAt": null,
+    "cancellationReason": null,
+    "refundStatus": "none",
+    "refundAmount": null,
+    "refundedAt": null,
+    "paymentConfirmationSentAt": "2024-01-10T10:01:00.000Z"
   }
 }
 ```
@@ -937,14 +995,15 @@ Returns all experiences.
       "description": "...",
       "duration": "4 hours",
       "price": 75,
-      "difficulty": "moderate",
+      "difficulty": "Moderate",
       "maxParticipants": 12,
       "category": "Outdoor",
       "image": "https://...",
-      "included": ["Guide", "Equipment", "Snacks"],
+      "includes": ["Guide", "Equipment", "Snacks"],
+      "available": ["Monday", "Wednesday", "Saturday"],
+      "ctaText": "Book Now",
       "requirements": ["Hiking boots", "Water bottle"],
-      "isAvailable": true,
-      "isFeatured": false
+      "isPopular": false
     }
   ]
 }
@@ -963,18 +1022,29 @@ POST /api/experiences
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `name` | string | Yes | Name (1-100 chars) |
-| `description` | string | Yes | Description (10-2000 chars) |
+| `description` | string | Yes | Description (1-2000 chars) |
 | `duration` | string | Yes | Duration text (1-50 chars) |
 | `price` | number | Yes | Price (>= 0) |
-| `difficulty` | string | Yes | `easy`, `moderate`, `challenging`, `expert` |
-| `maxParticipants` | number | Yes | Max participants (1-100) |
+| `difficulty` | string | Yes | `Easy`, `Moderate`, `Challenging` |
 | `category` | string | Yes | Category (1-50 chars) |
-| `image` | string | No | Image URL |
-| `included` | string[] | No | What's included |
+| `image` | string | Yes | Image URL (1-2048 chars) |
+| `includes` | string[] | No | What's included. Default: `[]` |
+| `available` | string[] | No | Availability schedule. Default: `[]` |
+| `ctaText` | string | Yes | Call to action text (1-100 chars) |
+| `longDescription` | string | No | Extended description (max 5000 chars) |
+| `gallery` | string[] | No | Additional image URLs |
+| `isPopular` | boolean | No | Default: `false` |
+| `maxParticipants` | number | No | Max participants (1-500) |
+| `minAge` | number | No | Minimum age (0-120) |
 | `requirements` | string[] | No | Requirements |
 | `location` | string | No | Location (max 200 chars) |
-| `isAvailable` | boolean | No | Default: `true` |
-| `isFeatured` | boolean | No | Default: `false` |
+| `highlights` | string[] | No | Highlight points |
+| `whatToBring` | string[] | No | Items to bring |
+| `cancellationPolicy` | string | No | Cancellation policy (max 500 chars) |
+| `seasonality` | string | No | Season information (max 200 chars) |
+| `tags` | string[] | No | Tags for categorization |
+| `rating` | number | No | Rating (0-5) |
+| `reviewCount` | number | No | Number of reviews. Default: `0` |
 
 ---
 
@@ -1265,11 +1335,18 @@ The API uses Zod schemas for request validation. See `lib/validations/` for sche
 - `nut-free`
 - `regular`
 
+### Refund Status Values
+- `none`
+- `pending`
+- `processing`
+- `partial`
+- `full`
+- `failed`
+
 ### Experience Difficulty
-- `easy`
-- `moderate`
-- `challenging`
-- `expert`
+- `Easy`
+- `Moderate`
+- `Challenging`
 
 ---
 

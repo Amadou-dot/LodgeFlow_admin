@@ -19,7 +19,7 @@ describe('Diagnostic', () => {
       image: 'https://example.com/img.jpg',
     });
     console.log('Cabin created:', cabin._id);
-    
+
     const count = await Cabin.countDocuments();
     console.log('Cabin count:', count);
     expect(count).toBe(1);

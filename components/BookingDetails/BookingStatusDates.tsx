@@ -3,6 +3,11 @@ import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import { format } from 'date-fns';
 
+const safeFormat = (dateValue: string, fmt: string) => {
+  const date = new Date(dateValue);
+  return isNaN(date.getTime()) ? 'Invalid date' : format(date, fmt);
+};
+
 interface BookingStatusDatesProps {
   status: string;
   isPaid: boolean;
@@ -12,6 +17,7 @@ interface BookingStatusDatesProps {
   numNights: number;
   checkInTime?: string;
   checkOutTime?: string;
+  cancelledAt?: string;
   dateRange: string;
   timeInfo: string;
 }
@@ -24,6 +30,7 @@ export default function BookingStatusDates({
   checkOutDate,
   checkInTime,
   checkOutTime,
+  cancelledAt,
   dateRange,
   timeInfo,
 }: BookingStatusDatesProps) {
@@ -56,26 +63,34 @@ export default function BookingStatusDates({
           <div>
             <span className='text-default-500'>Check-in:</span>
             <p className='font-medium'>
-              {format(new Date(checkInDate), 'EEEE, MMMM dd, yyyy')}
+              {safeFormat(checkInDate, 'EEEE, MMMM dd, yyyy')}
             </p>
             {checkInTime && (
               <p className='text-xs text-default-500'>
-                Checked in: {format(new Date(checkInTime), 'h:mm a')}
+                Checked in: {safeFormat(checkInTime, 'h:mm a')}
               </p>
             )}
           </div>
           <div>
             <span className='text-default-500'>Check-out:</span>
             <p className='font-medium'>
-              {format(new Date(checkOutDate), 'EEEE, MMMM dd, yyyy')}
+              {safeFormat(checkOutDate, 'EEEE, MMMM dd, yyyy')}
             </p>
             {checkOutTime && (
               <p className='text-xs text-default-500'>
-                Checked out: {format(new Date(checkOutTime), 'h:mm a')}
+                Checked out: {safeFormat(checkOutTime, 'h:mm a')}
               </p>
             )}
           </div>
         </div>
+        {status === 'cancelled' && cancelledAt && (
+          <div className='text-sm'>
+            <span className='text-default-500'>Cancelled at:</span>{' '}
+            <span className='font-medium'>
+              {safeFormat(cancelledAt, 'EEEE, MMMM dd, yyyy h:mm a')}
+            </span>
+          </div>
+        )}
       </CardBody>
     </Card>
   );

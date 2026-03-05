@@ -41,10 +41,7 @@ export function useCreateExperience() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayToast(
-          error.message || 'Failed to create experience',
-          'error'
-        );
+        displayToast(error.message || 'Failed to create experience', 'error');
         throw new Error(error.error || 'Failed to create experience');
       }
 
@@ -74,10 +71,7 @@ export function useUpdateExperience() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayToast(
-          error.message || 'Failed to update experience',
-          'error'
-        );
+        displayToast(error.message || 'Failed to update experience', 'error');
         throw new Error(error.error || 'Failed to update experience');
       }
 

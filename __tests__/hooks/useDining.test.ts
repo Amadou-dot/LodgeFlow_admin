@@ -270,9 +270,9 @@ describe('useDeleteDining', () => {
 
     useDeleteDining();
 
-    await expect(
-      capturedMutationConfig.mutationFn('abc123')
-    ).rejects.toThrow('Item has dependencies');
+    await expect(capturedMutationConfig.mutationFn('abc123')).rejects.toThrow(
+      'Item has dependencies'
+    );
   });
 
   it('invalidates queries on success', () => {

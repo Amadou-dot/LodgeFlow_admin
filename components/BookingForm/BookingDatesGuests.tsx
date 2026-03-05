@@ -167,11 +167,13 @@ export default function BookingDatesGuests({
       )}
 
       {/* Availability Info */}
-      {selectedCabin && availabilityData?.success && availabilityData.data.unavailableDates.length === 0 && (
-        <div className='text-xs text-default-500'>
-          All dates in the next 6 months are available for booking.
-        </div>
-      )}
+      {selectedCabin &&
+        availabilityData?.success &&
+        availabilityData.data.unavailableDates.length === 0 && (
+          <div className='text-xs text-default-500'>
+            All dates in the next 6 months are available for booking.
+          </div>
+        )}
     </>
   );
 }

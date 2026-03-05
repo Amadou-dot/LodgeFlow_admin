@@ -5,6 +5,7 @@ import {
   patchBookingSchema,
   bookingStatusSchema,
   paymentMethodSchema,
+  refundStatusSchema,
 } from '@/lib/validations/booking';
 
 describe('Booking Validation Schemas', () => {
@@ -42,6 +43,27 @@ describe('Booking Validation Schemas', () => {
     });
   });
 
+  describe('refundStatusSchema', () => {
+    it('accepts valid refund statuses', () => {
+      const validStatuses = [
+        'none',
+        'pending',
+        'processing',
+        'partial',
+        'full',
+        'failed',
+      ];
+      validStatuses.forEach(status => {
+        expect(refundStatusSchema.safeParse(status).success).toBe(true);
+      });
+    });
+
+    it('rejects invalid refund status values', () => {
+      const result = refundStatusSchema.safeParse('queued');
+      expect(result.success).toBe(false);
+    });
+  });
+
   describe('createBookingSchema', () => {
     const validBooking = {
       cabin: '65a1b2c3d4e5f6a7b8c9d0e1',
@@ -65,6 +87,7 @@ describe('Booking Validation Schemas', () => {
         expect(result.data.depositPaid).toBe(false);
         expect(result.data.depositAmount).toBe(0);
         expect(result.data.extrasPrice).toBe(0);
+        expect(result.data.specialRequests).toEqual([]);
       }
     });
 
@@ -205,6 +228,15 @@ describe('Booking Validation Schemas', () => {
       expect(result.success).toBe(true);
     });
 
+    it('accepts refund metadata updates', () => {
+      const result = updateBookingSchema.safeParse({
+        _id: '65a1b2c3d4e5f6a7b8c9d0e1',
+        refundStatus: 'partial',
+        refundAmount: 120,
+      });
+      expect(result.success).toBe(true);
+    });
+
     it('validates status enum on update', () => {
       const result = updateBookingSchema.safeParse({
         _id: '65a1b2c3d4e5f6a7b8c9d0e1',
@@ -265,6 +297,73 @@ describe('Booking Validation Schemas', () => {
     });
   });
 
+  describe('Stripe ID validation', () => {
+    it('accepts valid stripePaymentIntentId with pi_ prefix', () => {
+      const result = createBookingSchema.safeParse({
+        cabin: '65a1b2c3d4e5f6a7b8c9d0e1',
+        customer: 'user_123abc',
+        checkInDate: '2024-02-01',
+        checkOutDate: '2024-02-05',
+        numGuests: 2,
+        stripePaymentIntentId: 'pi_3abc123def',
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects stripePaymentIntentId without pi_ prefix', () => {
+      const result = createBookingSchema.safeParse({
+        cabin: '65a1b2c3d4e5f6a7b8c9d0e1',
+        customer: 'user_123abc',
+        checkInDate: '2024-02-01',
+        checkOutDate: '2024-02-05',
+        numGuests: 2,
+        stripePaymentIntentId: 'invalid_id',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('accepts valid stripeSessionId with cs_ prefix', () => {
+      const result = createBookingSchema.safeParse({
+        cabin: '65a1b2c3d4e5f6a7b8c9d0e1',
+        customer: 'user_123abc',
+        checkInDate: '2024-02-01',
+        checkOutDate: '2024-02-05',
+        numGuests: 2,
+        stripeSessionId: 'cs_test_xyz789',
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects stripeSessionId without cs_ prefix', () => {
+      const result = createBookingSchema.safeParse({
+        cabin: '65a1b2c3d4e5f6a7b8c9d0e1',
+        customer: 'user_123abc',
+        checkInDate: '2024-02-01',
+        checkOutDate: '2024-02-05',
+        numGuests: 2,
+        stripeSessionId: 'session_invalid',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('validates Stripe IDs in patchBookingSchema too', () => {
+      expect(
+        patchBookingSchema.safeParse({ stripePaymentIntentId: 'pi_valid' })
+          .success
+      ).toBe(true);
+      expect(
+        patchBookingSchema.safeParse({ stripePaymentIntentId: 'bad_prefix' })
+          .success
+      ).toBe(false);
+      expect(
+        patchBookingSchema.safeParse({ stripeSessionId: 'cs_valid' }).success
+      ).toBe(true);
+      expect(
+        patchBookingSchema.safeParse({ stripeSessionId: 'bad_prefix' }).success
+      ).toBe(false);
+    });
+  });
+
   describe('patchBookingSchema', () => {
     it('accepts status only', () => {
       const result = patchBookingSchema.safeParse({
@@ -290,6 +389,16 @@ describe('Booking Validation Schemas', () => {
           paymentMethod: 'card',
           amountPaid: 500,
         },
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts cancellation and refund metadata', () => {
+      const result = patchBookingSchema.safeParse({
+        status: 'cancelled',
+        cancellationReason: 'Guest requested cancellation',
+        refundStatus: 'pending',
+        refundAmount: 250,
       });
       expect(result.success).toBe(true);
     });

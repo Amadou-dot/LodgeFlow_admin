@@ -8,7 +8,9 @@ describe('auth-helpers', () => {
     });
 
     it('returns false for org:customer role', () => {
-      const has = jest.fn(({ role }: { role: string }) => role === 'org:customer');
+      const has = jest.fn(
+        ({ role }: { role: string }) => role === 'org:customer'
+      );
       expect(hasAuthorizedRole(has)).toBe(false);
     });
 

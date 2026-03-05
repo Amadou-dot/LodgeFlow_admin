@@ -269,9 +269,9 @@ describe('useDeleteExperience', () => {
 
     useDeleteExperience();
 
-    await expect(
-      capturedMutationConfig.mutationFn('exp123')
-    ).rejects.toThrow('Cannot delete');
+    await expect(capturedMutationConfig.mutationFn('exp123')).rejects.toThrow(
+      'Cannot delete'
+    );
   });
 
   it('invalidates queries on success', () => {

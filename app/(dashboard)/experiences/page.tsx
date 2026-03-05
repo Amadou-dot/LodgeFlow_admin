@@ -176,6 +176,12 @@ export default function ExperiencesPage() {
         tags: formData.tags
           ? formData.tags.split(',').map((tag: string) => tag.trim())
           : [],
+        rating:
+          typeof formData.rating === 'number' ? formData.rating : undefined,
+        reviewCount:
+          typeof formData.reviewCount === 'number'
+            ? formData.reviewCount
+            : undefined,
       };
 
       await createExperience.mutateAsync(transformedData);

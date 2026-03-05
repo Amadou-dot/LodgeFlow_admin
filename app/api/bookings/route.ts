@@ -3,30 +3,20 @@ import {
   escapeRegex,
   requireApiAuth,
 } from '@/lib/api-utils';
+import { differenceInCalendarDays } from 'date-fns';
+import mongoose from 'mongoose';
 import { getClerkUsersBatch } from '@/lib/clerk-users';
+import { VALID_TRANSITIONS } from '@/lib/config';
+import { logger } from '@/lib/logger';
 import connectDB from '@/lib/mongodb';
 import { createBookingSchema, updateBookingSchema } from '@/lib/validations';
 import type { IBooking } from '@/models/Booking';
-import type { ICabin } from '@/models/Cabin';
 import type { BookingQueryFilter, MongoSortOrder } from '@/types/api';
 import { getErrorMessage, isMongooseValidationError } from '@/types/errors';
-import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 import { Booking, Cabin, Settings } from '../../../models';
 
-// Helper function to populate bookings with Clerk customer data
-// Uses optimized batch fetching with caching
-async function populateBookingsWithClerkCustomers(
-  bookings: Array<
-    IBooking & {
-      cabin?: Pick<
-        ICabin,
-        'name' | 'image' | 'capacity' | 'price' | 'discount'
-      >;
-    }
-  >
-) {
-  // Get unique customer IDs to avoid duplicate API calls
+async function populateBookingsWithClerkCustomers(bookings: IBooking[]) {
   const customerIds = bookings.map(booking => booking.customer);
   const uniqueCustomerIds = Array.from(new Set(customerIds)) as string[];
 
@@ -49,7 +39,7 @@ async function populateBookingsWithClerkCustomers(
       ...booking.toObject(),
       customer: customerData,
       guest: customerData, // For legacy compatibility
-      cabinName: booking.cabin?.name, // Add cabin name for easier access
+      cabinName: (booking.cabin as unknown as { name?: string })?.name,
     };
   });
 
@@ -188,6 +178,7 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
+    logger.error('Failed to fetch bookings', error);
     return NextResponse.json(
       {
         success: false,
@@ -239,7 +230,10 @@ export async function POST(request: NextRequest) {
     const numNights = Math.ceil(
       (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
     );
-    const effectiveMinNights = Math.max(settings.minBookingLength, cabin.minNights ?? 0);
+    const effectiveMinNights = Math.max(
+      settings.minBookingLength,
+      cabin.minNights ?? 0
+    );
     const maxGuests = Math.min(settings.maxGuestsPerBooking, cabin.capacity);
 
     if (numNights < effectiveMinNights) {
@@ -283,6 +277,12 @@ export async function POST(request: NextRequest) {
       'cabin',
       'name image capacity price discount'
     );
+    if (!populatedBooking) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to load created booking' },
+        { status: 500 }
+      );
+    }
 
     // Populate with Clerk customer data
     const {
@@ -301,6 +301,12 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     // Handle validation errors
     if (isMongooseValidationError(error)) {
+      logger.warn(
+        'Mongoose validation fired after Zod passed — possible schema drift',
+        {
+          validationErrors: Object.keys(error.errors),
+        }
+      );
       return NextResponse.json(
         {
           success: false,
@@ -323,6 +329,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    logger.error('Failed to create booking', error);
     return NextResponse.json(
       {
         success: false,
@@ -351,13 +358,107 @@ export async function PUT(request: NextRequest) {
 
     const { _id, ...updateData } = validationResult.data;
 
-    // Fetch the existing booking to compare fields
+    // Fetch the existing booking first so auto-timestamping can check prior state
     const existingBooking = await Booking.findById(_id);
     if (!existingBooking) {
       return NextResponse.json(
         { success: false, error: 'Booking not found' },
         { status: 404 }
       );
+    }
+
+    // Validate status transitions
+    if (updateData.status && updateData.status !== existingBooking.status) {
+      const allowed = VALID_TRANSITIONS[existingBooking.status] ?? [];
+      if (!allowed.includes(updateData.status)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Cannot transition from '${existingBooking.status}' to '${updateData.status}'`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Auto-timestamp with guards to prevent overwriting existing values
+    if (updateData.status === 'cancelled') {
+      if (updateData.cancelledAt) {
+        // Honor explicit value from client
+      } else if (!existingBooking.cancelledAt) {
+        updateData.cancelledAt = new Date();
+      }
+      updateData.refundStatus = updateData.refundStatus ?? 'none';
+    }
+
+    if (
+      updateData.isPaid &&
+      !existingBooking.paidAt &&
+      !existingBooking.isPaid
+    ) {
+      updateData.paidAt = updateData.paidAt ?? new Date();
+    }
+
+    if (
+      (updateData.refundStatus === 'partial' ||
+        updateData.refundStatus === 'full') &&
+      updateData.refundAmount !== undefined &&
+      !existingBooking.refundedAt
+    ) {
+      updateData.refundedAt = updateData.refundedAt ?? new Date();
+    }
+
+    // Reject cancellation/refund fields on non-cancelled bookings
+    if (
+      updateData.status !== 'cancelled' &&
+      existingBooking.status !== 'cancelled'
+    ) {
+      const cancellationFields = [
+        'refundStatus',
+        'refundAmount',
+        'refundedAt',
+        'cancellationReason',
+        'cancelledAt',
+      ].filter(f => (updateData as Record<string, unknown>)[f] !== undefined);
+      if (cancellationFields.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Cannot set ${cancellationFields.join(', ')} on a booking with status '${existingBooking.status}'. The booking must be cancelled first.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate refundAmount does not exceed totalPrice
+    if (
+      updateData.refundAmount !== undefined &&
+      updateData.refundAmount > existingBooking.totalPrice
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Refund amount (${updateData.refundAmount}) cannot exceed total price (${existingBooking.totalPrice})`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate refundAmount requires a compatible refundStatus
+    if (updateData.refundAmount !== undefined && updateData.refundAmount > 0) {
+      const effectiveRefundStatus =
+        updateData.refundStatus ?? existingBooking.refundStatus ?? 'none';
+      if (effectiveRefundStatus === 'none') {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              'refundStatus must be "partial" or "full" when setting a non-zero refundAmount',
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate booking rules only when booking-rule inputs are changed.
@@ -450,8 +551,7 @@ export async function PUT(request: NextRequest) {
       const checkIn = updateData.checkInDate || existingBooking.checkInDate;
       const checkOut = updateData.checkOutDate || existingBooking.checkOutDate;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         cabinId,
         checkIn,
         checkOut,
@@ -470,10 +570,32 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Note: runValidators omitted because Zod's updateBookingSchema already
-    // validates all fields including date order. Mongoose's checkOutDate
-    // validator breaks with findByIdAndUpdate (this context is the Query, not
-    // the document, so this.checkInDate is undefined).
+    // Manually recalculate fields that pre-save hooks would normally handle,
+    // since findByIdAndUpdate bypasses Mongoose pre-save middleware.
+    // Only recalculate when the relevant fields actually changed to avoid
+    // silent overwrites (e.g. differenceInCalendarDays vs Math.ceil across DST).
+    if (checkInChanged || checkOutChanged) {
+      const effectiveCheckIn =
+        updateData.checkInDate || existingBooking.checkInDate;
+      const effectiveCheckOut =
+        updateData.checkOutDate || existingBooking.checkOutDate;
+      updateData.numNights = differenceInCalendarDays(
+        new Date(effectiveCheckOut),
+        new Date(effectiveCheckIn)
+      );
+    }
+
+    if (updateData.totalPrice !== undefined || updateData.depositAmount !== undefined) {
+      const effectiveTotalPrice =
+        updateData.totalPrice ?? existingBooking.totalPrice;
+      const effectiveDepositAmount =
+        updateData.depositAmount ?? existingBooking.depositAmount;
+      updateData.remainingAmount = Math.max(
+        0,
+        effectiveTotalPrice - effectiveDepositAmount
+      );
+    }
+
     const booking = await Booking.findByIdAndUpdate(_id, updateData, {
       new: true,
     }).populate('cabin', 'name image capacity price discount');
@@ -501,6 +623,12 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error: unknown) {
     if (isMongooseValidationError(error)) {
+      logger.warn(
+        'Mongoose validation fired after Zod passed — possible schema drift (PUT)',
+        {
+          validationErrors: Object.keys(error.errors),
+        }
+      );
       return NextResponse.json(
         {
           success: false,
@@ -522,6 +650,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    logger.error('Failed to update booking', error);
     return NextResponse.json(
       {
         success: false,
@@ -574,6 +703,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Booking deleted successfully',
     });
   } catch (error) {
+    logger.error('Failed to delete booking', error);
     return NextResponse.json(
       {
         success: false,

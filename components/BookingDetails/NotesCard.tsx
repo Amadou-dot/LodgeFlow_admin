@@ -3,14 +3,18 @@ import { Card, CardBody, CardHeader } from '@heroui/card';
 interface NotesCardProps {
   observations?: string;
   specialRequests?: string[];
+  cancellationReason?: string;
 }
 
 export default function NotesCard({
   observations,
   specialRequests,
+  cancellationReason,
 }: NotesCardProps) {
   const hasContent =
-    observations || (specialRequests && specialRequests.length > 0);
+    observations ||
+    (specialRequests && specialRequests.length > 0) ||
+    cancellationReason;
 
   if (!hasContent) {
     return null;
@@ -43,6 +47,14 @@ export default function NotesCard({
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+        {cancellationReason && (
+          <div>
+            <h4 className='font-medium text-sm text-danger mb-1'>
+              Cancellation Reason:
+            </h4>
+            <p className='text-sm'>{cancellationReason}</p>
           </div>
         )}
       </CardBody>

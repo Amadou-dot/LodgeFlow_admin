@@ -1,4 +1,10 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import {
+  BOOKING_STATUSES,
+  PAYMENT_METHODS,
+  REFUND_STATUSES,
+} from '@/lib/config';
+import { differenceInCalendarDays } from 'date-fns';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IBooking extends Document {
   cabin: mongoose.Types.ObjectId;
@@ -7,17 +13,12 @@ export interface IBooking extends Document {
   checkOutDate: Date;
   numNights: number;
   numGuests: number;
-  status:
-    | 'unconfirmed'
-    | 'confirmed'
-    | 'checked-in'
-    | 'checked-out'
-    | 'cancelled';
+  status: (typeof BOOKING_STATUSES)[number];
   cabinPrice: number;
   extrasPrice: number;
   totalPrice: number;
   isPaid: boolean;
-  paymentMethod?: 'cash' | 'card' | 'bank-transfer' | 'online';
+  paymentMethod?: (typeof PAYMENT_METHODS)[number];
   extras: {
     hasBreakfast: boolean;
     breakfastPrice: number;
@@ -34,11 +35,32 @@ export interface IBooking extends Document {
   specialRequests?: string[];
   depositPaid: boolean;
   depositAmount: number;
+  stripePaymentIntentId?: string;
+  stripeSessionId?: string;
+  paidAt?: Date;
+  cancelledAt?: Date;
+  cancellationReason?: string;
+  refundStatus: (typeof REFUND_STATUSES)[number];
+  refundAmount?: number;
+  refundedAt?: Date;
+  paymentConfirmationSentAt?: Date;
   remainingAmount: number;
   checkInTime?: Date;
   checkOutTime?: Date;
+  readonly durationText?: string;
+  readonly paymentStatus?: 'paid' | 'partial' | 'unpaid';
   createdAt: Date;
   updatedAt: Date;
+  overlaps(otherCheckIn: Date, otherCheckOut: Date): boolean;
+}
+
+export interface IBookingModel extends Model<IBooking> {
+  findOverlapping(
+    cabinId: mongoose.Types.ObjectId | string,
+    checkInDate: Date,
+    checkOutDate: Date,
+    excludeBookingId?: mongoose.Types.ObjectId | string
+  ): Promise<IBooking[]>;
 }
 
 const BookingSchema: Schema = new Schema(
@@ -79,13 +101,7 @@ const BookingSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: [
-        'unconfirmed',
-        'confirmed',
-        'checked-in',
-        'checked-out',
-        'cancelled',
-      ],
+      enum: [...BOOKING_STATUSES],
       default: 'unconfirmed',
     },
     cabinPrice: {
@@ -109,7 +125,8 @@ const BookingSchema: Schema = new Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['cash', 'card', 'bank-transfer', 'online'],
+      enum: [...PAYMENT_METHODS],
+      default: 'online',
     },
     extras: {
       hasBreakfast: { type: Boolean, default: false },
@@ -141,12 +158,43 @@ const BookingSchema: Schema = new Schema(
     depositAmount: {
       type: Number,
       default: 0,
-      min: [0, 'Deposit amount must be positive'],
+      min: [0, 'Deposit amount cannot be negative'],
+    },
+    stripePaymentIntentId: {
+      type: String,
+    },
+    stripeSessionId: {
+      type: String,
+    },
+    paidAt: {
+      type: Date,
+    },
+    cancelledAt: {
+      type: Date,
+    },
+    cancellationReason: {
+      type: String,
+      maxlength: [500, 'Cancellation reason cannot exceed 500 characters'],
+    },
+    refundStatus: {
+      type: String,
+      enum: [...REFUND_STATUSES],
+      default: 'none',
+    },
+    refundAmount: {
+      type: Number,
+      min: [0, 'Refund amount cannot be negative'],
+    },
+    refundedAt: {
+      type: Date,
+    },
+    paymentConfirmationSentAt: {
+      type: Date,
     },
     remainingAmount: {
       type: Number,
       default: 0,
-      min: [0, 'Remaining amount must be positive'],
+      min: [0, 'Remaining amount cannot be negative'],
     },
     checkInTime: {
       type: Date,
@@ -171,15 +219,29 @@ BookingSchema.index({ isPaid: 1 });
 // Compound index for date range queries
 BookingSchema.index({ checkInDate: 1, checkOutDate: 1 });
 
-// Pre-save middleware to calculate numNights
+// Pre-save middleware to calculate numNights and remainingAmount
 BookingSchema.pre('save', function (this: IBooking, next) {
-  if (this.checkInDate && this.checkOutDate) {
-    const timeDiff = this.checkOutDate.getTime() - this.checkInDate.getTime();
-    this.numNights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+  if (
+    this.isNew ||
+    this.isModified('checkInDate') ||
+    this.isModified('checkOutDate')
+  ) {
+    if (this.checkInDate && this.checkOutDate) {
+      this.numNights = differenceInCalendarDays(
+        this.checkOutDate,
+        this.checkInDate
+      );
+    }
   }
 
-  // Calculate remaining amount
-  this.remainingAmount = this.totalPrice - this.depositAmount;
+  if (
+    this.isNew ||
+    this.isModified('totalPrice') ||
+    this.isModified('depositAmount')
+  ) {
+    // Calculate remaining amount (clamped to 0 for overpayment scenarios)
+    this.remainingAmount = Math.max(0, this.totalPrice - this.depositAmount);
+  }
 
   next();
 });
@@ -194,25 +256,15 @@ BookingSchema.methods.overlaps = function (
 };
 
 // Static method to find overlapping bookings
-BookingSchema.statics.findOverlapping = function (
-  cabinId: mongoose.Types.ObjectId,
+BookingSchema.statics.findOverlapping = async function (
+  cabinId: mongoose.Types.ObjectId | string,
   checkInDate: Date,
   checkOutDate: Date,
-  excludeBookingId?: mongoose.Types.ObjectId
-) {
-  interface OverlapQuery {
-    cabin: mongoose.Types.ObjectId;
-    status: { $nin: string[] };
-    $or: Array<{
-      checkInDate: { $lt: Date };
-      checkOutDate: { $gt: Date };
-    }>;
-    _id?: { $ne: mongoose.Types.ObjectId };
-  }
-
-  const query: OverlapQuery = {
+  excludeBookingId?: mongoose.Types.ObjectId | string
+): Promise<IBooking[]> {
+  const query: mongoose.FilterQuery<IBooking> = {
     cabin: cabinId,
-    status: { $nin: ['cancelled'] },
+    status: { $ne: 'cancelled' },
     $or: [
       {
         checkInDate: { $lt: checkOutDate },
@@ -222,7 +274,9 @@ BookingSchema.statics.findOverlapping = function (
   };
 
   if (excludeBookingId) {
-    query._id = { $ne: excludeBookingId };
+    query._id = {
+      $ne: new mongoose.Types.ObjectId(excludeBookingId.toString()),
+    };
   }
 
   return this.find(query);
@@ -242,6 +296,10 @@ BookingSchema.virtual('paymentStatus').get(function (this: IBooking) {
 
 // Ensure virtual fields are serialized
 BookingSchema.set('toJSON', { virtuals: true });
+BookingSchema.set('toObject', { virtuals: true });
 
-export default mongoose.models.Booking ||
-  mongoose.model<IBooking>('Booking', BookingSchema);
+const Booking: IBookingModel =
+  (mongoose.models.Booking as IBookingModel) ||
+  mongoose.model<IBooking, IBookingModel>('Booking', BookingSchema);
+
+export default Booking;

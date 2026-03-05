@@ -13,7 +13,7 @@ export interface FormData {
   imageUrl?: string;
   imageGallery?: string; // Comma-separated image URLs
   tags?: string; // Comma-separated tags
-  seasonalAvailability?: string; // Comma-separated seasonal availability
+  seasonalAvailability?: string[] | string; // Seasonal availability
   shortDescription?: string;
   longDescription?: string;
   highlights?: string;
@@ -24,6 +24,8 @@ export interface FormData {
   maxParticipants?: number;
   minimumAge?: number;
   isPopular?: boolean;
+  rating?: number;
+  reviewCount?: number;
   availability?: {
     days: string[];
     times: string[];

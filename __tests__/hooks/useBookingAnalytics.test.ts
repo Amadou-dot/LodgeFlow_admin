@@ -74,9 +74,7 @@ describe('useBookingAnalytics', () => {
       },
       revenueOverTime: [{ date: '2024-01-01', revenue: 1000, bookings: 2 }],
       statusDistribution: [{ status: 'confirmed', count: 80 }],
-      popularCabins: [
-        { name: 'Lake Cabin', bookingCount: 20, revenue: 10000 },
-      ],
+      popularCabins: [{ name: 'Lake Cabin', bookingCount: 20, revenue: 10000 }],
       demographics: {
         avgPartySize: 2.5,
         avgStayLength: 3.2,

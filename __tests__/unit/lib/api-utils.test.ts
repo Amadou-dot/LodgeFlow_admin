@@ -231,11 +231,7 @@ describe('api-utils', () => {
 
     it('returns all missing fields', () => {
       const body = { name: undefined, email: null, phone: '' };
-      const result = validateRequiredFields(body, [
-        'name',
-        'email',
-        'phone',
-      ]);
+      const result = validateRequiredFields(body, ['name', 'email', 'phone']);
 
       expect(result.missingFields).toHaveLength(3);
     });
@@ -271,9 +267,7 @@ describe('api-utils', () => {
 
     it('handles nested paths', () => {
       const mockZodError = {
-        issues: [
-          { path: ['address', 'city'], message: 'City required' },
-        ],
+        issues: [{ path: ['address', 'city'], message: 'City required' }],
       };
 
       const result = formatZodErrors(mockZodError as any);
@@ -318,9 +312,7 @@ describe('api-utils', () => {
       expect(body.error).toContain('Too many requests');
       expect(body.retryAfter).toBeGreaterThan(0);
       expect(response.headers.get('Retry-After')).toBeDefined();
-      expect(response.headers.get('X-RateLimit-Reset')).toBe(
-        String(resetTime)
-      );
+      expect(response.headers.get('X-RateLimit-Reset')).toBe(String(resetTime));
     });
   });
 

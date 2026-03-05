@@ -50,10 +50,7 @@ async function createTestBooking(
 }
 
 // Helper to build NextRequest
-function createRequest(
-  url: string,
-  options?: { method?: string; body?: any }
-) {
+function createRequest(url: string, options?: { method?: string; body?: any }) {
   const init: RequestInit = { method: options?.method || 'GET' };
   if (options?.body) {
     init.body = JSON.stringify(options.body);
@@ -95,11 +92,19 @@ describe('Bookings API Routes', () => {
         users: new Map([
           [
             'user_test123',
-            { id: 'user_test123', name: 'Test User', email: 'test@example.com' } as any,
+            {
+              id: 'user_test123',
+              name: 'Test User',
+              email: 'test@example.com',
+            } as any,
           ],
           [
             'user_test456',
-            { id: 'user_test456', name: 'Other User', email: 'other@example.com' } as any,
+            {
+              id: 'user_test456',
+              name: 'Other User',
+              email: 'other@example.com',
+            } as any,
           ],
         ]),
         errors: 0,
@@ -310,6 +315,185 @@ describe('Bookings API Routes', () => {
       expect(response.status).toBe(200);
       expect(body.success).toBe(true);
       expect(body.data.status).toBe('confirmed');
+    });
+
+    it('auto-sets cancelledAt and refundStatus when status is cancelled', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id);
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'PUT',
+        body: {
+          _id: booking._id.toString(),
+          status: 'cancelled',
+        },
+      });
+
+      const response = await PUT(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.cancelledAt).toBeDefined();
+      expect(body.data.refundStatus).toBe('none');
+    });
+
+    it('preserves explicit cancelledAt when provided', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id);
+      const explicitDate = '2027-05-01T12:00:00.000Z';
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'PUT',
+        body: {
+          _id: booking._id.toString(),
+          status: 'cancelled',
+          cancelledAt: explicitDate,
+        },
+      });
+
+      const response = await PUT(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(new Date(body.data.cancelledAt).toISOString()).toBe(explicitDate);
+    });
+
+    it('auto-sets paidAt when isPaid becomes true', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, { isPaid: false });
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'PUT',
+        body: {
+          _id: booking._id.toString(),
+          isPaid: true,
+        },
+      });
+
+      const response = await PUT(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.paidAt).toBeDefined();
+    });
+
+    it('does not overwrite paidAt on already-paid bookings', async () => {
+      const cabin = await createTestCabin();
+      const originalPaidAt = new Date('2027-01-15T10:00:00.000Z');
+      const booking = await createTestBooking(cabin._id, {
+        isPaid: true,
+        paidAt: originalPaidAt,
+      });
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'PUT',
+        body: {
+          _id: booking._id.toString(),
+          isPaid: true,
+          numGuests: 3,
+        },
+      });
+
+      const response = await PUT(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      // paidAt should remain the original timestamp
+      expect(new Date(body.data.paidAt).toISOString()).toBe(
+        originalPaidAt.toISOString()
+      );
+    });
+
+    it('auto-sets refundedAt when refundStatus is full with refundAmount', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'cancelled',
+      });
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'PUT',
+        body: {
+          _id: booking._id.toString(),
+          status: 'cancelled',
+          refundStatus: 'full',
+          refundAmount: 600,
+        },
+      });
+
+      const response = await PUT(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.refundedAt).toBeDefined();
+    });
+
+    it('rejects refund fields on non-cancelled bookings', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        status: 'confirmed',
+      });
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'PUT',
+        body: {
+          _id: booking._id.toString(),
+          status: 'confirmed',
+          refundStatus: 'pending',
+          refundAmount: 100,
+        },
+      });
+
+      const response = await PUT(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(body.success).toBe(false);
+      expect(body.error).toContain('refundStatus');
+    });
+
+    it('recalculates numNights when dates change', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        checkInDate: new Date('2027-06-01'),
+        checkOutDate: new Date('2027-06-04'),
+        numNights: 3,
+      });
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'PUT',
+        body: {
+          _id: booking._id.toString(),
+          checkOutDate: '2027-06-08',
+        },
+      });
+
+      const response = await PUT(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.numNights).toBe(7); // June 1 to June 8
+    });
+
+    it('recalculates remainingAmount when totalPrice changes', async () => {
+      const cabin = await createTestCabin();
+      const booking = await createTestBooking(cabin._id, {
+        totalPrice: 600,
+        depositAmount: 200,
+      });
+
+      const request = createRequest('http://localhost:3000/api/bookings', {
+        method: 'PUT',
+        body: {
+          _id: booking._id.toString(),
+          totalPrice: 1000,
+        },
+      });
+
+      const response = await PUT(request);
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.data.remainingAmount).toBe(800); // 1000 - 200
     });
   });
 

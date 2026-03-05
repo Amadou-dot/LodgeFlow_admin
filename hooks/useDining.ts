@@ -42,10 +42,7 @@ export function useCreateDining() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayToast(
-          error.message || 'Failed to create dining item',
-          'error'
-        );
+        displayToast(error.message || 'Failed to create dining item', 'error');
         throw new Error(error.error || 'Failed to create dining item');
       }
 
@@ -75,10 +72,7 @@ export function useUpdateDining() {
 
       if (!response.ok) {
         const error = await response.json();
-        displayToast(
-          error.message || 'Failed to update dining item',
-          'error'
-        );
+        displayToast(error.message || 'Failed to update dining item', 'error');
         throw new Error(error.error || 'Failed to update dining item');
       }
 

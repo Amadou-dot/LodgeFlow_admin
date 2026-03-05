@@ -20,9 +20,7 @@ export function createCabinInput(overrides: Record<string, any> = {}) {
 export function createBookingInput(overrides: Record<string, any> = {}) {
   const checkIn = faker.date.future({ years: 0.5 });
   const checkOut = new Date(checkIn);
-  checkOut.setDate(
-    checkOut.getDate() + faker.number.int({ min: 1, max: 7 })
-  );
+  checkOut.setDate(checkOut.getDate() + faker.number.int({ min: 1, max: 7 }));
   const numNights = Math.ceil(
     (checkOut.getTime() - checkIn.getTime()) / (1000 * 3600 * 24)
   );
@@ -65,12 +63,7 @@ export function createDiningInput(overrides: Record<string, any> = {}) {
     name: faker.lorem.words(3),
     description: faker.lorem.sentence(10),
     price: faker.number.float({ min: 5, max: 50, fractionDigits: 2 }),
-    type: faker.helpers.arrayElement([
-      'breakfast',
-      'lunch',
-      'dinner',
-      'snack',
-    ]),
+    type: faker.helpers.arrayElement(['breakfast', 'lunch', 'dinner', 'snack']),
     mealType: faker.helpers.arrayElement(['starter', 'main', 'dessert']),
     category: faker.helpers.arrayElement([
       'appetizer',
