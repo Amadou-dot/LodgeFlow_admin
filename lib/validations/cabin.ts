@@ -1,24 +1,6 @@
 import { z } from 'zod';
 
 /**
- * Cabin amenities schema
- */
-const amenitiesSchema = z.object({
-  wifi: z.boolean().optional().default(true),
-  tv: z.boolean().optional().default(true),
-  airConditioning: z.boolean().optional().default(true),
-  heating: z.boolean().optional().default(true),
-  kitchen: z.boolean().optional().default(false),
-  washer: z.boolean().optional().default(false),
-  parking: z.boolean().optional().default(false),
-  pool: z.boolean().optional().default(false),
-  hotTub: z.boolean().optional().default(false),
-  fireplace: z.boolean().optional().default(false),
-  balcony: z.boolean().optional().default(false),
-  petFriendly: z.boolean().optional().default(false),
-});
-
-/**
  * Create cabin request schema
  */
 export const createCabinSchema = z
@@ -27,12 +9,12 @@ export const createCabinSchema = z
     description: z
       .string()
       .min(10, 'Description must be at least 10 characters')
-      .max(2000),
+      .max(1000),
     capacity: z.number().int().min(1, 'Capacity must be at least 1').max(20),
     price: z.number().positive('Price must be positive'),
     discount: z.number().min(0).optional().default(0),
     image: z.string().url('Invalid image URL').optional(),
-    amenities: amenitiesSchema.optional(),
+    amenities: z.array(z.string().trim().min(1)).optional().default([]),
     isAvailable: z.boolean().optional().default(true),
   })
   .refine(data => !data.discount || data.discount < data.price, {
@@ -52,7 +34,7 @@ export const updateCabinSchema = z
     price: z.number().positive().optional(),
     discount: z.number().min(0).optional(),
     image: z.string().url().optional(),
-    amenities: amenitiesSchema.optional(),
+    amenities: z.array(z.string().trim().min(1)).optional().default([]),
     isAvailable: z.boolean().optional(),
   })
   .refine(

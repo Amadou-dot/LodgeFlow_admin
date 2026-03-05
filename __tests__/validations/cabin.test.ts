@@ -139,31 +139,20 @@ describe('Cabin Validation Schemas', () => {
       expect(result.success).toBe(false);
     });
 
-    it('accepts amenities object', () => {
+    it('accepts amenities string array', () => {
       const cabin = {
         ...validCabin,
-        amenities: {
-          wifi: true,
-          tv: true,
-          pool: false,
-          hotTub: true,
-        },
+        amenities: ['wifi', 'tv', 'pool'],
       };
       const result = createCabinSchema.safeParse(cabin);
       expect(result.success).toBe(true);
     });
 
-    it('applies default amenities values', () => {
-      const cabin = {
-        ...validCabin,
-        amenities: {},
-      };
-      const result = createCabinSchema.safeParse(cabin);
+    it('applies default amenities value (empty array)', () => {
+      const result = createCabinSchema.safeParse(validCabin);
       expect(result.success).toBe(true);
-      if (result.success && result.data.amenities) {
-        expect(result.data.amenities.wifi).toBe(true);
-        expect(result.data.amenities.tv).toBe(true);
-        expect(result.data.amenities.pool).toBe(false);
+      if (result.success) {
+        expect(result.data.amenities).toEqual([]);
       }
     });
   });
