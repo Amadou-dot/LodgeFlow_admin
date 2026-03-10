@@ -1,15 +1,14 @@
-import { NextResponse } from 'next/server';
-import { createClerkClient } from '@clerk/backend';
-import { faker } from '@faker-js/faker';
-import connectDB from '@/lib/mongodb';
-import { Booking, Cabin, Dining, Experience, Settings } from '@/models';
 import {
   cabinData,
   diningData,
   experienceData,
   settingsData,
 } from '@/lib/data/seed-data';
-
+import connectDB from '@/lib/mongodb';
+import { Booking, Cabin, Dining, Experience, Settings } from '@/models';
+import { createClerkClient } from '@clerk/backend';
+import { faker } from '@faker-js/faker';
+import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic'; // Ensure the route is not cached
 
 export async function GET(request: Request) {
@@ -33,9 +32,9 @@ export async function GET(request: Request) {
 
     // 2. Re-seed static data
     const settings = await Settings.create(settingsData);
-    const cabins = await Cabin.insertMany(cabinData as any);
+    const cabins = await Cabin.insertMany(cabinData);
     await Experience.insertMany(experienceData);
-    await Dining.insertMany(diningData as any);
+    await Dining.insertMany(diningData);
 
     // 3. Fetch Users from Clerk
     if (!process.env.CLERK_SECRET_KEY) {
