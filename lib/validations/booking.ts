@@ -1,3 +1,8 @@
+import {
+  BOOKING_STATUSES,
+  PAYMENT_METHODS,
+  REFUND_STATUSES,
+} from '@/lib/config';
 import { z } from 'zod';
 
 /**
@@ -17,25 +22,19 @@ const bookingExtrasSchema = z.object({
 });
 
 /**
- * Booking status enum
+ * Booking status enum — uses shared constants from lib/config.ts
  */
-export const bookingStatusSchema = z.enum([
-  'unconfirmed',
-  'confirmed',
-  'checked-in',
-  'checked-out',
-  'cancelled',
-]);
+export const bookingStatusSchema = z.enum(BOOKING_STATUSES);
 
 /**
- * Payment method enum
+ * Payment method enum — uses shared constants from lib/config.ts
  */
-export const paymentMethodSchema = z.enum([
-  'cash',
-  'card',
-  'bank-transfer',
-  'online',
-]);
+export const paymentMethodSchema = z.enum(PAYMENT_METHODS);
+
+/**
+ * Refund status enum — uses shared constants from lib/config.ts
+ */
+export const refundStatusSchema = z.enum(REFUND_STATUSES);
 
 /**
  * Create booking request schema
@@ -47,6 +46,9 @@ export const createBookingSchema = z
     checkInDate: z.coerce.date(),
     checkOutDate: z.coerce.date(),
     numGuests: z.number().int().min(1, 'At least 1 guest required').max(50),
+    // numNights, cabinPrice, and totalPrice are optional here because the API
+    // route calculates them server-side. Mongoose requires them, so they must
+    // be set before save — but callers don't need to provide them up front.
     numNights: z.number().int().min(1).optional(),
     status: bookingStatusSchema.optional().default('unconfirmed'),
     cabinPrice: z.number().min(0).optional(),
@@ -56,9 +58,14 @@ export const createBookingSchema = z
     paymentMethod: paymentMethodSchema.optional(),
     depositPaid: z.boolean().optional().default(false),
     depositAmount: z.number().min(0).optional().default(0),
+    stripePaymentIntentId: z.string().startsWith('pi_').max(255).optional(),
+    stripeSessionId: z.string().startsWith('cs_').max(255).optional(),
+    paidAt: z.coerce.date().optional(),
+    paymentConfirmationSentAt: z.coerce.date().optional(),
     remainingAmount: z.number().min(0).optional(),
     extras: bookingExtrasSchema.optional(),
     observations: z.string().max(1000).optional(),
+    specialRequests: z.array(z.string()).optional().default([]),
   })
   .refine(data => data.checkOutDate > data.checkInDate, {
     message: 'Check-out date must be after check-in date',
@@ -85,9 +92,19 @@ export const updateBookingSchema = z
     paymentMethod: paymentMethodSchema.optional(),
     depositPaid: z.boolean().optional(),
     depositAmount: z.number().min(0).optional(),
+    stripePaymentIntentId: z.string().startsWith('pi_').max(255).optional(),
+    stripeSessionId: z.string().startsWith('cs_').max(255).optional(),
+    paidAt: z.coerce.date().optional(),
+    cancelledAt: z.coerce.date().optional(),
+    cancellationReason: z.string().max(500).optional(),
+    refundStatus: refundStatusSchema.optional(),
+    refundAmount: z.number().min(0).optional(),
+    refundedAt: z.coerce.date().optional(),
+    paymentConfirmationSentAt: z.coerce.date().optional(),
     remainingAmount: z.number().min(0).optional(),
     extras: bookingExtrasSchema.optional(),
     observations: z.string().max(1000).optional(),
+    specialRequests: z.array(z.string()).optional(),
   })
   .refine(
     data => {
@@ -114,11 +131,25 @@ export const recordPaymentSchema = z.object({
 /**
  * Booking PATCH request schema
  */
-export const patchBookingSchema = z.object({
-  status: bookingStatusSchema.optional(),
-  recordPayment: recordPaymentSchema.optional(),
-});
+export const patchBookingSchema = z
+  .object({
+    status: bookingStatusSchema.optional(),
+    cancellationReason: z.string().max(500).optional(),
+    cancelledAt: z.coerce.date().optional(),
+    refundStatus: refundStatusSchema.optional(),
+    refundAmount: z.number().min(0).optional(),
+    refundedAt: z.coerce.date().optional(),
+    paidAt: z.coerce.date().optional(),
+    stripePaymentIntentId: z.string().startsWith('pi_').max(255).optional(),
+    stripeSessionId: z.string().startsWith('cs_').max(255).optional(),
+    paymentConfirmationSentAt: z.coerce.date().optional(),
+    recordPayment: recordPaymentSchema.optional(),
+  })
+  .refine(data => !(data.recordPayment && data.paidAt), {
+    message: 'Cannot specify both recordPayment and paidAt',
+    path: ['paidAt'],
+  });
 
-export type CreateBookingInput = z.infer<typeof createBookingSchema>;
-export type UpdateBookingInput = z.infer<typeof updateBookingSchema>;
-export type PatchBookingInput = z.infer<typeof patchBookingSchema>;
+export type CreateBookingInput = z.input<typeof createBookingSchema>;
+export type UpdateBookingInput = z.input<typeof updateBookingSchema>;
+export type PatchBookingInput = z.input<typeof patchBookingSchema>;

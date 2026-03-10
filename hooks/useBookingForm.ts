@@ -5,7 +5,10 @@ import type { PopulatedBooking } from '@/types';
 import { calcNumNights } from '@/utils/utilityFunctions';
 import { useInfiniteScroll } from '@heroui/use-infinite-scroll';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { BookingFormData, PriceBreakdown } from '@/components/BookingForm/types';
+import type {
+  BookingFormData,
+  PriceBreakdown,
+} from '@/components/BookingForm/types';
 
 export type { BookingFormData, PriceBreakdown };
 
@@ -276,9 +279,7 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
         selectedCabin?.minNights ?? 0
       );
       if (numNights < effectiveMinNights) {
-        errors.push(
-          `Minimum booking length is ${effectiveMinNights} night(s)`
-        );
+        errors.push(`Minimum booking length is ${effectiveMinNights} night(s)`);
       }
     }
     if (settings && numNights > settings.maxBookingLength) {
@@ -318,7 +319,12 @@ export const useBookingForm = (initialBooking?: PopulatedBooking) => {
       extrasPrice: priceBreakdown.extrasPrice,
       totalPrice: priceBreakdown.totalPrice,
       isPaid: formData.isPaid,
-      paymentMethod: formData.paymentMethod || undefined,
+      paymentMethod:
+        (formData.paymentMethod as
+          | 'cash'
+          | 'card'
+          | 'bank-transfer'
+          | 'online') || undefined,
       extras: {
         hasBreakfast: formData.hasBreakfast,
         breakfastPrice: priceBreakdown.breakfastPrice,

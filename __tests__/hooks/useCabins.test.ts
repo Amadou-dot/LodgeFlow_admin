@@ -200,8 +200,7 @@ describe('useCreateCabin', () => {
   it('throws and shows toast on error response', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
-      json: () =>
-        Promise.resolve({ error: 'Cabin name already exists' }),
+      json: () => Promise.resolve({ error: 'Cabin name already exists' }),
     });
 
     useCreateCabin();
@@ -289,15 +288,14 @@ describe('useDeleteCabin', () => {
   it('throws on error response', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
-      json: () =>
-        Promise.resolve({ error: 'Cabin has active bookings' }),
+      json: () => Promise.resolve({ error: 'Cabin has active bookings' }),
     });
 
     useDeleteCabin();
 
-    await expect(
-      capturedMutationConfig.mutationFn('abc123')
-    ).rejects.toThrow('Cabin has active bookings');
+    await expect(capturedMutationConfig.mutationFn('abc123')).rejects.toThrow(
+      'Cabin has active bookings'
+    );
   });
 
   it('invalidates queries on success', () => {
@@ -315,8 +313,7 @@ describe('useBulkDeleteCabins', () => {
     const ids = ['id1', 'id2', 'id3'];
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: () =>
-        Promise.resolve({ success: true, data: { deletedCount: 3 } }),
+      json: () => Promise.resolve({ success: true, data: { deletedCount: 3 } }),
     });
 
     useBulkDeleteCabins();

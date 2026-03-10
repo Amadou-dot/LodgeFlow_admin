@@ -52,6 +52,12 @@ const CabinSchema: Schema = new Schema(
       type: Number,
       default: 0,
       min: [0, 'Discount must be positive'],
+      validate: {
+        validator: function (this: ICabin, value: number) {
+          return value < this.price;
+        },
+        message: 'Discount must be less than the cabin price',
+      },
     },
     description: {
       type: String,
@@ -121,6 +127,7 @@ CabinSchema.virtual('discountedPrice').get(function (this: ICabin) {
 
 // Ensure virtual fields are serialized
 CabinSchema.set('toJSON', { virtuals: true });
+CabinSchema.set('toObject', { virtuals: true });
 
 export default mongoose.models.Cabin ||
   mongoose.model<ICabin>('Cabin', CabinSchema);

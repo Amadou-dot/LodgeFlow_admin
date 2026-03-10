@@ -3,53 +3,44 @@ import { z } from 'zod';
 /**
  * Difficulty enum
  */
-export const difficultySchema = z.enum([
-  'easy',
-  'moderate',
-  'challenging',
-  'expert',
-]);
+export const difficultySchema = z.enum(['Easy', 'Moderate', 'Challenging']);
 
 /**
  * Create experience request schema
  */
-export const createExperienceSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
-  description: z
-    .string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(2000),
-  duration: z.string().min(1, 'Duration is required').max(50),
-  price: z.number().min(0, 'Price cannot be negative'),
-  difficulty: difficultySchema,
-  maxParticipants: z.number().int().min(1).max(100),
-  image: z.string().url('Invalid image URL').optional(),
-  category: z.string().min(1, 'Category is required').max(50),
-  included: z.array(z.string()).optional(),
-  requirements: z.array(z.string()).optional(),
-  location: z.string().max(200).optional(),
-  isAvailable: z.boolean().optional().default(true),
-  isFeatured: z.boolean().optional().default(false),
-});
+export const createExperienceSchema = z
+  .object({
+    name: z.string().min(1, 'Name is required').max(100),
+    description: z.string().min(1, 'Description is required').max(2000),
+    duration: z.string().min(1, 'Duration is required').max(50),
+    price: z.number().min(0, 'Price cannot be negative'),
+    difficulty: difficultySchema,
+    category: z.string().min(1, 'Category is required').max(50),
+    image: z.string().min(1, 'Image is required').max(2048),
+    includes: z.array(z.string()).min(1, 'At least one inclusion is required'),
+    available: z.array(z.string()).min(1, 'At least one availability option is required'),
+    ctaText: z.string().min(1, 'Call to action text is required').max(100),
+    longDescription: z.string().max(5000).optional(),
+    gallery: z.array(z.string()).optional(),
+    isPopular: z.boolean().optional().default(false),
+    maxParticipants: z.number().int().min(1).max(500).optional(),
+    minAge: z.number().int().min(0).max(120).optional(),
+    requirements: z.array(z.string()).optional(),
+    location: z.string().max(200).optional(),
+    highlights: z.array(z.string()).optional(),
+    whatToBring: z.array(z.string()).optional(),
+    cancellationPolicy: z.string().max(500).optional(),
+    seasonality: z.string().max(200).optional(),
+    tags: z.array(z.string()).optional(),
+    rating: z.number().min(0).max(5).optional(),
+    reviewCount: z.number().int().min(0).optional().default(0),
+  })
+  .strict();
 
 /**
  * Update experience request schema
  */
-export const updateExperienceSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
-  description: z.string().min(10).max(2000).optional(),
-  duration: z.string().min(1).max(50).optional(),
-  price: z.number().min(0).optional(),
-  difficulty: difficultySchema.optional(),
-  maxParticipants: z.number().int().min(1).max(100).optional(),
-  image: z.string().url().optional(),
-  category: z.string().min(1).max(50).optional(),
-  included: z.array(z.string()).optional(),
-  requirements: z.array(z.string()).optional(),
-  location: z.string().max(200).optional(),
-  isAvailable: z.boolean().optional(),
-  isFeatured: z.boolean().optional(),
-});
+export const updateExperienceSchema = createExperienceSchema.partial().strict();
 
 export type CreateExperienceInput = z.infer<typeof createExperienceSchema>;
 export type UpdateExperienceInput = z.infer<typeof updateExperienceSchema>;

@@ -58,8 +58,30 @@ describe('Booking Model', () => {
       expect(booking.depositPaid).toBe(false);
       expect(booking.depositAmount).toBe(0);
       expect(booking.extrasPrice).toBe(0);
+      expect(booking.paymentMethod).toBe('online');
+      expect(booking.refundStatus).toBe('none');
       expect(booking.extras.hasBreakfast).toBe(false);
       expect(booking.extras.hasPets).toBe(false);
+    });
+
+    it('supports synchronized metadata fields', async () => {
+      const cabin = await createTestCabin();
+      const paidAt = new Date('2027-06-02T10:00:00.000Z');
+      const booking = await Booking.create(
+        createBookingData(cabin._id, {
+          stripePaymentIntentId: 'pi_test_123',
+          stripeSessionId: 'cs_test_123',
+          paidAt,
+          cancellationReason: 'Guest changed plans',
+          refundStatus: 'pending',
+        })
+      );
+
+      expect(booking.stripePaymentIntentId).toBe('pi_test_123');
+      expect(booking.stripeSessionId).toBe('cs_test_123');
+      expect(booking.paidAt).toEqual(paidAt);
+      expect(booking.cancellationReason).toBe('Guest changed plans');
+      expect(booking.refundStatus).toBe('pending');
     });
 
     it('requires cabin field', async () => {
@@ -121,9 +143,7 @@ describe('Booking Model', () => {
       const cabin = await createTestCabin();
       const longObs = 'a'.repeat(1001);
       await expect(
-        Booking.create(
-          createBookingData(cabin._id, { observations: longObs })
-        )
+        Booking.create(createBookingData(cabin._id, { observations: longObs }))
       ).rejects.toThrow(/Observations cannot exceed 1000 characters/);
     });
   });
@@ -189,7 +209,7 @@ describe('Booking Model', () => {
 
       // Check for overlap: Jun 3-7 (overlaps with Jun 1-5)
       // Use the cabin ObjectId directly from the created booking
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         created.cabin,
         new Date('2027-06-03'),
         new Date('2027-06-07')
@@ -211,7 +231,7 @@ describe('Booking Model', () => {
       );
 
       // Check for overlap: Jun 10-15 (no overlap)
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         cabin._id,
         new Date('2027-06-10'),
         new Date('2027-06-15')
@@ -232,7 +252,7 @@ describe('Booking Model', () => {
       );
 
       // Check overlap with the same dates, excluding self
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         cabin._id,
         new Date('2027-06-01'),
         new Date('2027-06-05'),
@@ -256,7 +276,7 @@ describe('Booking Model', () => {
       );
 
       // Check overlap: Jun 3-7 (should not detect cancelled)
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         cabin._id,
         new Date('2027-06-03'),
         new Date('2027-06-07')
@@ -279,7 +299,7 @@ describe('Booking Model', () => {
       );
 
       // Check overlap for cabin2: Jun 3-7 (different cabin, no overlap)
-      const overlapping = await (Booking as any).findOverlapping(
+      const overlapping = await Booking.findOverlapping(
         cabin2._id,
         new Date('2027-06-03'),
         new Date('2027-06-07')
@@ -348,16 +368,17 @@ describe('Booking Model', () => {
     it('has compound index on cabin+checkInDate+checkOutDate', async () => {
       const indexes = await Booking.collection.indexes();
       const compoundIndex = indexes.find(
-        (idx: any) => idx.key.cabin === 1 && idx.key.checkInDate === 1 && idx.key.checkOutDate === 1
+        (idx: any) =>
+          idx.key.cabin === 1 &&
+          idx.key.checkInDate === 1 &&
+          idx.key.checkOutDate === 1
       );
       expect(compoundIndex).toBeDefined();
     });
 
     it('has index on status', async () => {
       const indexes = await Booking.collection.indexes();
-      const statusIndex = indexes.find(
-        (idx: any) => idx.key.status === 1
-      );
+      const statusIndex = indexes.find((idx: any) => idx.key.status === 1);
       expect(statusIndex).toBeDefined();
     });
   });

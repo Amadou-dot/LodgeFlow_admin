@@ -262,19 +262,29 @@ export default function CabinModal({
                 <div className='grid grid-cols-3 gap-3'>
                   {formData.bedrooms && (
                     <div className='bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-600/60 rounded-lg p-3 text-center'>
-                      <p className='text-xs text-zinc-500 dark:text-zinc-400'>Bedrooms</p>
-                      <p className='text-lg font-bold text-zinc-800 dark:text-zinc-100'>{formData.bedrooms}</p>
+                      <p className='text-xs text-zinc-500 dark:text-zinc-400'>
+                        Bedrooms
+                      </p>
+                      <p className='text-lg font-bold text-zinc-800 dark:text-zinc-100'>
+                        {formData.bedrooms}
+                      </p>
                     </div>
                   )}
                   {formData.bathrooms && (
                     <div className='bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-600/60 rounded-lg p-3 text-center'>
-                      <p className='text-xs text-zinc-500 dark:text-zinc-400'>Bathrooms</p>
-                      <p className='text-lg font-bold text-zinc-800 dark:text-zinc-100'>{formData.bathrooms}</p>
+                      <p className='text-xs text-zinc-500 dark:text-zinc-400'>
+                        Bathrooms
+                      </p>
+                      <p className='text-lg font-bold text-zinc-800 dark:text-zinc-100'>
+                        {formData.bathrooms}
+                      </p>
                     </div>
                   )}
                   {formData.size && (
                     <div className='bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-600/60 rounded-lg p-3 text-center'>
-                      <p className='text-xs text-zinc-500 dark:text-zinc-400'>Size</p>
+                      <p className='text-xs text-zinc-500 dark:text-zinc-400'>
+                        Size
+                      </p>
                       <p className='text-lg font-bold text-zinc-800 dark:text-zinc-100'>
                         {formData.size} ft&sup2;
                       </p>

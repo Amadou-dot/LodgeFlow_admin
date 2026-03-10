@@ -27,6 +27,7 @@ export default function BookingMainContent({
         numNights={booking.numNights}
         checkInTime={booking.checkInTime?.toString()}
         checkOutTime={booking.checkOutTime?.toString()}
+        cancelledAt={booking.cancelledAt?.toString()}
         dateRange={dateRange}
         timeInfo={timeInfo}
       />
@@ -47,6 +48,7 @@ export default function BookingMainContent({
       <NotesCard
         observations={booking.observations}
         specialRequests={booking.specialRequests}
+        cancellationReason={booking.cancellationReason}
       />
     </div>
   );

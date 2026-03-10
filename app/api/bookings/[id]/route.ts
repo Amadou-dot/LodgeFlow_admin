@@ -1,8 +1,16 @@
-import { requireApiAuth } from '@/lib/api-utils';
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  requireApiAuth,
+} from '@/lib/api-utils';
 import { getClerkUser } from '@/lib/clerk-users';
+import { VALID_TRANSITIONS } from '@/lib/config';
+import { logger } from '@/lib/logger';
 import connectDB from '@/lib/mongodb';
+import { patchBookingSchema } from '@/lib/validations';
 import { Booking } from '@/models';
 import { IdParam } from '@/types';
+import { isMongooseValidationError, getErrorMessage } from '@/types/errors';
 
 export async function GET(_req: Request, { params }: IdParam) {
   // Require authentication
@@ -15,10 +23,7 @@ export async function GET(_req: Request, { params }: IdParam) {
     const booking = await Booking.findById(bookingId).populate('cabin');
 
     if (!booking) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Booking not found' }),
-        { status: 404 }
-      );
+      return createErrorResponse('Booking not found', 404);
     }
 
     // Get customer data from Clerk (best-effort — don't fail the request)
@@ -26,7 +31,9 @@ export async function GET(_req: Request, { params }: IdParam) {
     try {
       customer = await getClerkUser(booking.customer);
     } catch (clerkError) {
-      console.error('Error fetching customer from Clerk:', clerkError);
+      logger.error('Failed to fetch customer from Clerk', clerkError, {
+        bookingId,
+      });
     }
 
     // Build populated booking response
@@ -34,61 +41,43 @@ export async function GET(_req: Request, { params }: IdParam) {
       ...booking.toObject(),
       customer: customer,
       guest: customer, // For legacy compatibility
-      cabinName: booking.cabin?.name,
+      cabinName: (booking.cabin as unknown as { name?: string })?.name,
     };
 
-    return new Response(
-      JSON.stringify({ success: true, data: populatedBooking }),
-      { status: 200 }
-    );
+    return createSuccessResponse(populatedBooking);
   } catch (error) {
-    console.error('Error fetching booking:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: 'Failed to fetch booking' }),
-      { status: 500 }
-    );
+    logger.error('Failed to fetch booking', error, { bookingId });
+    return createErrorResponse('Failed to fetch booking', 500);
   }
 }
 
 export async function PATCH(req: Request, { params }: IdParam) {
-  // Require authentication
+  // Require authentication and admin role
   const authResult = await requireApiAuth();
   if (!authResult.authenticated) return authResult.error;
 
   const bookingId = (await params).id;
   try {
     await connectDB();
-    const updateData = await req.json();
+    const rawUpdateData = await req.json();
+    const validationResult = patchBookingSchema.safeParse(rawUpdateData);
+    if (!validationResult.success) {
+      return createErrorResponse(
+        'Validation failed',
+        400,
+        validationResult.error.flatten()
+      );
+    }
+    const updateData = validationResult.data;
 
-    // Find the booking
     const booking = await Booking.findById(bookingId);
     if (!booking) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Booking not found' }),
-        { status: 404 }
-      );
+      return createErrorResponse('Booking not found', 404);
     }
 
     // Handle payment recording
     if (updateData.recordPayment) {
       const { paymentMethod, amountPaid, notes } = updateData.recordPayment;
-
-      // Validate payment method
-      const validPaymentMethods = ['cash', 'card', 'bank-transfer', 'online'];
-      if (!validPaymentMethods.includes(paymentMethod)) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Invalid payment method' }),
-          { status: 400 }
-        );
-      }
-
-      // Validate amount
-      if (!amountPaid || amountPaid <= 0) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Invalid payment amount' }),
-          { status: 400 }
-        );
-      }
 
       // Calculate remaining amount, accounting for previous payments
       const totalPreviouslyPaid = booking.depositAmount || 0;
@@ -102,17 +91,29 @@ export async function PATCH(req: Request, { params }: IdParam) {
       booking.depositPaid = true;
       booking.depositAmount = totalPaid;
       booking.remainingAmount = Math.max(0, remainingAmount);
+      if (isPaid) {
+        booking.paidAt = new Date();
+      }
 
       // Add payment notes to observations if provided
       if (notes) {
-        booking.observations = booking.observations
+        const combined = booking.observations
           ? `${booking.observations}\n\nPayment recorded: ${notes}`
           : `Payment recorded: ${notes}`;
+        booking.observations = combined.slice(0, 1000);
       }
     }
 
-    // Handle other updates (status changes, etc.)
+    // Handle status changes with transition validation
     if (updateData.status) {
+      const allowed = VALID_TRANSITIONS[booking.status] ?? [];
+      if (!allowed.includes(updateData.status)) {
+        return createErrorResponse(
+          `Cannot transition from '${booking.status}' to '${updateData.status}'`,
+          400
+        );
+      }
+
       booking.status = updateData.status;
 
       // Set check-in/check-out times
@@ -120,10 +121,84 @@ export async function PATCH(req: Request, { params }: IdParam) {
         booking.checkInTime = new Date();
       } else if (updateData.status === 'checked-out') {
         booking.checkOutTime = new Date();
+      } else if (updateData.status === 'cancelled') {
+        booking.cancelledAt = updateData.cancelledAt ?? new Date();
+        booking.refundStatus =
+          updateData.refundStatus ?? booking.refundStatus ?? 'none';
       }
     }
 
-    // Save the updated booking
+    // Reject cancellation/refund fields on non-cancelled bookings
+    const cancellationFields = [
+      'cancellationReason',
+      'refundStatus',
+      'refundAmount',
+      'refundedAt',
+    ].filter(f => (updateData as Record<string, unknown>)[f] !== undefined);
+    if (cancellationFields.length > 0 && booking.status !== 'cancelled') {
+      return createErrorResponse(
+        `Cannot set ${cancellationFields.join(', ')} on a booking with status '${booking.status}'. The booking must be cancelled first.`,
+        400
+      );
+    }
+
+    // Validate refundAmount does not exceed totalPrice
+    if (
+      updateData.refundAmount !== undefined &&
+      updateData.refundAmount > booking.totalPrice
+    ) {
+      return createErrorResponse(
+        `Refund amount (${updateData.refundAmount}) cannot exceed total price (${booking.totalPrice})`,
+        400
+      );
+    }
+
+    // Validate refundAmount requires a compatible refundStatus
+    if (updateData.refundAmount !== undefined && updateData.refundAmount > 0) {
+      const effectiveRefundStatus =
+        updateData.refundStatus ?? booking.refundStatus ?? 'none';
+      if (effectiveRefundStatus === 'none') {
+        return createErrorResponse(
+          'refundStatus must be "partial" or "full" when setting a non-zero refundAmount',
+          400
+        );
+      }
+    }
+
+    // Cancellation and refund metadata — only writable on cancelled bookings
+    if (booking.status === 'cancelled') {
+      if (updateData.cancellationReason !== undefined) {
+        booking.cancellationReason = updateData.cancellationReason;
+      }
+      // Allow updating cancelledAt on already-cancelled bookings without re-sending status
+      if (updateData.cancelledAt !== undefined && !updateData.status) {
+        booking.cancelledAt = updateData.cancelledAt;
+      }
+      if (updateData.refundStatus !== undefined && !updateData.status) {
+        booking.refundStatus = updateData.refundStatus;
+      }
+      if (updateData.refundAmount !== undefined) {
+        booking.refundAmount = updateData.refundAmount;
+      }
+      if (updateData.refundedAt !== undefined) {
+        booking.refundedAt = updateData.refundedAt;
+      }
+    }
+
+    // Payment metadata — skip paidAt if recordPayment already set it
+    if (updateData.paidAt !== undefined && !updateData.recordPayment) {
+      booking.paidAt = updateData.paidAt;
+    }
+    if (updateData.stripePaymentIntentId !== undefined) {
+      booking.stripePaymentIntentId = updateData.stripePaymentIntentId;
+    }
+    if (updateData.stripeSessionId !== undefined) {
+      booking.stripeSessionId = updateData.stripeSessionId;
+    }
+    if (updateData.paymentConfirmationSentAt !== undefined) {
+      booking.paymentConfirmationSentAt = updateData.paymentConfirmationSentAt;
+    }
+
     const updatedBooking = await booking.save();
     await updatedBooking.populate('cabin');
 
@@ -133,7 +208,9 @@ export async function PATCH(req: Request, { params }: IdParam) {
     try {
       customer = await getClerkUser(updatedBooking.customer);
     } catch (clerkError) {
-      console.error('Error fetching customer from Clerk:', clerkError);
+      logger.error('Failed to fetch customer from Clerk', clerkError, {
+        bookingId,
+      });
     }
 
     // Build populated booking response
@@ -141,18 +218,26 @@ export async function PATCH(req: Request, { params }: IdParam) {
       ...updatedBooking.toObject(),
       customer: customer,
       guest: customer, // For legacy compatibility
-      cabinName: updatedBooking.cabin?.name,
+      cabinName: (updatedBooking.cabin as unknown as { name?: string })?.name,
     };
 
-    return new Response(
-      JSON.stringify({ success: true, data: populatedBooking }),
-      { status: 200 }
-    );
+    return createSuccessResponse(populatedBooking);
   } catch (error) {
-    console.error('Error updating booking:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: 'Failed to update booking' }),
-      { status: 500 }
+    if (isMongooseValidationError(error)) {
+      logger.warn(
+        'Mongoose validation fired after Zod passed — possible schema drift',
+        {
+          bookingId,
+          validationErrors: Object.keys(error.errors),
+        }
+      );
+      return createErrorResponse('Validation failed', 400, error.errors);
+    }
+
+    logger.error('Failed to update booking', error, { bookingId });
+    return createErrorResponse(
+      getErrorMessage(error, 'Failed to update booking'),
+      500
     );
   }
 }

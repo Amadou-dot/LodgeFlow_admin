@@ -178,9 +178,7 @@ describe('Cabin Model', () => {
 
     it('has text index on name and description', async () => {
       const indexes = await Cabin.collection.indexes();
-      const textIdx = indexes.find(
-        (i: any) => i.key._fts === 'text'
-      );
+      const textIdx = indexes.find((i: any) => i.key._fts === 'text');
       expect(textIdx).toBeDefined();
     });
   });

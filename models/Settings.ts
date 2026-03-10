@@ -198,6 +198,13 @@ const SettingsSchema: Schema<ISettings, ISettingsModel> = new Schema(
             'friday',
             'saturday',
             'sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday',
           ],
         },
       ],
@@ -288,6 +295,7 @@ SettingsSchema.virtual('fullAddress').get(function (this: ISettings) {
 
 // Ensure virtual fields are serialized
 SettingsSchema.set('toJSON', { virtuals: true });
+SettingsSchema.set('toObject', { virtuals: true });
 
 const Settings =
   (mongoose.models.Settings as ISettingsModel) ||
